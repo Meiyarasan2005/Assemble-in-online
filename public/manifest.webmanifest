@@ -1,0 +1,33 @@
+{
+  "name": "SpareXpress — Car Spare Parts",
+  "short_name": "SpareXpress",
+  "description": "Genuine car spare parts. Search by part number or vehicle fitment, track orders, download GST invoices.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0c1016",
+  "theme_color": "#0c1016",
+  "lang": "en-IN",
+  "categories": ["shopping", "automotive"],
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
