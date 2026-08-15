@@ -1,0 +1,271 @@
+/* ============================================================
+   motion pref
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001s !important;
+  }
+}
+
+/* ============================================================
+   scroll reveal
+   ============================================================ */
+.reveal {
+  opacity: 0;
+  will-change: opacity, transform;
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal-up {
+  transform: translateY(34px);
+}
+
+.reveal-left {
+  transform: translateX(-42px);
+}
+
+.reveal-right {
+  transform: translateX(42px);
+}
+
+.reveal-scale {
+  transform: scale(0.92);
+}
+
+.reveal.in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ============================================================
+   3D tilt cards
+   ============================================================ */
+.tilt {
+  position: relative;
+  transform: perspective(950px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transform-style: preserve-3d;
+  transition: transform 0.18s ease-out;
+  will-change: transform;
+}
+
+.tilt:hover {
+  transform: perspective(950px) translateY(-3px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+}
+
+.tilt::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  background: radial-gradient(
+    420px circle at var(--gx, 50%) var(--gy, 50%),
+    rgba(255, 255, 255, 0.09),
+    transparent 42%
+  );
+  mix-blend-mode: screen;
+}
+
+.tilt:hover::after {
+  opacity: 1;
+}
+
+.tilt-children {
+  transform: translateZ(26px);
+}
+
+/* ============================================================
+   animated counters
+   ============================================================ */
+.countup {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   background particles / orbs
+   ============================================================ */
+.bgfx {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.bgfx-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.5;
+  animation: orb-drift 26s ease-in-out infinite alternate;
+}
+
+.orb-1 {
+  width: 420px;
+  height: 420px;
+  left: -140px;
+  top: 8%;
+  background: rgba(255, 106, 0, 0.16);
+}
+
+.orb-2 {
+  width: 380px;
+  height: 380px;
+  right: -120px;
+  top: 42%;
+  background: rgba(53, 208, 242, 0.11);
+  animation-delay: -8s;
+}
+
+.orb-3 {
+  width: 300px;
+  height: 300px;
+  left: 30%;
+  bottom: -140px;
+  background: rgba(46, 204, 143, 0.1);
+  animation-delay: -16s;
+}
+
+@keyframes orb-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(60px, -44px, 0) scale(1.15);
+  }
+}
+
+.bgfx-p {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--accent-hi);
+  opacity: 0;
+  animation: particle-rise linear infinite;
+  box-shadow: 0 0 8px rgba(255, 138, 51, 0.8);
+}
+
+@keyframes particle-rise {
+  0% {
+    transform: translate3d(0, 30px, 0);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.8;
+  }
+  88% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate3d(-46px, -46vh, 0);
+    opacity: 0;
+  }
+}
+
+/* ============================================================
+   button shine sweep
+   ============================================================ */
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -80%;
+  width: 45%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  transform: skewX(-24deg);
+  animation: btn-shine 4.6s ease-in-out infinite;
+}
+
+@keyframes btn-shine {
+  0%,
+  55% {
+    left: -80%;
+  }
+  85%,
+  100% {
+    left: 130%;
+  }
+}
+
+/* ============================================================
+   marquee polish
+   ============================================================ */
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+.marquee-track {
+  transition: filter 0.3s ease;
+}
+
+.marquee:hover .marquee-track {
+  filter: brightness(1.35);
+}
+
+/* ============================================================
+   headline gradient shimmer
+   ============================================================ */
+.hero-hl {
+  background: linear-gradient(110deg, #fff 20%, #ff8b33 42%, #ff6a00 50%, #fff 80%);
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shine-text 7s linear infinite;
+}
+
+@keyframes shine-text {
+  to {
+    background-position: -220% center;
+  }
+}
+
+/* ============================================================
+   reveal wrappers inside grids fill their cell
+   ============================================================ */
+.how > .reveal,
+.testimonials > .reveal,
+.perks > .reveal,
+.grid-featured > .reveal {
+  display: flex;
+}
+
+.how > .reveal > *,
+.testimonials > .reveal > *,
+.perks > .reveal > *,
+.grid-featured > .reveal > * {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+}
+
+/* ============================================================
+   stat cards hover lift
+   ============================================================ */
+.stat {
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.stat:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 106, 0, 0.45);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5);
+}

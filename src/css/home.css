@@ -1,0 +1,471 @@
+/* ============ pre-owned strip ============ */
+
+.preowned {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 106, 0, 0.25);
+  background: linear-gradient(140deg, rgba(255, 106, 0, 0.08), var(--surface) 45%);
+}
+
+.preowned-art {
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 40% 50%, rgba(255, 106, 0, 0.18), transparent 65%);
+  padding: 30px;
+}
+
+.preowned-art svg {
+  width: 150px;
+  height: 150px;
+  color: var(--accent-hi);
+  opacity: 0.9;
+}
+
+.preowned-copy {
+  padding: 34px 38px 34px 16px;
+}
+
+.preowned-copy h2 {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.preowned-copy > p {
+  color: var(--muted);
+  max-width: 520px;
+  margin-bottom: 18px;
+}
+
+.preowned-list {
+  list-style: none;
+  margin: 0 0 22px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.preowned-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.preowned-list svg {
+  color: var(--green);
+  flex-shrink: 0;
+}
+
+.preowned-cta {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.preowned-demo {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.preowned-demo del {
+  color: var(--faint);
+}
+
+.preowned-demo strong {
+  color: var(--accent-hi);
+}
+
+/* ============ marquee ============ */
+
+.marquee {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+
+.marquee-track {
+  display: flex;
+  gap: 40px;
+  width: max-content;
+  animation: marquee 32s linear infinite;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-item {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--faint);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+}
+
+.marquee-item::before {
+  content: '◆';
+  color: var(--accent);
+  font-size: 10px;
+  margin-right: 40px;
+  opacity: 0.6;
+}
+
+/* ------------ car brands marquee (below car animation) ------------ */
+
+.car-brands {
+  margin: 2px 0 26px;
+  padding: 16px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background:
+    linear-gradient(90deg, rgba(255, 106, 0, 0.06), transparent 38%, transparent 62%, rgba(53, 208, 242, 0.06)),
+    rgba(255, 255, 255, 0.015);
+}
+
+.car-brands .marquee-track {
+  animation-duration: 26s;
+}
+
+.car-brands .marquee-item-hl {
+  font-family: var(--display);
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  white-space: nowrap;
+  color: transparent;
+  background: linear-gradient(90deg, #ffb066, #ff6a00 48%, #35d0f2);
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 0 16px rgba(255, 106, 0, 0.4));
+}
+
+.car-brands .marquee-item-hl::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px var(--accent);
+  margin-right: 30px;
+  opacity: 0.9;
+}
+
+/* ============ how it works ============ */
+
+.how {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.how-step {
+  position: relative;
+  padding: 26px;
+}
+
+.how-num {
+  position: absolute;
+  top: 20px;
+  right: 22px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--faint);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  padding: 3px 8px;
+}
+
+.how-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 106, 0, 0.13);
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+
+.how-step h3 {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.how-step p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ============ testimonials ============ */
+
+.testimonials {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.testi {
+  position: relative;
+  padding: 26px 24px 22px;
+}
+
+.testi-quote-mark {
+  position: absolute;
+  top: 8px;
+  right: 20px;
+  font-family: var(--display);
+  font-size: 64px;
+  line-height: 1;
+  color: var(--accent);
+  opacity: 0.25;
+}
+
+.testi blockquote {
+  margin: 0 0 18px;
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+.testi figcaption {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.testi figcaption strong {
+  display: block;
+  font-size: 14px;
+}
+
+.testi figcaption em {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-style: normal;
+  font-size: 12px;
+  color: var(--faint);
+}
+
+/* ============ perks ============ */
+
+.perks {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.perk {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+
+.perk-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 106, 0, 0.12);
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.perk strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 3px;
+}
+
+.perk span {
+  font-size: 12.5px;
+  color: var(--faint);
+}
+
+/* ============ all-products marquee gallery ============ */
+
+.prod-marquee {
+  display: grid;
+  gap: 18px;
+}
+
+.prod-marquee-row {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  padding: 4px 0;
+}
+
+.prod-marquee-track {
+  display: flex;
+  gap: 16px;
+  width: max-content;
+  animation: prod-marquee 36s linear infinite;
+}
+
+.prod-marquee-rev .prod-marquee-track {
+  animation-direction: reverse;
+  animation-duration: 44s;
+}
+
+@keyframes prod-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.prod-chip {
+  width: 236px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  text-decoration: none;
+  color: var(--text);
+  transition:
+    transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+.prod-chip:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 106, 0, 0.5);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.42);
+}
+
+.prod-chip-art {
+  width: 58px;
+  height: 58px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.08), transparent 60%);
+  color: var(--accent);
+}
+
+.prod-chip-art.braking {
+  background: rgba(255, 87, 34, 0.12);
+  color: #ff8a50;
+}
+
+.prod-chip-art.filters {
+  background: rgba(53, 208, 242, 0.12);
+  color: #5fd4f0;
+}
+
+.prod-chip-art.engine {
+  background: rgba(255, 196, 71, 0.12);
+  color: #ffc247;
+}
+
+.prod-chip-art.suspension {
+  background: rgba(46, 204, 143, 0.12);
+  color: #2ecc8f;
+}
+
+.prod-chip-art.electrical {
+  background: rgba(187, 107, 255, 0.12);
+  color: #bb6bff;
+}
+
+.prod-chip-art.cooling {
+  background: rgba(90, 172, 255, 0.12);
+  color: #5aacff;
+}
+
+.prod-chip-art.transmission {
+  background: rgba(255, 138, 51, 0.12);
+  color: #ff8a33;
+}
+
+.prod-chip-art.care {
+  background: rgba(255, 120, 180, 0.12);
+  color: #ff78b4;
+}
+
+.prod-chip-art svg {
+  width: 30px;
+  height: 30px;
+}
+
+.prod-chip-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.prod-chip-brand {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.prod-chip-name {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.prod-chip-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2px;
+}
+
+.prod-chip-price {
+  font-family: var(--mono);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--accent-hi);
+}
+
+.prod-chip-arrow {
+  color: var(--faint);
+  font-size: 14px;
+  transition: transform 0.22s ease, color 0.22s ease;
+}
+
+.prod-chip:hover .prod-chip-arrow {
+  transform: translateX(3px);
+  color: var(--accent);
+}
+
+@media (max-width: 720px) {
+  .prod-chip {
+    width: 208px;
+  }
+}

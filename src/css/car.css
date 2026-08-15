@@ -1,0 +1,1114 @@
+/* ============================================================
+   driving car scene
+   ============================================================ */
+.carscene {
+  position: relative;
+  margin: 34px 0 6px;
+  height: 210px;
+  overflow: hidden;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, #0b1220 0%, #101a2b 62%, #161d28 100%);
+}
+
+.carscene-stage {
+  position: relative;
+  height: 100%;
+}
+
+.carscene-horizon {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(520px 140px at 68% 72%, rgba(255, 106, 0, 0.22), transparent 62%),
+    radial-gradient(420px 120px at 30% 70%, rgba(53, 208, 242, 0.1), transparent 60%);
+  animation: horizon-pulse 5s ease-in-out infinite alternate;
+}
+
+@keyframes horizon-pulse {
+  from {
+    opacity: 0.7;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.carscene-skyline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 64px;
+  width: 100%;
+  height: 120px;
+  opacity: 0.8;
+  animation: skyline-drift 90s linear infinite;
+}
+
+@keyframes skyline-drift {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.carscene-stars i {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0.6;
+  animation: twinkle 3.4s ease-in-out infinite;
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.2);
+  }
+}
+
+.carscene-road {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 74px;
+  background: linear-gradient(180deg, #101624 0%, #06090f 52%, #05080f 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 10px 30px rgba(0, 0, 0, 0.48);
+}
+
+.carscene-road::before,
+.carscene-road::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 7px;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.08), transparent 45%);
+  top: 20px;
+  opacity: 0.5;
+}
+
+.carscene-road::after {
+  top: 46px;
+  opacity: 0.3;
+}
+
+.carscene-dash {
+  position: absolute;
+  top: 18px;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(255, 106, 0, 0.9) 0 26px,
+    transparent 26px 60px
+  );
+  opacity: 0.65;
+  animation: dash-scroll 1.4s linear infinite;
+}
+
+@keyframes dash-scroll {
+  from {
+    background-position-x: 0;
+  }
+  to {
+    background-position-x: -74px;
+  }
+}
+
+.carscene-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 14px;
+  display: flex;
+  width: max-content;
+  animation: drive 9.5s linear infinite;
+}
+
+@keyframes drive {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-56%);
+  }
+}
+
+.carscene-unit {
+  width: 460px;
+  flex-shrink: 0;
+  padding: 0 8px;
+  position: relative;
+}
+
+.car {
+  width: 100%;
+  filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.5));
+  animation: car-bob 0.9s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.carscene-trail {
+  position: absolute;
+  bottom: 14px;
+  left: 20px;
+  width: 110%;
+  height: 12px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.03));
+  filter: blur(3px);
+  opacity: 0.28;
+  transform: skewX(-20deg);
+  pointer-events: none;
+  animation: trail-flicker 1.4s ease-in-out infinite;
+}
+
+@keyframes trail-flicker {
+  0%, 100% {
+    opacity: 0.22;
+  }
+  50% {
+    opacity: 0.38;
+  }
+}
+
+@keyframes car-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.wheel-spokes {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: wheel-spin 0.7s linear infinite;
+}
+
+@keyframes wheel-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.car-beam {
+  opacity: 0.8;
+  animation: beam-flicker 0.18s steps(2) infinite;
+}
+
+@keyframes beam-flicker {
+  0%,
+  100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.car-puffs {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.puff {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: puff-out 1.1s ease-out infinite;
+}
+
+.puff-1 {
+  animation-delay: 0s;
+}
+
+.puff-2 {
+  animation-delay: 0.37s;
+}
+
+.puff-3 {
+  animation-delay: 0.74s;
+}
+
+@keyframes puff-out {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.5);
+  }
+  25% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-26px, -22px) scale(1.9);
+  }
+}
+
+.carscene-fog {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 10px;
+  height: 90px;
+  border-radius: 50%;
+  background: rgba(156, 173, 200, 0.07);
+  filter: blur(22px);
+  pointer-events: none;
+}
+
+.carscene-shooting-star {
+  position: absolute;
+  top: 24px;
+  right: -120px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.95));
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+  transform: rotate(-18deg);
+  animation: shooting-star 7s ease-in-out infinite;
+}
+
+@keyframes shooting-star {
+  0%, 100% {
+    opacity: 0;
+    transform: translateX(0) rotate(-18deg);
+  }
+  10% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.95;
+    transform: translateX(-360px) translateY(12px) rotate(-18deg);
+  }
+  90% {
+    opacity: 0;
+  }
+}
+
+.fog-a {
+  animation: fog-drift 9s ease-in-out infinite alternate;
+}
+
+.fog-b {
+  bottom: 26px;
+  height: 60px;
+  animation: fog-drift 13s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes fog-drift {
+  from {
+    transform: translateX(-4%);
+  }
+  to {
+    transform: translateX(4%);
+  }
+}
+
+.carscene-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 40%, transparent 55%, rgba(6, 9, 14, 0.55));
+}
+
+@media (max-width: 720px) {
+  .carscene {
+    height: 150px;
+  }
+  .carscene-unit {
+    width: 320px;
+  }
+  .carscene-skyline {
+    bottom: 48px;
+    height: 80px;
+  }
+}
+
+/* ============================================================
+   preloader — cutout car driving (running/drafting) animation
+   ============================================================ */
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(720px 260px at 50% 22%, rgba(255, 106, 0, 0.12), transparent 62%),
+    linear-gradient(180deg, #070b12 0%, #0c1320 55%, #0a0f18 100%);
+  overflow: hidden;
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0.7s;
+}
+
+.preloader-done {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.preloader-stage {
+  position: relative;
+  width: min(720px, 92vw);
+}
+
+.preloader-draft {
+  position: relative;
+  height: 300px;
+  overflow: hidden;
+}
+
+.preloader-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(53, 208, 242, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(53, 208, 242, 0.08) 1px, transparent 1px);
+  background-size: 34px 34px;
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 25%, transparent 72%);
+  mask-image: radial-gradient(circle at 50% 50%, #000 25%, transparent 72%);
+  animation: preloader-grid-fade 1.7s ease-out forwards;
+}
+
+@keyframes preloader-grid-fade {
+  0% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0.22;
+  }
+}
+
+.preloader-scene {
+  position: absolute;
+  inset: 0;
+  perspective: 900px;
+  perspective-origin: 50% 30%;
+}
+
+.preloader-horizon {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 200px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.preloader-horizon-sky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #05080f 0%, #0a1422 45%, #0f1e30 100%);
+}
+
+.preloader-horizon-glow {
+  position: absolute;
+  left: 50%;
+  bottom: -40px;
+  width: 640px;
+  height: 200px;
+  transform: translateX(-50%);
+  background: radial-gradient(50% 55% at 50% 100%, rgba(53, 208, 242, 0.3), rgba(53, 208, 242, 0.06) 55%, transparent 78%);
+  filter: blur(4px);
+}
+
+.preloader-horizon-skyline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 150px;
+  background-color: rgba(7, 12, 20, 0.92);
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(53, 208, 242, 0.1) 0 2px,
+    transparent 2px 26px
+  );
+  clip-path: polygon(0 100%, 0 55%, 7% 55%, 7% 34%, 13% 34%, 13% 60%, 21% 60%, 21% 24%, 28% 24%, 28% 68%, 36% 68%, 36% 46%, 42% 46%, 42% 74%, 50% 74%, 50% 30%, 57% 30%, 57% 58%, 64% 58%, 64% 40%, 71% 40%, 71% 66%, 79% 66%, 79% 28%, 86% 28%, 86% 52%, 93% 52%, 93% 40%, 100% 40%, 100% 100%);
+  -webkit-clip-path: polygon(0 100%, 0 55%, 7% 55%, 7% 34%, 13% 34%, 13% 60%, 21% 60%, 21% 24%, 28% 24%, 28% 68%, 36% 68%, 36% 46%, 42% 46%, 42% 74%, 50% 74%, 50% 30%, 57% 30%, 57% 58%, 64% 58%, 64% 40%, 71% 40%, 71% 66%, 79% 66%, 79% 28%, 86% 28%, 86% 52%, 93% 52%, 93% 40%, 100% 40%, 100% 100%);
+  opacity: 0.8;
+  animation: preloader-skyline-drift 90s linear infinite;
+}
+
+@keyframes preloader-skyline-drift {
+  from {
+    background-position-x: 0;
+  }
+  to {
+    background-position-x: -156px;
+  }
+}
+
+.preloader-horizon-posts {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 70px;
+  height: 16px;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0 64px,
+    rgba(53, 208, 242, 0.3) 64px 66px,
+    transparent 66px 128px
+  );
+  animation: preloader-posts-drift 14s linear infinite;
+}
+
+@keyframes preloader-posts-drift {
+  from {
+    background-position-x: 0;
+  }
+  to {
+    background-position-x: -128px;
+  }
+}
+
+.preloader-ground {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 104px;
+  transform-style: preserve-3d;
+  transform-origin: 50% 100%;
+  transform: rotateX(38deg);
+}
+
+.preloader-road {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 64px;
+  background: linear-gradient(180deg, #0d1420 0%, #070b12 55%, #05080f 100%);
+  border-top: 1px solid rgba(53, 208, 242, 0.14);
+  box-shadow: inset 0 12px 28px rgba(0, 0, 0, 0.5);
+}
+
+.preloader-road-dash {
+  position: absolute;
+  top: 26px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(53, 208, 242, 0.6) 0 30px,
+    transparent 30px 66px
+  );
+  opacity: 0.6;
+  animation: preloader-dash-scroll 0.55s linear infinite;
+}
+
+@keyframes preloader-dash-scroll {
+  from {
+    background-position-x: 0;
+  }
+  to {
+    background-position-x: -96px;
+  }
+}
+
+.preloader-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 40px;
+  display: flex;
+  width: 200%;
+  transform: translateX(-50%);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.preloader-run-unit {
+  position: relative;
+  width: 50%;
+  flex-shrink: 0;
+  transform-style: preserve-3d;
+  animation: preloader-sway 3.4s ease-in-out infinite;
+}
+
+@keyframes preloader-sway {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+.preloader-run-ground-shadow {
+  position: absolute;
+  left: 40px;
+  bottom: 0;
+  width: 210px;
+  height: 30px;
+  border-radius: 50%;
+  background: radial-gradient(50% 50% at 50% 50%, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0) 70%);
+  filter: blur(3px);
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.preloader-run-reflect {
+  position: absolute;
+  left: 40px;
+  bottom: 0;
+  width: 210px;
+  height: auto;
+  aspect-ratio: 574 / 269;
+  background-image: url('/images/car-draft.png');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  transform: scaleY(-1);
+  transform-origin: 50% 100%;
+  opacity: 0.16;
+  -webkit-mask-image: linear-gradient(0deg, rgba(0, 0, 0, 0.85) 30%, rgba(0, 0, 0, 0.2) 62%, transparent 88%);
+  mask-image: linear-gradient(0deg, rgba(0, 0, 0, 0.85) 30%, rgba(0, 0, 0, 0.2) 62%, transparent 88%);
+  filter: blur(1px) grayscale(0.5);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.preloader-run-3d {
+  position: absolute;
+  left: 40px;
+  bottom: 0;
+  width: 210px;
+  height: auto;
+  aspect-ratio: 574 / 269;
+  transform-style: preserve-3d;
+  transform: rotateX(-38deg) rotateY(4deg);
+  z-index: 1;
+}
+
+.preloader-run-rig {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  animation: preloader-car-motion 1.6s linear infinite;
+}
+
+@keyframes preloader-car-motion {
+  0% {
+    transform: translateY(0) scale(0.94);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.06);
+  }
+  100% {
+    transform: translateY(0) scale(0.94);
+  }
+}
+
+.preloader-run-car {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: grayscale(0.9) sepia(0.22) contrast(1.15) brightness(1.05);
+  animation: preloader-color 1.3s ease-out 0.1s forwards;
+}
+
+.preloader-run-ghost {
+  position: absolute;
+  left: -13%;
+  inset: 0 auto 0 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0.14;
+  filter: blur(2px) grayscale(1) brightness(1.35);
+  pointer-events: none;
+  animation: preloader-trail-flicker 0.7s ease-in-out infinite;
+}
+
+.preloader-run-ghost.ghost-2 {
+  left: -26%;
+  opacity: 0.07;
+  filter: blur(3px) grayscale(1) brightness(1.5);
+  animation-delay: 0.18s;
+}
+
+.preloader-run-shadow {
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  bottom: -7%;
+  height: 12%;
+  border-radius: 50%;
+  background: radial-gradient(50% 50% at 50% 50%, rgba(0, 0, 0, 0.55), transparent 70%);
+  filter: blur(3px);
+  pointer-events: none;
+}
+
+.preloader-run-label {
+  position: absolute;
+  left: 12%;
+  top: 52%;
+  width: 76%;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-family: var(--mono);
+  font-size: 7.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(53, 208, 242, 0.85);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  opacity: 0;
+  animation: preloader-label-in 1.3s ease-out 0.5s forwards;
+  pointer-events: none;
+  z-index: 3;
+}
+
+@keyframes preloader-label-in {
+  to {
+    opacity: 1;
+  }
+}
+
+.preloader-run-beam {
+  position: absolute;
+  right: -26%;
+  top: 54%;
+  width: 30%;
+  aspect-ratio: 60 / 34;
+  clip-path: polygon(0 50%, 100% 0, 100% 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(53, 208, 242, 0.85),
+    rgba(53, 208, 242, 0) 78%
+  );
+  filter: blur(1px);
+  opacity: 0.75;
+  pointer-events: none;
+  animation: preloader-beam-flicker 0.16s steps(2) infinite;
+}
+
+@keyframes preloader-beam-flicker {
+  0%,
+  100% {
+    opacity: 0.75;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.preloader-run-wheel {
+  position: absolute;
+  bottom: 1%;
+  width: 7.6%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid rgba(13, 20, 32, 0.95);
+  background: repeating-conic-gradient(
+    #0d1420 0deg 30deg,
+    rgba(53, 208, 242, 0.9) 30deg 60deg
+  );
+  box-shadow:
+    inset 0 0 3px rgba(0, 0, 0, 0.6),
+    0 1px 3px rgba(0, 0, 0, 0.5);
+  animation: wheel-spin 0.5s linear infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.preloader-run-wheel.wheel-r {
+  left: 21.4%;
+}
+.preloader-run-wheel.wheel-f {
+  left: 79%;
+}
+
+.preloader-run-dust {
+  position: absolute;
+  bottom: 3%;
+  width: 9%;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(270deg, rgba(53, 208, 242, 0.7), transparent);
+  opacity: 0;
+  pointer-events: none;
+  animation: preloader-dust 0.55s linear infinite;
+}
+
+.preloader-run-dust.d-r1 {
+  left: 21%;
+}
+.preloader-run-dust.d-r2 {
+  left: 28%;
+  animation-delay: 0.28s;
+}
+.preloader-run-dust.d-f1 {
+  left: 76%;
+  animation-delay: 0.1s;
+}
+.preloader-run-dust.d-f2 {
+  left: 83%;
+  animation-delay: 0.38s;
+}
+
+@keyframes preloader-dust {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(-120%);
+    opacity: 0;
+  }
+}
+
+.preloader-run-puffs {
+  position: absolute;
+  left: -12%;
+  bottom: 28%;
+  width: 16px;
+  height: 22px;
+  pointer-events: none;
+}
+
+.preloader-run-puffs span {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(53, 208, 242, 0.7), rgba(53, 208, 242, 0.05) 70%);
+  opacity: 0;
+  animation: preloader-puff 1.1s ease-out infinite;
+}
+
+.preloader-run-puffs span:nth-child(2) {
+  animation-delay: 0.36s;
+}
+.preloader-run-puffs span:nth-child(3) {
+  animation-delay: 0.72s;
+}
+
+@keyframes preloader-puff {
+  0% {
+    transform: translate(0, 0) scale(0.5);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate(-12px, -20px) scale(1.7);
+    opacity: 0;
+  }
+}
+
+.preloader-run-trail {
+  position: absolute;
+  z-index: 0;
+  bottom: 12px;
+  left: -70px;
+  width: 110px;
+  height: 42px;
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(53, 208, 242, 0.55) 0 2px,
+    transparent 2px 12px
+  );
+  filter: blur(1px);
+  opacity: 0.35;
+  -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.85), transparent 85%);
+  mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.85), transparent 85%);
+  pointer-events: none;
+  animation: preloader-trail-flicker 0.45s ease-in-out infinite;
+}
+
+@keyframes preloader-trail-flicker {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.preloader-wind {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.preloader-wind-line {
+  position: absolute;
+  right: -15%;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(
+    270deg,
+    rgba(53, 208, 242, 0.55),
+    rgba(53, 208, 242, 0)
+  );
+  opacity: 0;
+  animation: preloader-wind-zip 1.1s linear infinite;
+}
+
+.preloader-wind-line:nth-child(1) {
+  top: 16%;
+  width: 34%;
+}
+.preloader-wind-line:nth-child(2) {
+  top: 42%;
+  width: 20%;
+  animation-delay: 0.3s;
+}
+.preloader-wind-line:nth-child(3) {
+  top: 63%;
+  width: 27%;
+  animation-delay: 0.6s;
+}
+.preloader-wind-line:nth-child(4) {
+  top: 84%;
+  width: 15%;
+  animation-delay: 0.9s;
+}
+
+@keyframes preloader-wind-zip {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.75;
+  }
+  85% {
+    opacity: 0.45;
+  }
+  100% {
+    transform: translateX(-150vw);
+    opacity: 0;
+  }
+}
+
+@keyframes preloader-color {
+  0% {
+    filter: grayscale(0.85) sepia(0.18) contrast(1.14) brightness(1.08);
+  }
+  100% {
+    filter: grayscale(0) sepia(0.26) hue-rotate(-8deg) saturate(1.55) contrast(1.04) brightness(1.02);
+  }
+}
+
+.preloader-sweep {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    var(--accent-hi) 20%,
+    #fff 50%,
+    var(--accent-hi) 80%,
+    transparent
+  );
+  box-shadow:
+    0 0 14px rgba(255, 106, 0, 0.9),
+    0 0 32px rgba(255, 106, 0, 0.45);
+  opacity: 0;
+  animation: preloader-sweep 1.4s cubic-bezier(0.36, 0.07, 0.4, 1) 0.25s forwards;
+}
+
+.preloader-sweep::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent-hi);
+  box-shadow:
+    0 0 6px #fff,
+    0 0 14px rgba(255, 106, 0, 0.95);
+}
+
+@keyframes preloader-sweep {
+  0% {
+    left: 0;
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+.preloader-coords {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 74px;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 6px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(53, 208, 242, 0.55);
+  animation: preloader-grid-fade 1.7s ease-out forwards;
+}
+
+.preloader-progress {
+  margin: 22px auto 18px;
+  width: min(430px, 80vw);
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.preloader-progress span {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--accent-hi));
+  box-shadow: 0 0 18px rgba(255, 106, 0, 0.6);
+  transition: width 90ms linear;
+}
+
+.preloader-logo {
+  display: block;
+  width: 220px;
+  height: auto;
+  object-fit: contain;
+  margin: 0 auto;
+  filter: drop-shadow(0 6px 20px rgba(0, 0, 0, 0.5));
+}
+
+.preloader-tag {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 12.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  animation: preloader-blink 1.4s ease-in-out infinite;
+}
+
+@keyframes preloader-blink {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.preloader-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 40%, transparent 58%, rgba(4, 7, 12, 0.6));
+}
+
+@media (max-width: 720px) {
+  .preloader-draft {
+    height: 210px;
+  }
+  .preloader-run-3d {
+    width: 150px;
+  }
+  .preloader-run-reflect,
+  .preloader-run-ground-shadow {
+    width: 150px;
+  }
+  .preloader-road {
+    height: 48px;
+  }
+  .preloader-coords {
+    bottom: 56px;
+  }
+  .preloader-logo {
+    width: 160px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preloader-grid,
+  .preloader-road-dash,
+  .preloader-sweep,
+  .preloader-wind-line,
+  .preloader-run-rig,
+  .preloader-run-ghost,
+  .preloader-run-car,
+  .preloader-run-beam,
+  .preloader-run-wheel,
+  .preloader-run-dust,
+  .preloader-run-puffs span,
+  .preloader-run-trail,
+  .preloader-run-unit,
+  .preloader-horizon-skyline,
+  .preloader-horizon-posts,
+  .preloader-tag {
+    animation: none !important;
+  }
+  .preloader-run-rig,
+  .preloader-run-3d,
+  .preloader-run-unit,
+  .preloader-ground {
+    transform: none;
+  }
+  .preloader-run-car {
+    filter: grayscale(0) sepia(0.26) hue-rotate(-8deg) saturate(1.55) contrast(1.04) brightness(1.02);
+  }
+  .preloader-run-ghost,
+  .preloader-run-beam,
+  .preloader-run-dust,
+  .preloader-run-puffs,
+  .preloader-run-reflect,
+  .preloader-run-ground-shadow,
+  .preloader-wind-line {
+    opacity: 0;
+  }
+  .preloader-run-wheel {
+    opacity: 0.55;
+  }
+  .preloader-road-dash {
+    background-position-x: 0;
+  }
+  .preloader-tag {
+    opacity: 1;
+  }
+}
