@@ -1,249 +1,198 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
-  brands,
   formatINR,
-  getCategory,
-  preownedProducts,
-  testimonials,
-  vehicles,
+  categories,
 } from '../data'
-import { useStore } from '../context/useStore'
+import { fetchOffers, fetchBanner, updateBanner } from '../lib/api'
+import { useSeller } from '../context/useSeller'
 import useCatalog from '../hooks/useCatalog'
 import ProductCard from '../components/ProductCard'
 import ProductArt from '../components/ProductArt'
-import Reveal from '../components/Reveal'
-import CountUp from '../components/CountUp'
-import CarScene from '../components/CarScene'
-import TiltCard from '../components/TiltCard'
-import useTilt from '../hooks/useTilt'
+import OfferPopup from '../components/OfferPopup'
+import AddProduct from '../components/AddProduct'
 import {
   IconArrowRight,
-  IconBolt,
   IconClock,
   IconGauge,
   IconPackage,
-  IconSearch,
   IconShield,
   IconTruck,
-  IconWrench,
-  IconCheck,
-  IconMapPin,
-  IconCar,
+  IconBolt,
+  IconPlus,
 } from '../components/icons'
 
-function VehicleFinder() {
-  const navigate = useNavigate()
-  const makes = useMemo(() => [...new Set(vehicles.map((v) => v.make))], [])
-  const [make, setMake] = useState('')
-  const models = useMemo(() => vehicles.filter((v) => v.make === make), [make])
-  const tilt = useTilt(6)
+const defaultBanner = { badge: 'SALE', title: 'Up to 40% Off on Braking Parts', desc: 'Pads, rotors, calipers & more — genuine brands at clearance prices.', image: '' }
 
-  const go = () => {
-    if (!make) return
-    const vehicle = models[0]
-    navigate(`/shop?fitment=1&vehicle=${vehicle.id}`)
-  }
+function CategoryMarquee() {
+  const navigate = useNavigate()
+  const [paused, setPaused] = useState(false)
 
   return (
-    <div className="finder tilt" ref={tilt}>
-      <div className="finder-head">
-        <span className="finder-icon">
-          <IconCar width="20" height="20" />
-        </span>
-        <div>
-          <strong>Fitment finder</strong>
-          <span>Parts guaranteed for your exact car</span>
+    <section className="cat-marquee-wrap">
+      <div
+        className={`cat-marquee ${paused ? 'paused' : ''}`}
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+        onTouchStart={() => setPaused(true)}
+        onTouchEnd={() => setTimeout(() => setPaused(false), 2000)}
+      >
+        <div className="cat-marquee-track">
+          {[...categories, ...categories, ...categories].map((c, i) => (
+            <button
+              key={`${c.id}-${i}`}
+              className="cat-marquee-item"
+              onClick={() => navigate(`/shop?cat=${c.id}`)}
+            >
+              <span className="cat-marquee-icon">
+                <ProductArt category={c.icon} showImage={true} />
+              </span>
+              <span className="cat-marquee-label">{c.short}</span>
+            </button>
+          ))}
         </div>
       </div>
-      <div className="finder-grid">
-        <select
-          className="select"
-          value={make}
-          onChange={(e) => setMake(e.target.value)}
-          aria-label="Select car make"
-        >
-          <option value="">Make</option>
-          {makes.map((m) => (
-            <option key={m} value={m}>
-              {m}
-            </option>
-          ))}
-        </select>
-        <select
-          className="select"
-          value={make ? models[0]?.id || '' : ''}
-          onChange={(e) => {
-            const v = vehicles.find((x) => x.id === e.target.value)
-            if (v) navigate(`/shop?fitment=1&vehicle=${v.id}`)
-          }}
-          disabled={!make}
-          aria-label="Select car model"
-        >
-          <option value="">Model</option>
-          {models.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.model} · {m.engine}
-            </option>
-          ))}
-        </select>
-        <button className="btn btn-primary" onClick={go} disabled={!make}>
-          Show parts <IconArrowRight width="16" height="16" />
-        </button>
-      </div>
-      <p className="finder-note">
-        Covers 22,000+ parts across 20+ major car brands
-      </p>
-    </div>
-  )
-}
-
-function Hero() {
-  const navigate = useNavigate()
-  const [q, setQ] = useState('')
-
-  const submit = (e) => {
-    e.preventDefault()
-    navigate(`/shop?q=${encodeURIComponent(q.trim())}`)
-  }
-
-  return (
-    <section className="hero">
-      <Reveal variant="left" className="hero-copy">
-        <span className="hero-kicker">
-          <IconWrench width="15" height="15" /> GENUINE AUTO PARTS · INDIA WIDE
-        </span>
-        <h1 className="hero-title">
-          Right part.
-          <br />
-          Right car. <span className="hero-hl">Next day.</span>
-        </h1>
-        <p className="hero-sub">
-          SpareXpress is the marketplace where independent workshops and car
-          owners buy genuine spares, OE and after-market parts — by part number
-          or by fitment.
-        </p>
-
-        <form className="hero-search" onSubmit={submit}>
-          <span className="hero-search-icon">
-            <IconSearch width="20" height="20" />
-          </span>
-          <input
-            className="hero-search-input"
-            placeholder="Enter a part number — e.g. 0 986 AB1 238"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            aria-label="Search by part number"
-          />
-          <button className="btn btn-primary">Search</button>
-        </form>
-
-        <div className="hero-links">
-          <Link to="/shop" className="hero-link">
-            <IconBolt width="17" height="17" /> Browse all parts
-          </Link>
-          <span className="hero-divider" />
-          <span className="hero-trust">
-            <IconShield width="17" height="17" /> 100% genuine · GST invoice
-          </span>
-        </div>
-      </Reveal>
-
-      <Reveal variant="right" delay={140} className="hero-side">
-        <VehicleFinder />
-        <div className="hero-quote card">
-          <p>
-            “Ordered pads and rotors by part number at 6 pm — delivered to our
-            garage at 9 am. Zero phone calls, zero running around.”
-          </p>
-          <div className="hero-quote-foot">
-            <span className="quote-avatar">RM</span>
-            <div>
-              <strong>Rakesh Mehta</strong>
-              <span>Mehta Motors, Pune</span>
-            </div>
-          </div>
-        </div>
-      </Reveal>
     </section>
   )
 }
 
-const STATS = [
-  { n: 22000, suffix: '+', label: 'Live SKUs' },
-  { n: 1800, suffix: '+', label: 'Partner workshops' },
-  { n: 12, suffix: ' hrs', label: 'Metro delivery' },
-  { n: 100, suffix: '%', label: 'Genuine parts' },
-]
+function SaleBanner() {
+  const navigate = useNavigate()
+  const { isSeller } = useSeller()
+  const [banner, setBanner] = useState(readBanner)
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(banner)
+  const [saved, setSaved] = useState(false)
+  const fileRef = useRef(null)
 
-function StatsBar() {
-  return (
-    <Reveal variant="scale" className="stats card">
-      {STATS.map((s) => (
-        <div key={s.label} className="stat">
-          <strong>
-            <CountUp value={s.n} suffix={s.suffix} />
-          </strong>
-          <span>{s.label}</span>
+  const set = (field) => (e) => setDraft((d) => ({ ...d, [field]: e.target.value }))
+
+  const handleSave = () => {
+    saveBanner(draft)
+    setBanner(draft)
+    setEditing(false)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }
+
+  const handleImage = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => setDraft((d) => ({ ...d, image: reader.result }))
+    reader.readAsDataURL(file)
+  }
+
+  if (editing) {
+    return (
+      <section className="sec">
+        <div className="container">
+          <div className="sale-banner seller-banner-edit">
+            <div className="sale-banner-content">
+              <input className="sb-edit-badge" value={draft.badge} onChange={set('badge')} placeholder="Badge" />
+              <input className="sb-edit-title" value={draft.title} onChange={set('title')} placeholder="Title" />
+              <input className="sb-edit-desc" value={draft.desc} onChange={set('desc')} placeholder="Description" />
+              <div className="sb-edit-img-row">
+                <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleImage} />
+                <button className="btn btn-sm" onClick={() => fileRef.current?.click()}>Upload Image</button>
+                <input className="sb-edit-url" value={draft.image} onChange={set('image')} placeholder="Or paste image URL" />
+              </div>
+              <div className="sb-edit-actions">
+                <button className="btn btn-primary btn-sm" onClick={handleSave}>Save Banner</button>
+                <button className="btn btn-sm" onClick={() => { setDraft(banner); setEditing(false) }}>Cancel</button>
+              </div>
+            </div>
+            {draft.image && (
+              <div className="sale-banner-art sale-banner-art-edit">
+                <img src={draft.image} alt="Banner" />
+              </div>
+            )}
+          </div>
         </div>
-      ))}
-    </Reveal>
-  )
-}
-
-function ProductChip({ product }) {
-  const cat = getCategory(product.category)
-  const shown = product.price
-
-  return (
-    <Link to={`/product/${product.id}`} className="prod-chip">
-      <span className={`prod-chip-art prod-chip-art-${cat.id}`}>
-        <ProductArt category={cat.icon} showImage={false} />
-      </span>
-      <span className="prod-chip-body">
-        <span className="prod-chip-brand">{product.brand}</span>
-        <span className="prod-chip-name">{product.name}</span>
-        <span className="prod-chip-foot">
-          <span className="prod-chip-price">{formatINR(shown)}</span>
-          <span className="prod-chip-arrow">→</span>
-        </span>
-      </span>
-    </Link>
-  )
-}
-
-function ProductsMarquee() {
-  const { products } = useCatalog()
-  if (!products.length) return null
-  const half = Math.ceil(products.length / 2)
-  const rows = [products.slice(0, half), products.slice(half)]
+      </section>
+    )
+  }
 
   return (
     <section className="sec">
-      <Reveal className="sec-head">
-        <div>
-          <div className="sec-kicker">All parts · always in motion</div>
-          <h2>Everything the garage needs</h2>
+      <div className="container">
+        <div className={`sale-banner ${isSeller ? 'seller-clickable' : ''}`} onClick={() => !isSeller && navigate('/shop')}>
+          {isSeller && (
+            <button className="sb-seller-edit-btn" onClick={(e) => { e.stopPropagation(); setDraft(banner); setEditing(true) }} title="Edit banner">
+              &#9998;
+            </button>
+          )}
+          {saved && <div className="sb-saved-toast">Banner updated!</div>}
+          <div className="sale-banner-content">
+            <span className="sale-badge">{banner.badge}</span>
+            <h2>{banner.title}</h2>
+            <p>{banner.desc}</p>
+            <button className="btn btn-primary btn-sm" onClick={(e) => { e.stopPropagation(); navigate('/shop') }}>
+              Shop the Sale <IconArrowRight width="14" height="14" />
+            </button>
+          </div>
+          <div className="sale-banner-art">
+            {banner.image ? <img src={banner.image} alt="Sale" /> : <ProductArt category="braking" />}
+          </div>
         </div>
-        <Link to="/shop" className="sec-link">
-          Open the full shop <IconArrowRight width="15" height="15" />
-        </Link>
-      </Reveal>
+      </div>
+    </section>
+  )
+}
 
-      <div className="prod-marquee">
-        {rows.map((row, r) => (
-          <Reveal
-            key={r}
-            delay={r * 100}
-            className={`prod-marquee-row ${r % 2 === 1 ? 'prod-marquee-rev' : ''}`}
-          >
-            <div className="prod-marquee-track">
-              {[...row, ...row].map((p, i) => (
-                <ProductChip product={p} key={`${p.id}-${i}`} />
-              ))}
+function OfferZone({ offers }) {
+  const navigate = useNavigate()
+  if (!offers.length) return null
+  return (
+    <section className="sec">
+      <div className="container">
+        <div className="sec-head">
+          <h2>Offer Zone</h2>
+          <Link to="/shop" className="sec-link">View all <IconArrowRight width="14" height="14" /></Link>
+        </div>
+        <div className="offer-zone-grid">
+          {offers.slice(0, 5).map((o) => (
+            <div
+              key={o.id}
+              className="offer-zone-card card"
+              onClick={() => o.product ? navigate(`/product/${o.product.id}`) : navigate('/shop')}
+            >
+              {o.image && (
+                <div className="offer-zone-img">
+                  <img src={o.image} alt={o.title} />
+                </div>
+              )}
+              <div className="offer-zone-body">
+                {o.badge && <span className="offer-zone-badge">{o.badge}</span>}
+                {o.discount_pct > 0 && (
+                  <span className="offer-zone-badge offer-zone-badge--pct">
+                    {o.discount_pct}% OFF
+                  </span>
+                )}
+                <h3>{o.title}</h3>
+                {o.description && <p>{o.description}</p>}
+                {o.product && (
+                  <div className="offer-zone-product">
+                    <span className="offer-zone-brand">{o.product.brand}</span>
+                    <span className="offer-zone-pname">{o.product.name}</span>
+                    <div className="offer-zone-prices">
+                      {o.product.mrp > o.product.price && (
+                        <del>{formatINR(o.product.mrp)}</del>
+                      )}
+                      <strong>{formatINR(o.product.price)}</strong>
+                      {o.product.mrp > o.product.price && (
+                        <em>Save {formatINR(o.product.mrp - o.product.price)}</em>
+                      )}
+                    </div>
+                  </div>
+                )}
+                <button className="btn btn-primary btn-sm">
+                  Shop now <IconArrowRight width="14" height="14" />
+                </button>
+              </div>
             </div>
-          </Reveal>
-        ))}
+          ))}
+        </div>
       </div>
     </section>
   )
@@ -251,176 +200,142 @@ function ProductsMarquee() {
 
 function FeaturedParts() {
   const { products } = useCatalog()
+  const { isSeller } = useSeller()
+  const [showAdd, setShowAdd] = useState(false)
   const featured = products.filter((p) => p.popular)
   if (!featured.length) return null
   return (
     <section className="sec">
-      <Reveal className="sec-head">
-        <div>
-          <div className="sec-kicker">Most ordered</div>
-          <h2>Popular with workshops</h2>
+      <div className="container">
+        <div className="sec-head">
+          <h2>Offer Zone</h2>
+          <div className="sec-head-right">
+            {isSeller && (
+              <button className="seller-add-btn seller-add-btn-sm" onClick={() => setShowAdd(true)}>
+                <IconPlus width="14" height="14" /> Add
+              </button>
+            )}
+            <Link to="/shop" className="sec-link">See all <IconArrowRight width="14" height="14" /></Link>
+          </div>
         </div>
-        <Link to="/shop" className="sec-link">
-          See everything <IconArrowRight width="15" height="15" />
-        </Link>
-      </Reveal>
-      <div className="grid-featured">
-        {featured.map((p, i) => (
-          <Reveal key={p.id} delay={i * 60}>
-            <ProductCard product={p} compact />
-          </Reveal>
-        ))}
+        <div className="grid-products">
+          {featured.slice(0, 8).map((p) => (
+            <ProductCard key={p.id} product={p} />
+          ))}
+        </div>
+      </div>
+      {showAdd && <AddProduct onClose={() => setShowAdd(false)} />}
+    </section>
+  )
+}
+
+function PromoStrip() {
+  const navigate = useNavigate()
+  return (
+    <section className="sec">
+      <div className="container">
+        <div className="promo-strip">
+          <div className="promo-strip-col" onClick={() => navigate('/shop?cat=filters')}>
+            <span className="promo-strip-tag">Trending</span>
+            <strong>Oil & Air Filters</strong>
+            <span>From ₹299</span>
+          </div>
+          <div className="promo-strip-col" onClick={() => navigate('/shop?cat=electrical')}>
+            <span className="promo-strip-tag">Popular</span>
+            <strong>Battery & Electrical</strong>
+            <span>Starting ₹499</span>
+          </div>
+          <div className="promo-strip-col" onClick={() => navigate('/shop?cat=braking')}>
+            <span className="promo-strip-tag">Top Rated</span>
+            <strong>Brake Pads & Discs</strong>
+            <span>From ₹599</span>
+          </div>
+        </div>
       </div>
     </section>
   )
 }
 
-function PreOwnedStrip() {
-  const navigate = useNavigate()
-  const { mode, toggleMode } = useStore()
-  const sample = preownedProducts[0]
-
-  const browse = () => {
-    if (mode !== 'preowned') toggleMode()
-    navigate('/shop')
-  }
-
+function NewArrivals() {
+  const { products } = useCatalog()
+  const { isSeller } = useSeller()
+  const [showAdd, setShowAdd] = useState(false)
+  const arrivals = products.slice(0, 4)
+  if (!arrivals.length) return null
   return (
-    <Reveal className="preowned card">
-      <div className="preowned-art">
-        <ProductArt category="braking" />
-      </div>
-      <div className="preowned-copy">
-        <span className="sec-kicker">Certified pre-owned</span>
-        <h2>Same part. Big savings.</h2>
-        <p>
-          Genuine, tested pre-owned parts from verified cars — inspected,
-          graded and backed by a 3-month warranty.
-        </p>
-        <ul className="preowned-list">
-          <li>
-            <IconCheck width="16" height="16" /> Up to 60% below the new price
-          </li>
-          <li>
-            <IconCheck width="16" height="16" /> Inspected & graded (Excellent / Good / Fair)
-          </li>
-          <li>
-            <IconCheck width="16" height="16" /> 3-month warranty on every unit
-          </li>
-          <li>
-            <IconCheck width="16" height="16" /> Fitment verified to your car
-          </li>
-        </ul>
-        <div className="preowned-cta">
-          <button className="btn btn-primary" onClick={browse}>
-            Browse pre-owned parts
-          </button>
-          <span className="preowned-demo">
-            Example:{' '}
-            <del>{formatINR(sample.mrp)}</del>{' '}
-            <strong>{formatINR(sample.price)}</strong>
-            {mode === 'preowned'
-              ? ' · live in the shop'
-              : ' · switch to Pre-owned in sidebar'}
-          </span>
+    <section className="sec">
+      <div className="container">
+        <div className="sec-head">
+          <h2>Collections</h2>
+          <div className="sec-head-right">
+            {isSeller && (
+              <button className="seller-add-btn seller-add-btn-sm" onClick={() => setShowAdd(true)}>
+                <IconPlus width="14" height="14" /> Add
+              </button>
+            )}
+            <Link to="/shop" className="sec-link">See all <IconArrowRight width="14" height="14" /></Link>
+          </div>
+        </div>
+        <div className="grid-products">
+          {arrivals.map((p) => (
+            <ProductCard key={p.id} product={p} />
+          ))}
         </div>
       </div>
-    </Reveal>
+      {showAdd && <AddProduct onClose={() => setShowAdd(false)} />}
+    </section>
   )
 }
 
-function BrandsMarquee() {
-  const doubled = [...brands, ...brands]
+function OffersSection({ offers }) {
+  const navigate = useNavigate()
+  if (!offers.length) return null
   return (
     <section className="sec">
-      <Reveal className="sec-head">
-        <div>
-          <div className="sec-kicker">Genuine brands</div>
-          <h2>OE & OES brand partners</h2>
+      <div className="container">
+        <div className="sec-head">
+          <h2>Deals on Parts</h2>
+          <Link to="/shop" className="sec-link">View all <IconArrowRight width="14" height="14" /></Link>
         </div>
-      </Reveal>
-      <Reveal delay={100} className="marquee">
-        <div className="marquee-track">
-          {doubled.map((b, i) => (
-            <span className="marquee-item" key={`${b}-${i}`}>
-              {b}
-            </span>
+        <div className="offers-grid">
+          {offers.slice(0, 3).map((o) => (
+            <div key={o.id} className="offer-banner card" onClick={() => navigate(o.product ? `/product/${o.product.id}` : '/shop')}>
+              <div className="offer-banner-body">
+                <span className="sec-kicker">{o.badge || 'Limited-time offer'}</span>
+                <h3>{o.title}</h3>
+                <p>{o.description}</p>
+                <Link to={o.product ? `/product/${o.product.id}` : '/shop'} className="btn btn-primary btn-sm">
+                  Shop now <IconArrowRight width="14" height="14" />
+                </Link>
+              </div>
+            </div>
           ))}
         </div>
-      </Reveal>
+      </div>
     </section>
   )
 }
 
 function HowItWorks() {
   const steps = [
-    {
-      icon: <IconSearch width="22" height="22" />,
-      title: 'Find the part',
-      text: 'Search by part number or let the fitment finder pick the right lines for your exact car.',
-    },
-    {
-      icon: <IconPackage width="22" height="22" />,
-      title: 'Order in minutes',
-      text: 'New or pre-owned parts, GST invoice, bulk quantities — checkout in under a minute.',
-    },
-    {
-      icon: <IconTruck width="22" height="22" />,
-      title: 'Delivered fast',
-      text: 'Metro delivery in 12 hours, nationwide in 24–48 hours. Tracked from warehouse to door.',
-    },
+    { icon: <IconPackage width="24" height="24" />, title: 'Find the part', text: 'Search by part number or use fitment finder.' },
+    { icon: <IconBolt width="24" height="24" />, title: 'Order in minutes', text: 'GST invoice, bulk quantities, fast checkout.' },
+    { icon: <IconTruck width="24" height="24" />, title: 'Delivered fast', text: 'Metro in 12 hours, nationwide in 24-48 hrs.' },
   ]
   return (
     <section className="sec">
-      <Reveal className="sec-head">
-        <div>
-          <div className="sec-kicker">How it works</div>
-          <h2>From part number to doorstep</h2>
-        </div>
-      </Reveal>
-      <div className="how">
-        {steps.map((s, i) => (
-          <Reveal key={s.title} delay={i * 110}>
-            <TiltCard className="how-step card">
-              <span className="how-num">0{i + 1}</span>
+      <div className="container">
+        <div className="sec-head"><h2>How It Works</h2></div>
+        <div className="how-grid">
+          {steps.map((s, i) => (
+            <div key={s.title} className="how-step card">
+              <span className="how-num">{i + 1}</span>
               <span className="how-icon">{s.icon}</span>
               <h3>{s.title}</h3>
               <p>{s.text}</p>
-            </TiltCard>
-          </Reveal>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-function Testimonials() {
-  return (
-    <section className="sec">
-      <div className="sec-head">
-        <div>
-          <div className="sec-kicker">Word on the road</div>
-          <h2>Trusted by garages & car owners</h2>
+            </div>
+          ))}
         </div>
-      </div>
-      <div className="testimonials">
-        {testimonials.map((t, i) => (
-          <Reveal key={t.name} delay={i * 110}>
-            <TiltCard as="figure" className="testi card">
-              <span className="testi-quote-mark">“</span>
-              <blockquote>{t.quote}</blockquote>
-              <figcaption>
-                <span className="quote-avatar">{t.name.split(' ').map((x) => x[0]).join('')}</span>
-                <span>
-                  <strong>{t.name}</strong>
-                  <em>
-                    {t.role} · <IconMapPin width="12" height="12" /> {t.city}
-                  </em>
-                </span>
-              </figcaption>
-            </TiltCard>
-          </Reveal>
-        ))}
       </div>
     </section>
   )
@@ -428,41 +343,23 @@ function Testimonials() {
 
 function Perks() {
   const perks = [
-    { icon: <IconShield width="20" height="20" />, t: '100% genuine', s: 'Sourced from OE & OES distributors' },
-    { icon: <IconTruck width="20" height="20" />, t: '12-hr metro delivery', s: 'Nationwide in 24–48 hours' },
-    { icon: <IconClock width="20" height="20" />, t: 'Easy returns', s: 'Wrong or faulty parts, no drama' },
-    { icon: <IconGauge width="20" height="20" />, t: 'Fitment guarantee', s: 'Compatibility verified to your VIN' },
+    { icon: <IconShield width="22" height="22" />, t: '100% Genuine', s: 'OE & OES sourced' },
+    { icon: <IconTruck width="22" height="22" />, t: 'Fast Delivery', s: '12-hr metro delivery' },
+    { icon: <IconClock width="22" height="22" />, t: 'Easy Returns', s: 'Wrong or faulty, no drama' },
+    { icon: <IconGauge width="22" height="22" />, t: 'Fitment Verified', s: 'Compatibility guaranteed' },
   ]
   return (
     <section className="sec">
-      <div className="perks">
-        {perks.map((p, i) => (
-          <Reveal key={p.t} delay={i * 90}>
-            <TiltCard className="perk">
+      <div className="container">
+        <div className="perks-grid">
+          {perks.map((p) => (
+            <div key={p.t} className="perk card">
               <span className="perk-icon">{p.icon}</span>
               <div>
                 <strong>{p.t}</strong>
                 <span>{p.s}</span>
               </div>
-            </TiltCard>
-          </Reveal>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-function CarBrandsMarquee() {
-  const makes = [...new Set(vehicles.map((v) => v.make))]
-  const doubled = [...makes, ...makes]
-  return (
-    <section className="car-brands" aria-label="All car brands we cover">
-      <div className="marquee">
-        <div className="marquee-track">
-          {doubled.map((m, i) => (
-            <span className="marquee-item marquee-item-hl" key={`${m}-${i}`}>
-              {m}
-            </span>
+            </div>
           ))}
         </div>
       </div>
@@ -471,19 +368,27 @@ function CarBrandsMarquee() {
 }
 
 export default function Home() {
+  const [offers, setOffers] = useState([])
+  useEffect(() => {
+    let cancelled = false
+    fetchOffers()
+      .then((data) => { if (!cancelled && Array.isArray(data)) setOffers(data) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
+
   return (
-    <div className="container">
-      <Hero />
-      <CarScene />
-      <CarBrandsMarquee />
-      <StatsBar />
-      <ProductsMarquee />
+    <div>
+      <CategoryMarquee />
+      <SaleBanner />
+      <OfferZone offers={offers} />
       <FeaturedParts />
-      <PreOwnedStrip />
-      <BrandsMarquee />
+      <PromoStrip />
+      <NewArrivals />
+      <OffersSection offers={offers} />
       <HowItWorks />
-      <Testimonials />
       <Perks />
+      <OfferPopup offers={offers} />
     </div>
   )
 }

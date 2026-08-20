@@ -104,6 +104,9 @@ export default function Sidebar({ open, onClose }) {
             <div className="side-garage">
               <VehicleGarage />
             </div>
+            <NavLink to="/garage" className={({ isActive }) => `nav-item garage-page-link ${isActive ? 'active' : ''}`}>
+              <IconGauge /> Open my garage
+            </NavLink>
 
             <span className="nav-label nav-label-gap">Account</span>
             <NavLink to="/account" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>

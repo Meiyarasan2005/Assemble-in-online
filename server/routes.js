@@ -24,6 +24,7 @@ function serializeProduct(body) {
     category: String(body.category ?? '').trim(),
     brand: String(body.brand ?? '').trim(),
     part_no: String(body.part_no ?? '').trim(),
+    image: String(body.image ?? ''),
     price: Number(body.price) || 0,
     mrp: Number(body.mrp) || 0,
     stock: Math.max(0, Math.round(Number(body.stock) || 0)),
@@ -258,6 +259,7 @@ router.put('/products/:id', async (req, res) => {
         category: p.category,
         brand: p.brand,
         part_no: p.part_no,
+        image: p.image,
         price: p.price,
         mrp: p.mrp,
         stock: p.stock,
@@ -427,6 +429,72 @@ router.delete('/vehicles/:id', async (req, res) => {
   if (used > 0) return res.status(409).json({ error: `Vehicle is used by ${used} product(s) in fitment` })
   const result = await db.vehicles.deleteOne({ _id: req.params.id })
   if (result.deletedCount === 0) return res.status(404).json({ error: 'Vehicle not found' })
+  res.json({ ok: true })
+})
+
+/* ---------- offers ---------- */
+
+function serializeOffer(body) {
+  return {
+    id: String(body.id ?? '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-') || randomUUID(),
+    title: String(body.title ?? '').trim(),
+    description: String(body.description ?? '').trim(),
+    discount_pct: Math.min(90, Math.max(0, Number(body.discount_pct) || 0)),
+    image: String(body.image ?? ''),
+    product_id: String(body.product_id ?? '').trim(),
+    badge: String(body.badge ?? '').trim(),
+    active: Boolean(body.active),
+    starts_at: String(body.starts_at ?? ''),
+    ends_at: String(body.ends_at ?? ''),
+    sort_order: Number(body.sort_order) || 0,
+  }
+}
+
+async function offerProductExists(productId) {
+  if (!productId) return true
+  return Boolean(await db.products.findOne({ _id: productId }))
+}
+
+router.get('/offers', async (_req, res) => {
+  const rows = await db.offers.find().sort({ sort_order: 1, created_at: -1 }).toArray()
+  res.json(docsOut(rows))
+})
+
+router.get('/offers/:id', async (req, res) => {
+  const o = await db.offers.findOne({ _id: req.params.id })
+  if (!o) return res.status(404).json({ error: 'Offer not found' })
+  res.json(docOut(o))
+})
+
+router.post('/offers', async (req, res) => {
+  const o = serializeOffer(req.body)
+  if (!o.title) return res.status(400).json({ error: 'Offer title is required' })
+  if (!o.image) return res.status(400).json({ error: 'Offer image is required' })
+  if (!(await offerProductExists(o.product_id))) {
+    return res.status(400).json({ error: `Product "${o.product_id}" does not exist` })
+  }
+  const exists = await db.offers.findOne({ _id: o.id })
+  if (exists) return res.status(409).json({ error: `Offer id "${o.id}" already exists` })
+  const ts = now()
+  await db.offers.insertOne({ _id: o.id, ...o, created_at: ts, updated_at: ts })
+  res.status(201).json(docOut(await db.offers.findOne({ _id: o.id })))
+})
+
+router.put('/offers/:id', async (req, res) => {
+  const existing = await db.offers.findOne({ _id: req.params.id })
+  if (!existing) return res.status(404).json({ error: 'Offer not found' })
+  const o = serializeOffer({ ...existing, ...req.body, id: existing._id })
+  if (!o.title) return res.status(400).json({ error: 'Offer title is required' })
+  if (!(await offerProductExists(o.product_id))) {
+    return res.status(400).json({ error: `Product "${o.product_id}" does not exist` })
+  }
+  await db.offers.updateOne({ _id: o.id }, { $set: { ...o, updated_at: now() } })
+  res.json(docOut(await db.offers.findOne({ _id: o.id })))
+})
+
+router.delete('/offers/:id', async (req, res) => {
+  const result = await db.offers.deleteOne({ _id: req.params.id })
+  if (result.deletedCount === 0) return res.status(404).json({ error: 'Offer not found' })
   res.json({ ok: true })
 })
 

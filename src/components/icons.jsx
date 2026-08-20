@@ -9,6 +9,13 @@ const base = {
   strokeLinejoin: 'round',
 }
 
+export const IconHome = (props) => (
+  <svg {...base} {...props}>
+    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+    <polyline points="9 22 9 12 15 12 15 22" />
+  </svg>
+)
+
 export const IconSearch = (props) => (
   <svg {...base} {...props}>
     <circle cx="11" cy="11" r="7" />
@@ -89,6 +96,12 @@ export const IconX = (props) => (
 export const IconChevronRight = (props) => (
   <svg {...base} {...props}>
     <path d="m9 6 6 6-6 6" />
+  </svg>
+)
+
+export const IconChevronLeft = (props) => (
+  <svg {...base} {...props}>
+    <path d="m15 6-6 6 6 6" />
   </svg>
 )
 

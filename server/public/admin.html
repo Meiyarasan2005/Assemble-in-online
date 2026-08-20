@@ -297,6 +297,30 @@
     .field small { color: var(--faint); font-size: 11.5px; }
     .hint { font-size: 11.5px; color: var(--faint); margin-top: 5px; }
 
+    /* ---- offers ---- */
+    .offer-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+    .offer-card { display: flex; flex-direction: column; overflow: hidden; margin-bottom: 0; }
+    .offer-img { position: relative; aspect-ratio: 16 / 9; background: var(--bg2); display: grid; place-items: center; overflow: hidden; }
+    .offer-img img { width: 100%; height: 100%; object-fit: cover; }
+    .offer-img-none { color: var(--faint); font-size: 13px; }
+    .offer-img .tag { position: absolute; top: 10px; left: 10px; font-size: 13px; padding: 4px 10px; box-shadow: 0 4px 14px rgba(0,0,0,.5); }
+    .offer-body { padding: 14px 16px 12px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    .offer-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+    .offer-title { font-weight: 700; font-size: 16px; }
+    .offer-desc { font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+    .offer-meta { margin-top: auto; }
+    .offer-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+    .offer-date { font-size: 11.5px; color: var(--faint); }
+    .offer-upload { display: flex; gap: 14px; align-items: flex-start; }
+    .offer-upload-preview { width: 160px; height: 100px; border-radius: 10px; border: 1px dashed var(--line2); background: var(--bg2); display: grid; place-items: center; overflow: hidden; color: var(--faint); font-size: 12px; flex-shrink: 0; }
+    .offer-upload-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .offer-upload-actions { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+
+    /* ---- product thumb ---- */
+    .prod-cell { display: flex; align-items: center; gap: 10px; }
+    .prod-thumb { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; flex-shrink: 0; border: 1px solid var(--line2); background: var(--bg2); }
+    .prod-thumb-none { display: grid; place-items: center; color: var(--faint); }
+
     /* ---- movements ---- */
     .mv-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
     .mv-row:last-child { border-bottom: 0; }
@@ -406,6 +430,10 @@
           <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 2 8 4.5v11L12 22l-8-4.5v-11L12 2Z"/><path d="M4 6.5 12 11l8-4.5"/></svg>
           Products
         </button>
+        <button data-view="offers">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.5 4.5L19.5 8l-2.5 4.5 2.5 4.5-5 1.5L12 23l-2.5-4.5-5-1.5 2.5-4.5L4.5 8l5-1.5L12 2Z"/><path d="M9 12l2 2 4-4"/></svg>
+          Offers
+        </button>
         <button data-view="movements">
           <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 3 13l4-4M3 13h12v-6M17 7l4 4-4 4M21 11H9v6"/></svg>
           Stock log
@@ -453,6 +481,7 @@
       <div class="wrap">
         <section id="view-dashboard"></section>
         <section id="view-products" class="hidden"></section>
+        <section id="view-offers" class="hidden"></section>
         <section id="view-movements" class="hidden"></section>
         <section id="view-orders" class="hidden"></section>
         <section id="view-customers" class="hidden"></section>
@@ -500,6 +529,7 @@
   <script src="/admin/core.js"></script>
   <script src="/admin/products.js"></script>
   <script src="/admin/productform.js"></script>
+  <script src="/admin/offers.js"></script>
   <script src="/admin/catalog.js"></script>
   <script src="/admin/orders.js"></script>
   <script src="/admin/customers.js"></script>

@@ -2,7 +2,7 @@
 ;(function () {
   'use strict'
 
-  const { $, $$, ICON, state, api, esc, money, fmtDate, catColor, stockTag, badgeTag, toast, openModal, closeModal, bindModalClose } = window.MS
+  const { $, ICON, state, api, esc, money, fmtDate, catColor, stockTag, badgeTag, toast, openModal, closeModal, bindModalClose } = window.MS
 
   /* ================= dashboard ================= */
 
@@ -226,8 +226,13 @@
         return `
         <tr>
           <td>
-            <div class="prod-name">${esc(p.name)}</div>
-            <div class="prod-sub">${esc(p.id)}${p.fits.length ? ' · fits ' + p.fits.length : ''}</div>
+            <div class="prod-cell">
+              ${p.image ? `<img class="prod-thumb" src="${p.image}" alt="" />` : `<div class="prod-thumb prod-thumb-none">${ICON.stock}</div>`}
+              <div>
+                <div class="prod-name">${esc(p.name)}</div>
+                <div class="prod-sub">${esc(p.id)}${p.fits.length ? ' · fits ' + p.fits.length : ''}</div>
+              </div>
+            </div>
           </td>
           <td>
             ${cat ? `<span class="cat-dot" style="background:${catColor(cat.id)}"></span>${esc(cat.name)}` : '<span style="color:var(--faint)">—</span>'}

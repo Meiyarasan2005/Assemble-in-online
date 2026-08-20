@@ -1,11 +1,12 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useStore } from '../context/useStore'
 import useCatalog from '../hooks/useCatalog'
 import ProductCard from '../components/ProductCard'
 import ProductArt from '../components/ProductArt'
-import { IconArrowRight, IconHeart } from '../components/icons'
+import { IconArrowLeft, IconArrowRight, IconHeart } from '../components/icons'
 
 export default function Wishlist() {
+  const navigate = useNavigate()
   const { wishlist } = useStore()
   const { products } = useCatalog()
 
@@ -13,11 +14,9 @@ export default function Wishlist() {
 
   return (
     <div className="container">
-      <nav className="crumbs" aria-label="Breadcrumb">
-        <Link to="/">Home</Link>
-        <IconArrowRight width="13" height="13" />
-        <span>Wishlist</span>
-      </nav>
+      <button className="pd-back" onClick={() => navigate(-1)}>
+        <IconArrowLeft width="18" height="18" /> Back
+      </button>
 
       <div className="sec-head wishlist-head">
         <div>

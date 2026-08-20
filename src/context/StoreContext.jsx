@@ -106,17 +106,17 @@ export function StoreProvider({ children }) {
   }, [])
 
   const addToCart = useCallback(
-    (productId, qty = 1) => {
-      const product = getProduct(productId)
-      if (!product) return
+    (productId, qty = 1, product) => {
+      const p = product || getProduct(productId)
+      if (!p) return
       setCart((prev) => {
         const next = [...prev]
         const ix = next.findIndex((l) => l.productId === productId)
         if (ix >= 0) next[ix] = { ...next[ix], qty: next[ix].qty + qty }
-        else next.push({ productId, qty, price: product.price })
+        else next.push({ productId, qty, price: p.price })
         return next
       })
-      notify(`${product.name} added to cart`)
+      notify(`${p.name} added to cart`)
     },
     [notify],
   )
@@ -142,10 +142,14 @@ export function StoreProvider({ children }) {
     setActiveVehicle(vehicleId)
   }, [])
 
-  const removeVehicle = useCallback((vehicleId) => {
-    setGarage((prev) => prev.filter((id) => id !== vehicleId))
-    setActiveVehicle((current) => (current === vehicleId ? '' : current))
-  }, [])
+  const removeVehicle = useCallback(
+    (vehicleId) => {
+      const remaining = garage.filter((id) => id !== vehicleId)
+      setGarage(remaining)
+      setActiveVehicle((current) => (current === vehicleId ? remaining[0] || '' : current))
+    },
+    [garage],
+  )
 
   const toggleWishlist = useCallback((productId) => {
     setWishlist((prev) =>

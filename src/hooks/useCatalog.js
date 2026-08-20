@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useContext, useEffect, useMemo, useState } from 'react'
 import { fetchCatalog, fetchMeta } from '../lib/api'
 import { useStore } from '../context/useStore'
+import { SellerContext } from '../context/SellerContext'
 import {
   products as staticProducts,
   preownedProducts as staticPreowned,
@@ -26,6 +27,7 @@ function normalize(row) {
     desc: row.desc ?? '',
     features: row.features ?? [],
     fits: row.fits ?? [],
+    image: row.image ?? '',
   }
 }
 
@@ -57,6 +59,9 @@ function writeCache(meta, products) {
 
 export default function useCatalog() {
   const { mode } = useStore()
+  const sellerCtx = useContext(SellerContext)
+  const catalogVersion = sellerCtx?.catalogVersion ?? 0
+
   const [state, setState] = useState(() => {
     const cached = readCache()
     if (cached) return { ready: true, online: true, ...cached }
@@ -93,7 +98,7 @@ export default function useCatalog() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [catalogVersion])
 
   return useMemo(
     () => ({

@@ -720,6 +720,150 @@ export const preownedProducts = [
   },
 ]
 
+export const reviews = {
+  p1: [
+    { id: 'r1a', name: 'Vikram S.', date: '12 Jul 2026', rating: 5, text: 'Perfect fit for my Swift. Ceramic pads are really quiet — no squealing at all. Braking feel is much better than the stock pads.', image: null, verified: true },
+    { id: 'r1b', name: 'Priya M.', date: '28 Jun 2026', rating: 4, text: 'Good quality pads. Slight dust reduction compared to old ones. Took about 30 min to install with basic tools.', image: 'https://picsum.photos/seed/r1b/400/300', verified: true },
+    { id: 'r1c', name: 'Rahul D.', date: '15 Jun 2026', rating: 5, text: 'Bosch quality as always. These pads grip really well even in wet conditions. Highly recommend for city driving.', image: null, verified: true },
+    { id: 'r1d', name: 'Amit K.', date: '3 Jun 2026', rating: 4, text: 'Decent product for the price. My mechanic said the compound looks premium. Will buy again.', image: 'https://picsum.photos/seed/r1d/400/300', verified: false },
+  ],
+  p2: [
+    { id: 'r2a', name: 'Suresh P.', date: '5 Jul 2026', rating: 5, text: 'Excellent rotor. No vibration after installation. Balanced perfectly out of the box.', image: null, verified: true },
+    { id: 'r2b', name: 'Deepa R.', date: '20 Jun 2026', rating: 4, text: 'Solid build quality. Bit heavy but that is expected for ventilated discs. Smooth braking now.', image: 'https://picsum.photos/seed/r2b/400/300', verified: true },
+    { id: 'r2c', name: 'Karthik N.', date: '8 Jun 2026', rating: 5, text: 'Fitted these on my i20 along with the ceramic pads from here. Night and day difference in stopping power.', image: null, verified: true },
+  ],
+  p3: [
+    { id: 'r3a', name: 'Manoj T.', date: '18 Jul 2026', rating: 5, text: 'Complete kit saved me a lot of hassle. Pads and rotors both in one box. My Baleno brakes feel brand new.', image: 'https://picsum.photos/seed/r3a/400/300', verified: true },
+    { id: 'r3b', name: 'Sanjay G.', date: '2 Jul 2026', rating: 5, text: 'Best value kit I found online. Everything you need for a full brake refresh. Workshop charged ₹2000 extra for installation but worth it.', image: null, verified: true },
+  ],
+  p4: [
+    { id: 'r4a', name: 'Neha V.', date: '22 Jul 2026', rating: 5, text: 'The carbon layer really helps with odour. AC smells so much better now. Easy to install — just slides in.', image: null, verified: true },
+    { id: 'r4b', name: 'Arjun B.', date: '10 Jul 2026', rating: 4, text: 'Good filter. Noticeably better air quality inside the car. Replacement interval seems reasonable.', image: 'https://picsum.photos/seed/r4b/400/300', verified: true },
+    { id: 'r4c', name: 'Riya S.', date: '25 Jun 2026', rating: 5, text: 'Third time buying this. Always consistent quality. My Creta cabin stays dust-free even on bad roads.', image: null, verified: true },
+    { id: 'r4d', name: 'Vikash J.', date: '12 Jun 2026', rating: 4, text: 'Decent filter for the price. Fits perfectly in my Venue. Noticed less dust coming through the vents.', image: null, verified: true },
+  ],
+  p5: [
+    { id: 'r5a', name: 'Prakash L.', date: '8 Jul 2026', rating: 5, text: 'Genuine Mann quality. Oil pressure feels consistent. No leaks after installation.', image: null, verified: true },
+    { id: 'r5b', name: 'Geeta W.', date: '25 Jun 2026', rating: 4, text: 'Standard spin-on filter. Does its job. Seal gasket is good quality — no seepage.', image: 'https://picsum.photos/seed/r5b/400/300', verified: true },
+    { id: 'r5c', name: 'Rajesh F.', date: '10 Jun 2026', rating: 5, text: 'Been using Mann filters for years. Never had an issue. This one fits my Ciaz perfectly.', image: null, verified: true },
+  ],
+  p6: [
+    { id: 'r6a', name: 'Kavita D.', date: '30 Jul 2026', rating: 5, text: 'Perfect fit for my Swift. Noticed better throttle response after replacing the old clogged filter.', image: null, verified: true },
+    { id: 'r6b', name: 'Anil M.', date: '15 Jul 2026', rating: 4, text: 'Good panel filter. The mahle quality is evident. Engine breathes easier now.', image: 'https://picsum.photos/seed/r6b/400/300', verified: true },
+  ],
+  p7: [
+    { id: 'r7a', name: 'Tarun K.', date: '20 Jul 2026', rating: 5, text: 'Full synthetic oil changed the way my engine runs. Smoother idle, better mileage. 5L is enough for two services.', image: null, verified: true },
+    { id: 'r7b', name: 'Sunita P.', date: '5 Jul 2026', rating: 5, text: 'Excellent oil. My mechanic confirmed it is genuine Motul. Engine feels protected even in stop-go traffic.', image: 'https://picsum.photos/seed/r7b/400/300', verified: true },
+    { id: 'r7c', name: 'Vijay R.', date: '18 Jun 2026', rating: 4, text: 'Good synthetic oil but slightly pricey. Performance is there though — smoother shifts and quieter engine.', image: null, verified: true },
+  ],
+  p8: [
+    { id: 'r8a', name: 'Nitin S.', date: '25 Jul 2026', rating: 5, text: 'NGK iridium plugs transformed my i10. Better fuel economy and smoother startup. Set of 4 is perfect.', image: null, verified: true },
+    { id: 'r8b', name: 'Pooja H.', date: '12 Jul 2026', rating: 5, text: 'These plugs last way longer than copper ones. Worth the extra cost. Easy to gap and install.', image: 'https://picsum.photos/seed/r8b/400/300', verified: true },
+    { id: 'r8c', name: 'Sagar T.', date: '28 Jun 2026', rating: 4, text: 'Good plugs. Noticeable improvement in idle quality. My Baleno runs much smoother now.', image: null, verified: true },
+  ],
+  p9: [
+    { id: 'r9a', name: 'Ramesh C.', date: '15 Jul 2026', rating: 5, text: 'LKQ timing belt kit is complete — belt, tensioner, idler all included. My mechanic said quality is top notch.', image: null, verified: true },
+    { id: 'r9b', name: 'Meena J.', date: '1 Jul 2026', rating: 5, text: 'Installed at 80k km as preventive. Kit includes everything. Belt tension is holding perfectly.', image: 'https://picsum.photos/seed/r9b/400/300', verified: true },
+  ],
+  p10: [
+    { id: 'r10a', name: 'Ashok V.', date: '8 Jul 2026', rating: 4, text: 'Good drive belt. Fits my Verna perfectly. No squealing on cold starts anymore.', image: null, verified: true },
+    { id: 'r10b', name: 'Divya N.', date: '22 Jun 2026', rating: 5, text: 'Contitech belt — OEM quality at a much better price. Replaced at 60k km. Smooth and quiet.', image: null, verified: true },
+  ],
+  p11: [
+    { id: 'r11a', name: 'Pradeep R.', date: '10 Jul 2026', rating: 5, text: 'Monroe gas shocks are excellent. Ride quality improved dramatically. No more bouncing over bumps.', image: 'https://picsum.photos/seed/r11a/400/300', verified: true },
+    { id: 'r11b', name: 'Lakshmi B.', date: '25 Jun 2026', rating: 4, text: 'Good shock absorber. Stiff but controlled ride. Feels much more planted at highway speeds.', image: null, verified: true },
+    { id: 'r11c', name: 'Ganesh K.', date: '8 Jun 2026', rating: 5, text: 'Replaced both fronts. Car feels like new. Monroe never disappoints. Highly recommend for i20 owners.', image: null, verified: true },
+  ],
+  p12: [
+    { id: 'r12a', name: 'Sunil M.', date: '3 Jul 2026', rating: 5, text: 'KYB control arms are solid. Pair pricing is great. No more clunking noise from the front suspension.', image: null, verified: true },
+    { id: 'r12b', name: 'Priti S.', date: '18 Jun 2026', rating: 4, text: 'Good quality arms. Boot and ball joint came pre-assembled. Saved a trip to the press shop.', image: 'https://picsum.photos/seed/r12b/400/300', verified: true },
+  ],
+  p13: [
+    { id: 'r13a', name: 'Vinod T.', date: '28 Jul 2026', rating: 5, text: 'Perfect fit for my City. Steering feels tight and responsive again. No play at all after installation.', image: null, verified: true },
+    { id: 'r13b', name: 'Aarti G.', date: '12 Jul 2026', rating: 4, text: 'Decent tie rod end. Thread quality is good. Slight grease leakage after a month but nothing major.', image: null, verified: true },
+  ],
+  p14: [
+    { id: 'r14a', name: 'Dinesh P.', date: '20 Jul 2026', rating: 5, text: 'Exide battery — reliable as always. Cranks strong even in summer. 3-year warranty is a plus.', image: 'https://picsum.photos/seed/r14a/400/300', verified: true },
+    { id: 'r14b', name: 'Kamini R.', date: '5 Jul 2026', rating: 5, text: 'Good battery for the price. My Swift starts instantly now. Delivery was quick and well-packed.', image: null, verified: true },
+    { id: 'r14c', name: 'Harish L.', date: '18 Jun 2026', rating: 4, text: 'Solid 45Ah battery. Slightly heavier than the stock one but fits the tray fine. Good value.', image: null, verified: true },
+  ],
+  p15: [
+    { id: 'r15a', name: 'Rohit J.', date: '15 Jul 2026', rating: 5, text: 'These LEDs are incredibly bright. 6000K white light is perfect. Night driving is so much safer now.', image: 'https://picsum.photos/seed/r15a/400/300', verified: true },
+    { id: 'r15b', name: 'Swati D.', date: '28 Jun 2026', rating: 5, text: 'Plug and play H4 fitment. No error codes on my dashboard. Light output is excellent.', image: null, verified: true },
+    { id: 'r15c', name: 'Yash P.', date: '10 Jun 2026', rating: 4, text: 'Bright LEDs but run slightly warm. Need to make sure the heatsink clears the dust cover. Otherwise great.', image: null, verified: true },
+  ],
+  p16: [
+    { id: 'r16a', name: 'Sanjay K.', date: '5 Jul 2026', rating: 5, text: 'Fixed my check engine light. OEM Bosch sensor, works perfectly. Idle is smooth again.', image: null, verified: true },
+    { id: 'r16b', name: 'Anita V.', date: '20 Jun 2026', rating: 4, text: 'Good sensor. Connector fits snugly. Had to clear the ECU codes manually but after that runs great.', image: 'https://picsum.photos/seed/r16b/400/300', verified: true },
+  ],
+  p17: [
+    { id: 'r17a', name: 'Ajay N.', date: '12 Jul 2026', rating: 5, text: 'Fan motor is powerful and quiet. Replaced my noisy old one. Cooling performance is back to normal.', image: null, verified: true },
+    { id: 'r17b', name: 'Nisha M.', date: '28 Jun 2026', rating: 4, text: 'Good motor. Slightly different mounting bracket but adapter included. Works fine on my EcoSport.', image: null, verified: true },
+  ],
+  p18: [
+    { id: 'r18a', name: 'Arun S.', date: '22 Jul 2026', rating: 5, text: 'Bosch coolant concentrate — mix with distilled water and you are set. Engine temperature is stable even in traffic.', image: 'https://picsum.photos/seed/r18a/400/300', verified: true },
+    { id: 'r18b', name: 'Rekha P.', date: '8 Jul 2026', rating: 5, text: 'Good coolant. Green colour makes it easy to check levels. No corrosion deposits visible after 6 months.', image: null, verified: true },
+    { id: 'r18c', name: 'Kiran B.', date: '20 Jun 2026', rating: 4, text: 'Decent coolant for the price. 1L is enough for a top-up. Used 2 bottles for a full flush on my Swift.', image: null, verified: true },
+  ],
+  p19: [
+    { id: 'r19a', name: 'Mahesh G.', date: '10 Jul 2026', rating: 5, text: 'Complete Luk clutch kit — disc, cover and bearing all in one. Pedal feel is smooth and engagement point is perfect.', image: null, verified: true },
+    { id: 'r19b', name: 'Savita L.', date: '25 Jun 2026', rating: 5, text: 'My Alto drives like new after clutch replacement. Luk quality is outstanding. Mechanic praised the kit.', image: 'https://picsum.photos/seed/r19b/400/300', verified: true },
+  ],
+  p20: [
+    { id: 'r20a', name: 'Prakash D.', date: '3 Jul 2026', rating: 4, text: 'Good gearbox mount. Reduced vibrations noticeably. Installation was straightforward.', image: null, verified: true },
+    { id: 'r20b', name: 'Sneha R.', date: '18 Jun 2026', rating: 5, text: 'Solid rubber mount. Engine noise dropped significantly. Worth replacing when doing timing belt.', image: null, verified: true },
+  ],
+  p21: [
+    { id: 'r21a', name: 'Rajiv T.', date: '28 Jul 2026', rating: 5, text: 'These floor mats are amazing. 3D design catches all the mud and water. Fits my Creta perfectly.', image: 'https://picsum.photos/seed/r21a/400/300', verified: true },
+    { id: 'r21b', name: 'Pallavi M.', date: '15 Jul 2026', rating: 5, text: 'Best floor mats I have owned. Easy to clean — just hose them down. No more dirty carpets.', image: null, verified: true },
+    { id: 'r21c', name: 'Umesh K.', date: '2 Jul 2026', rating: 4, text: 'Good mats but slightly expensive. Build quality is premium though. Should last years.', image: null, verified: true },
+    { id: 'r21d', name: 'Tanvi S.', date: '18 Jun 2026', rating: 5, text: 'Perfect fit, no sliding around. The raised edges keep all the water contained. Love them.', image: null, verified: true },
+  ],
+  p22: [
+    { id: 'r22a', name: 'Sachin P.', date: '20 Jul 2026', rating: 5, text: 'Applied ceramic coat on my i20. Water beading is incredible. Paint looks glossy and protected.', image: 'https://picsum.photos/seed/r22a/400/300', verified: true },
+    { id: 'r22b', name: 'Megha J.', date: '5 Jul 2026', rating: 4, text: 'Good sealant but requires careful application. Followed the instructions and got great results.', image: null, verified: true },
+  ],
+  p23: [
+    { id: 'r23a', name: 'Naveen R.', date: '15 Jul 2026', rating: 5, text: 'Crystal clear 1080p feed. Night vision is surprisingly good. Wide angle covers the whole rear bumper.', image: null, verified: true },
+    { id: 'r23b', name: 'Deepti A.', date: '1 Jul 2026', rating: 5, text: 'Installation was easy with the included cables. Display on my head unit is sharp. Great for parking.', image: 'https://picsum.photos/seed/r23b/400/300', verified: true },
+    { id: 'r23c', name: 'Varun N.', date: '20 Jun 2026', rating: 4, text: 'Good camera for the price. Waterproof rating works in monsoon. Slight fish-eye but acceptable.', image: null, verified: true },
+  ],
+  p24: [
+    { id: 'r24a', name: 'Ishaan K.', date: '25 Jul 2026', rating: 5, text: 'Front and rear 4K dashcam — the video quality is stunning. Caught a minor fender bender on video already.', image: null, verified: true },
+    { id: 'r24b', name: 'Rohini S.', date: '10 Jul 2026', rating: 5, text: 'Excellent dashcam setup. Parking mode works great. App connectivity makes it easy to download clips.', image: 'https://picsum.photos/seed/r24b/400/300', verified: true },
+    { id: 'r24c', name: 'Gaurav T.', date: '22 Jun 2026', rating: 4, text: 'Good dashcam but needs a hardwire kit for parking mode. Video quality in 4K is really impressive though.', image: null, verified: true },
+  ],
+  u1: [
+    { id: 'ru1a', name: 'Keshav M.', date: '18 Jul 2026', rating: 4, text: 'Excellent condition for a pre-owned part. No runout, no scoring. Works perfectly on my 2019 Baleno.', image: 'https://picsum.photos/seed/ru1a/400/300', verified: true },
+    { id: 'ru1b', name: 'Sumita D.', date: '3 Jul 2026', rating: 5, text: 'Saved a lot compared to new discs. Surface is smooth and balanced. Great value pre-owned part.', image: null, verified: true },
+  ],
+  u2: [
+    { id: 'ru2a', name: 'Abhishek R.', date: '10 Jul 2026', rating: 4, text: 'Alternator tested fine. Putting out 14.2V as expected. Good condition for 31k km usage.', image: null, verified: true },
+    { id: 'ru2b', name: 'Pavitra L.', date: '25 Jun 2026', rating: 3, text: 'Works but shows minor cosmetic wear. Electrical output is fine though. Acceptable for the price.', image: 'https://picsum.photos/seed/ru2b/400/300', verified: true },
+  ],
+  u3: [
+    { id: 'ru3a', name: 'Tarun V.', date: '22 Jul 2026', rating: 5, text: 'Excellent condition shock. Gas pressure is strong. No leaks at all. Feels almost new on my Swift.', image: null, verified: true },
+  ],
+  u4: [
+    { id: 'ru4a', name: 'Mohan K.', date: '5 Jul 2026', rating: 4, text: 'Starter motor engages strongly. Minor paint wear but functionally perfect. Good pre-owned deal.', image: null, verified: true },
+    { id: 'ru4b', name: 'Lata P.', date: '20 Jun 2026', rating: 4, text: 'Works well on my i10. Quick cranking. A bit dirty externally but cleaned up fine.', image: 'https://picsum.photos/seed/ru4b/400/300', verified: true },
+  ],
+  u5: [
+    { id: 'ru5a', name: 'Hitesh J.', date: '15 Jul 2026', rating: 4, text: 'Radiator in very good condition. No leaks in any rows. Core is clean. Good replacement part.', image: null, verified: true },
+  ],
+  u6: [
+    { id: 'ru6a', name: 'Sanjay N.', date: '8 Jul 2026', rating: 5, text: 'Excellent condition clutch kit. Disc thickness is well within spec. Pressure plate springs are strong.', image: null, verified: true },
+    { id: 'ru6b', name: 'Renuka S.', date: '22 Jun 2026', rating: 4, text: 'Good pre-owned clutch. Bearing is quiet. Disc has plenty of life left. Saved almost 60% vs new.', image: 'https://picsum.photos/seed/ru6b/400/300', verified: true },
+  ],
+  u7: [
+    { id: 'ru7a', name: 'Venu G.', date: '12 Jul 2026', rating: 3, text: 'Filter housing is intact but a bit dusty. Clips are fine. Works as expected on my Venue.', image: null, verified: true },
+  ],
+  u8: [
+    { id: 'ru8a', name: 'Rakesh B.', date: '20 Jul 2026', rating: 5, text: 'LED headlamp assembly in excellent condition. All LEDs work perfectly. Great deal for a pre-owned part.', image: null, verified: true },
+    { id: 'ru8b', name: 'Shruti K.', date: '5 Jul 2026', rating: 4, text: 'Good headlamp assembly. Minor scratch on the housing but lens is clear. Light output is perfect.', image: 'https://picsum.photos/seed/ru8b/400/300', verified: true },
+  ],
+}
+
 export const testimonials = [
   {
     name: 'Rakesh Mehta',

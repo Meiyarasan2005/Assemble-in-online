@@ -1,9 +1,10 @@
 export const API_BASE =
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) ||
-  'http://localhost:4000'
+  ''
 
 export async function api(path, opts = {}) {
-  const res = await fetch(`${API_BASE}/api/store${path}`, {
+  const url = API_BASE ? `${API_BASE}/api/store${path}` : `/api/store${path}`
+  const res = await fetch(url, {
     headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
     ...opts,
   })
@@ -31,6 +32,10 @@ export async function fetchCatalog(params = {}) {
 
 export async function fetchProduct(id) {
   return api(`/catalog/${encodeURIComponent(id)}`)
+}
+
+export async function fetchOffers() {
+  return api('/offers')
 }
 
 export async function registerCustomer(payload) {
@@ -142,5 +147,74 @@ export async function cancelOrder(orderId, token) {
   return api(`/orders/${encodeURIComponent(orderId)}/cancel`, {
     method: 'POST',
     body: JSON.stringify({ token }),
+  })
+}
+
+export async function sellerLogin(payload) {
+  return api('/seller/login', { method: 'POST', body: JSON.stringify(payload) })
+}
+
+export async function sellerLogout(token) {
+  return api('/seller/logout', {
+    method: 'POST',
+    headers: { 'x-seller-token': token },
+  })
+}
+
+export async function sellerMe(token) {
+  return api('/seller/me', { headers: { 'x-seller-token': token } })
+}
+
+export async function sellerUpdateProduct(productId, payload, token) {
+  return api(`/seller/products/${encodeURIComponent(productId)}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+    headers: { 'x-seller-token': token },
+  })
+}
+
+export async function sellerUploadImage(productId, file, token) {
+  const form = new FormData()
+  form.append('image', file)
+  const url = API_BASE ? `${API_BASE}/api/store/seller/products/${encodeURIComponent(productId)}/image` : `/api/store/seller/products/${encodeURIComponent(productId)}/image`
+  const res = await fetch(url, {
+    method: 'POST',
+    body: form,
+    headers: { 'x-seller-token': token },
+  })
+  const data = await res.json().catch(() => null)
+  if (!res.ok) {
+    const err = new Error(data?.error || `Upload failed (${res.status})`)
+    err.status = res.status
+    throw err
+  }
+  return data
+}
+
+export async function sellerCreateProduct(formData, token) {
+  const url = API_BASE ? `${API_BASE}/api/store/seller/products` : '/api/store/seller/products'
+  const res = await fetch(url, {
+    method: 'POST',
+    body: formData,
+    headers: { 'x-seller-token': token },
+  })
+  const data = await res.json().catch(() => null)
+  if (!res.ok) {
+    const err = new Error(data?.error || `Create failed (${res.status})`)
+    err.status = res.status
+    throw err
+  }
+  return data
+}
+
+export async function fetchBanner() {
+  return api('/banner')
+}
+
+export async function updateBanner(payload, token) {
+  return api('/banner', {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+    headers: token ? { 'x-seller-token': token } : {},
   })
 }
