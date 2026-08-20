@@ -992,3 +992,53 @@
     padding-top: 0;
   }
 }
+
+@media (max-width: 480px) {
+  .co-grid,
+  .pay-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .co-span2 {
+    grid-column: span 1;
+  }
+
+  .pay-methods {
+    grid-template-columns: 1fr;
+  }
+
+  .co-steps {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 0;
+  }
+
+  .co-step {
+    min-width: 64px;
+    font-size: 11px;
+    padding: 8px 6px;
+  }
+
+  .co-summary {
+    padding: 16px;
+  }
+
+  .order-card-body {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .co-confirm {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .co-below {
+    grid-template-columns: 1fr;
+  }
+
+  .co-track-info {
+    grid-template-columns: 1fr;
+  }
+}

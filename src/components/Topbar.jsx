@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../context/useStore'
 import useCatalog from '../hooks/useCatalog'
@@ -21,11 +21,23 @@ export default function Topbar({ onMenu }) {
   const navigate = useNavigate()
   const { cartCount, setCartOpen, isAuthed, customer, wishlist, lang, setLang } = useStore()
   const { products } = useCatalog()
+  const headerRef = useRef(null)
   const [query, setQuery] = useState('')
   const [focus, setFocus] = useState(false)
   const [garageOpen, setGarageOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const blurTimer = useRef(null)
+
+  useEffect(() => {
+    const el = headerRef.current
+    if (!el) return
+    const onScroll = () => {
+      el.classList.toggle('scrolled', window.scrollY > 30)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    onScroll()
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -60,7 +72,7 @@ export default function Topbar({ onMenu }) {
   }
 
   return (
-    <header className="topbar">
+    <header className="topbar" ref={headerRef}>
       <button className="icon-btn menu-btn" onClick={onMenu} aria-label="Open menu">
         <IconMenu />
       </button>
@@ -115,6 +127,16 @@ export default function Topbar({ onMenu }) {
               <div className="pop-backdrop" onClick={() => setGarageOpen(false)} />
               <div className="pop-card card">
                 <VehicleGarage compact />
+                <button
+                  type="button"
+                  className="garage-open-link"
+                  onClick={() => {
+                    setGarageOpen(false)
+                    navigate('/garage')
+                  }}
+                >
+                  Open my garage <IconChevronDown width="14" height="14" className="garage-open-arrow" />
+                </button>
               </div>
             </>
           )}

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useStore } from '../context/useStore'
 import {
+  IconArrowLeft,
   IconArrowRight,
   IconBox,
   IconCheck,
@@ -72,19 +73,21 @@ export default function Auth() {
     }
   }
 
-  const doLogout = () => {
-    signOut()
+  const doLogout = async () => {
+    try {
+      await signOut()
+    } catch {
+      /* ignore */
+    }
     showToast('Signed out')
     navigate('/')
   }
 
   return (
     <div className="container auth-page">
-      <nav className="crumbs" aria-label="Breadcrumb">
-        <Link to="/">Home</Link>
-        <IconArrowRight width="13" height="13" />
-        <span>My account</span>
-      </nav>
+      <button className="pd-back" onClick={() => navigate(-1)}>
+        <IconArrowLeft width="18" height="18" /> Back
+      </button>
 
       {isAuthed && customer ? (
         <div className="account-panel card">
@@ -112,7 +115,7 @@ export default function Auth() {
       ) : (
         <div className="auth-card card">
           <div className="auth-logo-wrap">
-            <img className="auth-logo" src="/logo.png" alt="SpareXpress" />
+            <img className="auth-logo" src="/favicon.png" alt="SpareXpress" />
           </div>
           <div className="auth-tabs" role="tablist">
             <button

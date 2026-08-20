@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { formatINR } from '../data'
 import { fetchOrders } from '../lib/api'
 import { useStore } from '../context/useStore'
 import {
+  IconArrowLeft,
   IconArrowRight,
   IconCheck,
   IconClock,
@@ -44,6 +45,7 @@ function rememberedEmails() {
 }
 
 export default function Orders() {
+  const navigate = useNavigate()
   const { token, customer } = useStore()
   const [email, setEmail] = useState('')
   const [orders, setOrders] = useState(null)
@@ -87,11 +89,9 @@ export default function Orders() {
 
   return (
     <div className="container">
-      <nav className="crumbs" aria-label="Breadcrumb">
-        <Link to="/">Home</Link>
-        <IconArrowRight width="13" height="13" />
-        <span>My orders</span>
-      </nav>
+      <button className="pd-back" onClick={() => navigate(-1)}>
+        <IconArrowLeft width="18" height="18" /> Back
+      </button>
 
       <div className="orders-head">
         <h1>My orders</h1>

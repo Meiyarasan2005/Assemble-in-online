@@ -1,5 +1,8 @@
 import { Router } from 'express'
 import { randomUUID } from 'node:crypto'
+import { fileURLToPath } from 'node:url'
+import { dirname, extname, join } from 'node:path'
+import multer from 'multer'
 import { db, now, nextId, docOut, docsOut, escapeRegExp, withTx } from './db.js'
 import { preownedProducts } from '../src/data.js'
 import { orderDetail, serializeOrder, addDaysIso, restockOrder } from './orders.js'
@@ -24,6 +27,25 @@ import {
   updateCustomerAddress,
   updateCustomerProfile,
 } from './customer-auth.js'
+import { userFromToken as adminUserFromToken, createSession as createAdminSession, destroySession as destroyAdminSession } from './auth.js'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const uploadsDir = join(__dirname, 'public', 'uploads')
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, uploadsDir),
+    filename: (_req, file, cb) => {
+      const ext = extname(file.originalname).toLowerCase() || '.jpg'
+      cb(null, `product-${Date.now()}${ext}`)
+    },
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (/^image\//.test(file.mimetype)) cb(null, true)
+    else cb(new Error('Only image files are allowed'))
+  },
+})
 
 const router = Router()
 
@@ -211,6 +233,45 @@ router.get('/meta', async (_req, res) => {
   brands.sort((a, b) => a.localeCompare(b))
   const vehicles = await db.vehicles.find().sort({ make: 1, model: 1 }).toArray()
   res.json({ categories: categoriesOut, brands, vehicles: docsOut(vehicles) })
+})
+
+/* ---------- offers (storefront) ---------- */
+
+router.get('/offers', async (_req, res) => {
+  const nowIso = now()
+  const rows = await db.offers
+    .find({ active: true })
+    .sort({ sort_order: 1, created_at: -1 })
+    .toArray()
+  const offers = []
+  for (const r of rows) {
+    if (r.starts_at && r.starts_at > nowIso) continue
+    if (r.ends_at && r.ends_at < nowIso) continue
+    let product = null
+    if (r.product_id) {
+      const p = await db.products.findOne({ _id: r.product_id })
+      if (p) {
+        product = {
+          id: p._id,
+          name: p.name,
+          brand: p.brand,
+          price: p.price,
+          mrp: p.mrp,
+          stock: p.stock,
+        }
+      }
+    }
+    offers.push({
+      id: r._id,
+      title: r.title,
+      description: r.description,
+      discount_pct: r.discount_pct,
+      image: r.image,
+      badge: r.badge,
+      product,
+    })
+  }
+  res.json(offers)
 })
 
 /* ---------- checkout ---------- */
@@ -612,6 +673,177 @@ router.post('/orders/:id/cancel', async (req, res) => {
   await restockOrder(row._id)
 
   res.json(await orderDetail(req.params.id, token))
+})
+
+/* ---------- banner ---------- */
+
+router.get('/banner', async (_req, res) => {
+  try {
+    const doc = await db.site_settings.findOne({ _id: 'sale-banner' })
+    res.json(doc ? doc.data : { badge: 'SALE', title: 'Up to 40% Off on Braking Parts', desc: 'Pads, rotors, calipers & more — genuine brands at clearance prices.', image: '' })
+  } catch {
+    res.json({ badge: 'SALE', title: 'Up to 40% Off on Braking Parts', desc: 'Pads, rotors, calipers & more — genuine brands at clearance prices.', image: '' })
+  }
+})
+
+router.put('/banner', async (req, res) => {
+  const seller = await sellerFromToken(req)
+  if (!seller) return res.status(401).json({ error: 'Seller login required' })
+
+  const b = req.body || {}
+  const data = {
+    badge: String(b.badge ?? 'SALE').trim(),
+    title: String(b.title ?? '').trim(),
+    desc: String(b.desc ?? '').trim(),
+    image: String(b.image ?? ''),
+  }
+  await db.site_settings.updateOne(
+    { _id: 'sale-banner' },
+    { $set: { data, updated_at: now(), updated_by: seller.username } },
+    { upsert: true },
+  )
+  res.json(data)
+})
+
+/* ---------- seller ---------- */
+
+async function sellerFromToken(req) {
+  const token = String(req.headers['x-seller-token'] || '')
+  if (!token) return null
+  return adminUserFromToken(token)
+}
+
+router.post('/seller/login', async (req, res) => {
+  const { verifyPassword } = await import('./auth.js')
+  const username = String(req.body?.username ?? '').trim()
+  const password = String(req.body?.password ?? '')
+  if (!username || !password) return res.status(400).json({ error: 'Username and password are required' })
+  const user = await db.users.findOne({ username })
+  if (!user || !verifyPassword(password, user.salt, user.pass_hash)) {
+    return res.status(401).json({ error: 'Invalid username or password' })
+  }
+  const token = await createAdminSession(user._id)
+  res.json({ token, seller: { id: user._id, username: user.username } })
+})
+
+router.post('/seller/logout', async (req, res) => {
+  const token = String(req.headers['x-seller-token'] || '')
+  if (token) await destroyAdminSession(token)
+  res.json({ ok: true })
+})
+
+router.get('/seller/me', async (req, res) => {
+  const seller = await sellerFromToken(req)
+  if (!seller) return res.status(401).json({ error: 'Not authenticated as seller' })
+  res.json({ seller })
+})
+
+router.put('/seller/products/:id', async (req, res) => {
+  const seller = await sellerFromToken(req)
+  if (!seller) return res.status(401).json({ error: 'Seller login required' })
+
+  const existing = await db.products.findOne({ _id: req.params.id })
+  if (!existing) return res.status(404).json({ error: 'Product not found' })
+
+  const b = req.body || {}
+  const update = {}
+  if (b.price != null) update.price = Math.max(0, Number(b.price) || 0)
+  if (b.mrp != null) update.mrp = Math.max(0, Number(b.mrp) || 0)
+  if (b.stock != null) {
+    const newStock = Math.max(0, Math.round(Number(b.stock) || 0))
+    const delta = newStock - existing.stock
+    update.stock = newStock
+    if (delta !== 0) {
+      await db.stock_movements.insertOne({
+        _id: await nextId('stock_movements'),
+        product_id: existing._id,
+        delta,
+        reason: 'Seller updated stock',
+        note: `By ${seller.username}`,
+        created_at: now(),
+      })
+    }
+  }
+  if (b.image != null) update.image = String(b.image)
+  if (b.name != null) update.name = String(b.name).trim()
+  if (b.desc != null) update.desc = String(b.desc)
+
+  update.updated_at = now()
+
+  await db.products.updateOne({ _id: existing._id }, { $set: update })
+  const updated = await db.products.findOne({ _id: existing._id })
+  res.json(docOut(updated))
+})
+
+router.post('/seller/products/:id/image', upload.single('image'), async (req, res) => {
+  const seller = await sellerFromToken(req)
+  if (!seller) return res.status(401).json({ error: 'Seller login required' })
+
+  const existing = await db.products.findOne({ _id: req.params.id })
+  if (!existing) return res.status(404).json({ error: 'Product not found' })
+  if (!req.file) return res.status(400).json({ error: 'No image file provided' })
+
+  const imageUrl = `/uploads/${req.file.filename}`
+  await db.products.updateOne(
+    { _id: existing._id },
+    { $set: { image: imageUrl, updated_at: now() } },
+  )
+  const updated = await db.products.findOne({ _id: existing._id })
+  res.json(docOut(updated))
+})
+
+router.post('/seller/products', upload.single('image'), async (req, res) => {
+  const seller = await sellerFromToken(req)
+  if (!seller) return res.status(401).json({ error: 'Seller login required' })
+
+  const b = req.body || {}
+  const id = String(b.id ?? '').trim() || `sp-${Date.now().toString(36)}${Math.floor(Math.random() * 1296).toString(36)}`
+  const name = String(b.name ?? '').trim()
+  const category = String(b.category ?? '').trim()
+  const brand = String(b.brand ?? '').trim()
+  if (!name) return res.status(400).json({ error: 'Product name is required' })
+  if (!category) return res.status(400).json({ error: 'Category is required' })
+  if (!brand) return res.status(400).json({ error: 'Brand is required' })
+
+  const exists = await db.products.findOne({ _id: id })
+  if (exists) return res.status(409).json({ error: 'Product ID already exists' })
+
+  let imageUrl = String(b.image ?? '')
+  if (req.file) imageUrl = `/uploads/${req.file.filename}`
+
+  const doc = {
+    _id: id,
+    name,
+    category,
+    brand,
+    part_no: String(b.part_no ?? '').trim(),
+    image: imageUrl,
+    price: Math.max(0, Number(b.price) || 0),
+    mrp: Math.max(0, Number(b.mrp) || 0),
+    stock: Math.max(0, Math.round(Number(b.stock) || 0)),
+    rating: Math.min(5, Math.max(0, Number(b.rating) || 0)),
+    reviews: Math.max(0, Math.round(Number(b.reviews) || 0)),
+    popular: Boolean(b.popular),
+    badge: String(b.badge ?? ''),
+    desc: String(b.desc ?? ''),
+    features: Array.isArray(b.features) ? b.features.map(String) : [],
+    fits: Array.isArray(b.fits) ? b.fits.map(String) : [],
+    created_at: now(),
+    updated_at: now(),
+  }
+
+  await db.products.insertOne(doc)
+  if (doc.stock > 0) {
+    await db.stock_movements.insertOne({
+      _id: await nextId('stock_movements'),
+      product_id: doc._id,
+      delta: doc.stock,
+      reason: 'Seller created product',
+      note: `By ${seller.username}`,
+      created_at: now(),
+    })
+  }
+  res.status(201).json(docOut(doc))
 })
 
 export default router

@@ -6,17 +6,54 @@
 
   /* ================= product form ================= */
 
+  function readImage(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onerror = () => reject(new Error('Could not read the image'))
+      reader.onload = () => {
+        const img = new Image()
+        img.onerror = () => reject(new Error('Not a valid image file'))
+        img.onload = () => {
+          const MAX = 640
+          const scale = Math.min(1, MAX / Math.max(img.width, img.height))
+          const w = Math.max(1, Math.round(img.width * scale))
+          const h = Math.max(1, Math.round(img.height * scale))
+          const canvas = document.createElement('canvas')
+          canvas.width = w
+          canvas.height = h
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h)
+          resolve(canvas.toDataURL('image/jpeg', 0.82))
+        }
+        img.src = reader.result
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+
   async function openProductForm(id) {
     let p = { fits: [], features: [] }
     if (id) {
       p = await api('/products/' + id)
     }
     const isNew = !id
+
+    let imageValue = p.image || ''
     const m = openModal(
       `
       <div class="modal-head"><h2>${isNew ? 'New product' : 'Edit product'}</h2><button class="x" data-close>×</button></div>
       <form id="pf-form" class="modal-body" novalidate>
         <div class="form-grid">
+          <div class="field full">
+            <label>Image</label>
+            <div class="offer-upload">
+              <div class="offer-upload-preview" id="pf-preview">${p.image ? `<img src="${p.image}" alt="" />` : '<span>Preview</span>'}</div>
+              <div class="offer-upload-actions">
+                <label class="btn sm" for="pf-file">${ICON.stock} Upload image</label>
+                <input type="file" id="pf-file" accept="image/*" hidden />
+                <div class="hint" id="pf-file-hint">PNG / JPG, auto-resized</div>
+              </div>
+            </div>
+          </div>
           <div class="field full">
             <label class="req">Name</label>
             <input class="input" name="name" required value="${esc(p.name || '')}" placeholder="e.g. Ceramic Disc Brake Pad Set (Front)" />
@@ -104,10 +141,25 @@
       { wide: true }
     )
     bindModalClose()
-    $('#pf-save').addEventListener('click', () => submitProductForm(id, m))
+
+    const $file = $('#pf-file', m)
+    const $preview = $('#pf-preview', m)
+    $file.addEventListener('change', async () => {
+      const file = $file.files && $file.files[0]
+      if (!file) return
+      try {
+        imageValue = await readImage(file)
+        $preview.innerHTML = `<img src="${imageValue}" alt="" />`
+        $('#pf-file-hint', m).textContent = 'Image ready ✓'
+      } catch (e) {
+        toast(e.message, 'err')
+      }
+    })
+
+    $('#pf-save').addEventListener('click', () => submitProductForm(id, m, () => imageValue))
   }
 
-  async function submitProductForm(id, m) {
+  async function submitProductForm(id, m, getImage) {
     const f = $('#pf-form', m)
     if (!f.reportValidity()) return
     const fd = new FormData(f)
@@ -126,6 +178,7 @@
       features: (fd.get('features_text') || '').split('\n').map((s) => s.trim()).filter(Boolean),
       fits: $$('input[name=fits]:checked', f).map((c) => c.value),
     }
+    body.image = getImage() || ''
     if (!id) body.stock = Number(fd.get('stock')) || 0
     try {
       if (id) {

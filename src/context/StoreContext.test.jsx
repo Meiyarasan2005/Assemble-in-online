@@ -77,6 +77,52 @@ describe('StoreProvider', () => {
     expect(values.wishlist).toEqual([])
   })
 
+  it('adds multiple vehicles to the garage and activates the latest', () => {
+    renderProbe()
+    act(() => values.addVehicle('swift'))
+    act(() => values.addVehicle('creta'))
+    expect(values.garage).toEqual(['swift', 'creta'])
+    expect(values.activeVehicle).toBe('creta')
+
+    act(() => values.addVehicle('swift'))
+    expect(values.garage).toEqual(['swift', 'creta'])
+  })
+
+  it('removes a vehicle and clears the active one when removed', () => {
+    renderProbe()
+    act(() => values.addVehicle('swift'))
+    act(() => values.addVehicle('creta'))
+    act(() => values.removeVehicle('creta'))
+    expect(values.garage).toEqual(['swift'])
+    expect(values.activeVehicle).toBe('swift')
+
+    act(() => values.removeVehicle('swift'))
+    expect(values.garage).toEqual([])
+    expect(values.activeVehicle).toBe('')
+  })
+
+  it('persists the garage across reloads', () => {
+    renderProbe()
+    act(() => values.addVehicle('swift'))
+    expect(JSON.parse(localStorage.getItem('meispare-garage'))).toEqual(['swift'])
+    expect(localStorage.getItem('meispare-active-vehicle')).toBe('swift')
+
+    localStorage.clear()
+    localStorage.setItem('meispare-garage', JSON.stringify(['swift']))
+    localStorage.setItem('meispare-active-vehicle', 'swift')
+    renderProbe()
+    expect(values.garage).toEqual(['swift'])
+    expect(values.activeVehicle).toBe('swift')
+  })
+
+  it('adds to cart from a passed product object', () => {
+    renderProbe()
+    const product = { id: 'db-1', name: 'DB part', price: 950 }
+    act(() => values.addToCart('db-1', 1, product))
+    expect(values.cart).toEqual([{ productId: 'db-1', qty: 1, price: 950 }])
+    expect(values.cartCount).toBe(1)
+  })
+
   it('persists the cart across reloads', () => {
     renderProbe()
     act(() => values.addToCart('p1'))

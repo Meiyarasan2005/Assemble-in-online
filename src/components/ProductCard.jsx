@@ -1,29 +1,90 @@
+import { useCallback, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { formatINR, getCategory, vehicles } from '../data'
 import { useStore } from '../context/useStore'
+import { useSeller } from '../context/useSeller'
 import { t } from '../lib/i18n'
 import ProductArt from './ProductArt'
-import { IconPlus, IconStar, IconHeart } from './icons'
+import { IconStar } from './icons'
 
 const vehicleById = new Map(vehicles.map((v) => [v.id, v]))
 
-export default function ProductCard({ product, compact = false }) {
-  const { addToCart, activeVehicle, wishlist, toggleWishlist, priceWatch, lang } = useStore()
-  const cat = getCategory(product.category)
-  const pre = Boolean(product.condition)
-  const shown = product.price
-  const save = product.mrp - shown
-  const out = product.stock === 0
-  const wished = wishlist.includes(product.id)
-  const fitsActive = activeVehicle && product.fits?.includes(activeVehicle)
-  const activeV = vehicleById.get(activeVehicle)
-  const dropped = priceWatch[product.id] != null && product.price < priceWatch[product.id]
+function InlineEdit({ value, onSave, type = 'number', className, prefix }) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(value)
+
+  const save = () => {
+    setEditing(false)
+    const numVal = type === 'number' ? Number(draft) : draft
+    if (numVal !== value) onSave(numVal)
+  }
+
+  if (!editing) {
+    return (
+      <span
+        className={`${className} seller-inline-edit`}
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDraft(value); setEditing(true) }}
+        title="Click to edit"
+      >
+        {prefix}{type === 'number' ? Number(value).toLocaleString('en-IN') : value}
+        <span className="seller-pencil">&#9998;</span>
+      </span>
+    )
+  }
 
   return (
-    <article className={`pcard card ${compact ? 'pcard-compact' : ''}`}>
+    <span className="seller-inline-editor" onClick={(e) => e.preventDefault()}>
+      {prefix && <span>{prefix}</span>}
+      <input
+        className="seller-inline-input"
+        type={type === 'number' ? 'number' : 'text'}
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={save}
+        onKeyDown={(e) => { if (e.key === 'Enter') save(); if (e.key === 'Escape') setEditing(false) }}
+        autoFocus
+        min={type === 'number' ? 0 : undefined}
+      />
+    </span>
+  )
+}
+
+export default function ProductCard({ product, compact = false }) {
+  const { activeVehicle, lang } = useStore()
+  const { isSeller, updateProduct } = useSeller()
+  const [overrides, setOverrides] = useState({})
+
+  const merge = useCallback((field, val) => {
+    setOverrides((prev) => ({ ...prev, [field]: val }))
+  }, [])
+
+  const price = overrides.price ?? product.price
+  const mrp = overrides.mrp ?? product.mrp
+  const stock = overrides.stock ?? product.stock
+
+  const cat = getCategory(product.category)
+  const pre = Boolean(product.condition)
+  const save = mrp - price
+  const savePct = mrp > 0 ? Math.round((save / mrp) * 100) : 0
+  const fitsActive = activeVehicle && product.fits?.includes(activeVehicle)
+  const activeV = vehicleById.get(activeVehicle)
+
+  const handleSave = async (field, val) => {
+    try {
+      await updateProduct(product.id, { [field]: val })
+      merge(field, val)
+    } catch { /* ignore */ }
+  }
+
+  return (
+    <article className={`pcard ${compact ? 'pcard-compact' : ''} ${isSeller ? 'seller-mode' : ''}`}>
       <Link to={`/product/${product.id}`} className="pcard-art-wrap">
         <span className={`pcard-art pcard-art-${cat.id}`}>
-          <ProductArt category={cat.icon} />
+          {product.image ? (
+            <img src={product.image} alt={product.name} loading="lazy" />
+          ) : (
+            <ProductArt category={cat.icon} />
+          )}
         </span>
         <span className="pcard-badges">
           {product.badge === 'sale' && <span className="badge badge-sale">Sale</span>}
@@ -31,7 +92,7 @@ export default function ProductCard({ product, compact = false }) {
           {product.badge === 'top' && <span className="badge badge-top">Best seller</span>}
           {product.badge === 'low' && <span className="badge badge-low">Few left</span>}
           {pre && <span className="badge badge-pre">Pre-owned</span>}
-          {dropped && <span className="badge badge-drop">Price drop</span>}
+          {isSeller && <span className="badge badge-seller">Editing</span>}
         </span>
       </Link>
 
@@ -40,54 +101,39 @@ export default function ProductCard({ product, compact = false }) {
       )}
 
       <div className="pcard-body">
-        <div className="pcard-meta">
-          <span className="pcard-brand">{product.brand}</span>
-          <span className="pcard-partno">{product.partNo}</span>
-        </div>
-        {pre && (
-          <span className="pcard-cond">
-            {product.condition} · {product.km}
-          </span>
-        )}
+        <span className="pcard-brand">{product.brand}</span>
         <Link to={`/product/${product.id}`} className="pcard-name">
           {product.name}
         </Link>
         <div className="pcard-rating">
-          <IconStar className="star" />
-          <span>{product.rating}</span>
+          <span className="pcard-rating-badge">
+            {product.rating} <IconStar width="11" height="11" />
+          </span>
           <span className="pcard-reviews">({product.reviews})</span>
         </div>
-
-        <div className="pcard-foot">
-          <div>
-            {pre && (
-              <div className="pcard-pre">
-                <span className="pcard-mrp">New {formatINR(product.mrp)}</span>
-                <span className="pcard-save">Save {formatINR(save)}</span>
-              </div>
-            )}
-            <div className="pcard-price">{formatINR(shown)}</div>
-          </div>
-          <div className="pcard-cta">
-            <button
-              type="button"
-              className={`icon-btn wish-btn wish-btn--card ${wished ? 'is-wished' : ''}`}
-              onClick={() => toggleWishlist(product.id)}
-              aria-label={wished ? 'Remove from wishlist' : 'Add to wishlist'}
-            >
-              <IconHeart width="16" height="16" />
-            </button>
-            <button
-              className="btn btn-primary btn-sm pcard-add"
-              disabled={out}
-              onClick={() => addToCart(product.id)}
-              aria-label={`Add ${product.name} to cart`}
-            >
-              <IconPlus width="16" height="16" />
-              {out ? 'Out' : 'Add'}
-            </button>
-          </div>
+        <div className="pcard-price-row">
+          {isSeller ? (
+            <InlineEdit value={price} prefix="&#8377;" onSave={(v) => handleSave('price', v)} className="pcard-price" />
+          ) : (
+            <span className="pcard-price">{formatINR(price)}</span>
+          )}
+          {save > 0 && (
+            <>
+              {isSeller ? (
+                <InlineEdit value={mrp} prefix="MRP &#8377;" onSave={(v) => handleSave('mrp', v)} className="pcard-mrp" />
+              ) : (
+                <span className="pcard-mrp">{formatINR(mrp)}</span>
+              )}
+              <span className="pcard-discount">{savePct}% off</span>
+            </>
+          )}
         </div>
+        {isSeller && (
+          <div className="pcard-stock-row">
+            <span className="pcard-stock-label">Stock:</span>
+            <InlineEdit value={stock} onSave={(v) => handleSave('stock', v)} className="pcard-stock" />
+          </div>
+        )}
       </div>
     </article>
   )

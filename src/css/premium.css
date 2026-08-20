@@ -1,0 +1,66 @@
+/* ============================================================
+   PREMIUM ANIMATIONS (simplified for light theme)
+   ============================================================ */
+
+/* scroll progress */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: var(--accent);
+  z-index: 100;
+  transform-origin: left;
+  transform: scaleX(0);
+  transition: transform 0.1s linear;
+  width: 100%;
+}
+
+/* page transitions */
+.page-wrap {
+  animation: page-enter 0.3s ease forwards;
+}
+
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* fly to cart dot */
+.fly-dot {
+  position: fixed;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  z-index: 200;
+  pointer-events: none;
+  transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* cart button pulse */
+.cart-pulse {
+  animation: cart-pulse-anim 0.5s ease;
+}
+
+@keyframes cart-pulse-anim {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+/* marquee animations */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-progress,
+  .fly-dot,
+  .page-wrap {
+    animation: none !important;
+    transition: none !important;
+  }
+}

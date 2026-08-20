@@ -125,7 +125,7 @@
   gap: 8px;
   padding: 12px 14px;
   border-radius: 12px;
-  background: var(--bg2);
+  background: var(--bg-2);
   border: 1px solid var(--border);
   color: var(--text);
   font-weight: 600;
@@ -162,8 +162,8 @@
   display: grid;
   place-items: center;
   color: #fff;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  box-shadow: 0 8px 24px rgba(255, 107, 0, 0.35);
+  background: linear-gradient(135deg, var(--accent), var(--accent-hi));
+  box-shadow: 0 8px 24px rgba(255, 106, 0, 0.3);
 }
 
 .account-panel h1 {
@@ -211,7 +211,7 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--bg2);
+  background: var(--bg-2);
   border: 1px solid var(--border);
   color: var(--accent);
 }
@@ -233,4 +233,66 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+}
+
+/* ---- mobile ---- */
+@media (max-width: 480px) {
+  .auth-logo-wrap {
+    padding: 18px 16px 8px;
+  }
+
+  .auth-logo {
+    width: 150px;
+  }
+
+  .auth-tab {
+    padding: 12px 12px;
+    font-size: 13px;
+  }
+
+  .auth-body {
+    padding: 18px 16px;
+  }
+
+  .auth-form h2 {
+    font-size: 18px;
+  }
+
+  .auth-lead {
+    font-size: 13px;
+  }
+
+  .account-panel {
+    padding: 24px 16px;
+  }
+
+  .account-panel h1 {
+    font-size: 22px;
+  }
+
+  .account-avatar {
+    width: 56px;
+    height: 56px;
+  }
+
+  .account-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .auth-gate {
+    padding: 28px 16px;
+  }
+
+  .auth-gate p {
+    font-size: 14px;
+  }
+
+  .auth-perks {
+    gap: 8px 12px;
+  }
+
+  .auth-switch {
+    font-size: 13px;
+  }
 }

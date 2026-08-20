@@ -33,6 +33,30 @@ app.use(express.json({ limit: '1mb' }))
 
 const PUBLIC_PATHS = ['/auth/login', '/auth/register', '/auth/status']
 
+let dbReady = false
+
+async function connectWithRetry() {
+  let attempt = 0
+  for (;;) {
+    attempt++
+    try {
+      await connectDb()
+      dbReady = true
+      return
+    } catch (err) {
+      const t = new Date().toISOString().slice(11, 19)
+      console.error(`[db] ${t} connect attempt ${attempt} failed: ${err.message.split('\n')[0]}`)
+      console.error(`[db] retrying in 10s…`)
+      await new Promise((r) => setTimeout(r, 10000))
+    }
+  }
+}
+
+app.use('/api', async (req, res, next) => {
+  if (!dbReady) return res.status(503).json({ error: 'Database is connecting, please retry…' })
+  next()
+})
+
 app.use('/api', async (req, res, next) => {
   if (req.path.startsWith('/store')) return next()
   if (PUBLIC_PATHS.includes(req.path)) return next()
@@ -46,46 +70,32 @@ app.use('/api', async (req, res, next) => {
 app.use('/api', routes)
 app.use('/api/store', storeRoutes)
 app.use('/admin', express.static(`${__dirname}/public`))
+app.use('/uploads', express.static(`${__dirname}/public/uploads`))
 app.get('/', (_req, res) => res.redirect('/admin'))
 app.use('/admin', (_req, res) => res.sendFile(`${__dirname}/public/admin.html`))
 
-async function connectWithRetry() {
-  let attempt = 0
-  for (;;) {
-    attempt++
-    try {
-      await connectDb()
-      return
-    } catch (err) {
-      const t = new Date().toISOString().slice(11, 19)
-      console.error(`[db] ${t} connect attempt ${attempt} failed: ${err.message.split('\n')[0]}`)
-      console.error(`[db] retrying in 10s…`)
-      await new Promise((r) => setTimeout(r, 10000))
-    }
-  }
-}
-
 async function start() {
+  app.listen(PORT, () => {
+    console.log(`\n  SpareXpress Inventory API  ->  http://localhost:${PORT}/api`)
+    console.log(`  Storefront API           ->  http://localhost:${PORT}/api/store`)
+    console.log(`  Admin tool               ->  http://localhost:${PORT}/admin`)
+    if (razorpayEnabled()) {
+      console.log(`  Payments                 ->  Razorpay test mode (${razorpayConfig().keyId})`)
+    } else {
+      console.log('  Payments                 ->  simulated sandbox (set RAZORPAY_KEY_ID/SECRET for real test payments)')
+    }
+    console.log('  Database                 ->  connecting…')
+    console.log('')
+  })
+
   try {
     await connectWithRetry()
     const seeded = await seedIfEmpty()
     console.log(seeded ? '[db] Seeded catalogue into MongoDB' : '[db] Using existing MongoDB data')
-    app.listen(PORT, () => {
-      console.log(`\n  SpareXpress Inventory API  ->  http://localhost:${PORT}/api`)
-      console.log(`  Storefront API           ->  http://localhost:${PORT}/api/store`)
-      console.log(`  Admin tool               ->  http://localhost:${PORT}/admin`)
-      console.log(`  Database                 ->  MongoDB Atlas (${process.env.DB_NAME || 'sparexpress'})`)
-      if (razorpayEnabled()) {
-        console.log(`  Payments                 ->  Razorpay test mode (${razorpayConfig().keyId})`)
-      } else {
-        console.log('  Payments                 ->  simulated sandbox (set RAZORPAY_KEY_ID/SECRET for real test payments)')
-      }
-      if (seeded) console.log('  Auth: user accounts (login on the admin page)')
-      console.log('')
-    })
+    console.log(`  Database                 ->  MongoDB Atlas (${process.env.DB_NAME || 'sparexpress'}) connected`)
+    if (seeded) console.log('  Auth: user accounts (login on the admin page)')
   } catch (err) {
-    console.error('[db] Fatal error after starting:', err.message.split('\n')[0])
-    process.exit(1)
+    console.error('[db] Could not connect:', err.message.split('\n')[0])
   }
 }
 
