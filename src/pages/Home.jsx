@@ -58,21 +58,34 @@ function CategoryMarquee() {
 
 function SaleBanner() {
   const navigate = useNavigate()
-  const { isSeller } = useSeller()
-  const [banner, setBanner] = useState(readBanner)
+  const { isSeller, token: sellerToken } = useSeller()
+  const [banner, setBanner] = useState(defaultBanner)
   const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState(banner)
+  const [draft, setDraft] = useState(defaultBanner)
   const [saved, setSaved] = useState(false)
+  const [loading, setLoading] = useState(true)
   const fileRef = useRef(null)
+
+  useEffect(() => {
+    fetchBanner()
+      .then((data) => { setBanner(data); setDraft(data) })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
 
   const set = (field) => (e) => setDraft((d) => ({ ...d, [field]: e.target.value }))
 
-  const handleSave = () => {
-    saveBanner(draft)
-    setBanner(draft)
-    setEditing(false)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+  const handleSave = async () => {
+    try {
+      const updated = await updateBanner(draft, sellerToken)
+      setBanner(updated)
+      setDraft(updated)
+      setEditing(false)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    } catch (err) {
+      alert('Failed to save: ' + (err.message || 'Unknown error'))
+    }
   }
 
   const handleImage = (e) => {
