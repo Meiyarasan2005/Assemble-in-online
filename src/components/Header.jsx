@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useStore } from '../context/useStore'
-import { useSeller } from '../context/useSeller'
 import useCatalog from '../hooks/useCatalog'
 import { findInterchanges, interchangesFor } from '../data'
 import {
@@ -13,28 +12,15 @@ import {
   IconMenu,
   IconX,
 } from './icons'
-import SellerLogin from './SellerLogin'
 
 export default function Header() {
   const navigate = useNavigate()
   const { cartCount, setCartOpen, isAuthed, customer, wishlist, mode, toggleMode } = useStore()
-  const { isSeller, seller, logout: sellerLogout } = useSeller()
   const { products } = useCatalog()
   const [query, setQuery] = useState('')
   const [focus, setFocus] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [showSellerLogin, setShowSellerLogin] = useState(false)
-  const [loginDrop, setLoginDrop] = useState(false)
-  const dropRef = useRef(null)
   const blurTimer = useRef(null)
-
-  useEffect(() => {
-    const handler = (e) => {
-      if (dropRef.current && !dropRef.current.contains(e.target)) setLoginDrop(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -127,52 +113,10 @@ export default function Header() {
               <span className="header-btn-text">Wishlist</span>
             </button>
 
-            {isSeller ? (
-              <div className="header-login-split header-login-seller" ref={dropRef}>
-                <button className="header-login-main seller-active-main" onClick={() => setLoginDrop(!loginDrop)}>
-                  <span className="seller-dot" />
-                  <span className="header-btn-text">{seller?.username}</span>
-                  <span className="seller-edit-hint">Editing ON</span>
-                </button>
-                {loginDrop && (
-                  <div className="header-login-drop">
-                    <div className="header-login-drop-head">
-                      <span className="seller-dot" />
-                      <span>Seller Mode Active</span>
-                    </div>
-                    <button className="header-login-drop-item" onClick={() => { setLoginDrop(false); navigate('/account') }}>
-                      <IconUser width="14" height="14" /> My Customer Account
-                    </button>
-                    <button className="header-login-drop-item header-login-drop-danger" onClick={() => { sellerLogout(); setLoginDrop(false) }}>
-                      Logout Seller
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="header-login-split" ref={dropRef}>
-                <button className="header-login-main" onClick={() => navigate('/account')}>
-                  <IconUser width="16" height="16" />
-                  <span className="header-btn-text">{isAuthed ? (customer?.name?.split(' ')[0] || 'Account') : 'Login'}</span>
-                </button>
-                <button className="header-login-arrow" onClick={(e) => { e.stopPropagation(); setLoginDrop(!loginDrop) }} aria-label="Login options">
-                  <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </button>
-                {loginDrop && (
-                  <div className="header-login-drop">
-                    <div className="header-login-drop-head">Login as</div>
-                    <button className="header-login-drop-item" onClick={() => { setLoginDrop(false); navigate('/account') }}>
-                      <IconUser width="14" height="14" /> Customer
-                    </button>
-                    {isAuthed && (
-                      <button className="header-login-drop-item header-login-drop-danger" onClick={() => { setLoginDrop(false); navigate('/account') }}>
-                        Logout
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+            <button className="header-btn" onClick={() => navigate('/account')}>
+              <IconUser width="16" height="16" />
+              <span className="header-btn-text">{isAuthed ? (customer?.name?.split(' ')[0] || 'Account') : 'Login'}</span>
+            </button>
 
             <button className="header-btn header-cart-btn" onClick={() => setCartOpen(true)}>
               <IconCart width="20" height="20" />
@@ -213,9 +157,6 @@ export default function Header() {
             </nav>
           </div>
         </div>
-      )}
-      {showSellerLogin && (
-        <SellerLogin onClose={() => setShowSellerLogin(false)} />
       )}
     </>
   )
