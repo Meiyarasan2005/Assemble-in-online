@@ -164,10 +164,6 @@ export default function Header() {
                     <button className="header-login-drop-item" onClick={() => { setLoginDrop(false); navigate('/account') }}>
                       <IconUser width="14" height="14" /> Customer
                     </button>
-                    <button className="header-login-drop-item" onClick={() => { setLoginDrop(false); setShowSellerLogin(true) }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                      Seller
-                    </button>
                     {isAuthed && (
                       <button className="header-login-drop-item header-login-drop-danger" onClick={() => { setLoginDrop(false); navigate('/account') }}>
                         Logout
@@ -207,15 +203,6 @@ export default function Header() {
               <Link to="/orders" onClick={() => setMobileMenuOpen(false)}>My Orders</Link>
               <Link to="/wishlist" onClick={() => setMobileMenuOpen(false)}>Wishlist</Link>
               <Link to="/returns" onClick={() => setMobileMenuOpen(false)}>Returns & Warranty</Link>
-              {isSeller ? (
-                <button className="mobile-seller-active" onClick={() => { sellerLogout(); setMobileMenuOpen(false) }}>
-                  <span className="seller-dot" /> Seller Mode: {seller?.username} (tap to logout)
-                </button>
-              ) : (
-                <button onClick={() => { setShowSellerLogin(true); setMobileMenuOpen(false) }}>
-                  Seller Login
-                </button>
-              )}
               <button className={`mode-pill ${mode === 'preowned' ? 'is-preowned' : ''}`} onClick={() => { toggleMode(); setMobileMenuOpen(false) }}>
                 <span className="mode-pill-track"><span className="mode-pill-thumb" /></span>
                 <span className="mode-pill-label">{mode === 'preowned' ? 'Switch to New Parts' : 'Switch to Pre-Owned'}</span>
