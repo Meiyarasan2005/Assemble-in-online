@@ -311,7 +311,7 @@ export default function ProductDetail() {
 
           <div className="pd-seller-section">
             <h3>Seller</h3>
-            <span className="pd-seller-name">SpareXpress Official</span>
+            <span className="pd-seller-name">Assemble-on-line Official</span>
             <div className="pd-seller-meta">
               <span>7 day replacement policy</span>
               <IconArrowRight width="12" height="12" />

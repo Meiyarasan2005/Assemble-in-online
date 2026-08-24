@@ -22,7 +22,7 @@ import {
   IconPlus,
 } from '../components/icons'
 
-const defaultBanner = { badge: 'SALE', title: 'Up to 40% Off on Braking Parts', desc: 'Pads, rotors, calipers & more — genuine brands at clearance prices.', image: '' }
+const defaultBanner = { badge: 'SALE', title: 'Up to 40% Off on Braking Parts', desc: 'Pads, rotors, calipers & more — genuine brands at clearance prices.', image: '/banner.jpeg' }
 
 function CategoryMarquee() {
   const navigate = useNavigate()

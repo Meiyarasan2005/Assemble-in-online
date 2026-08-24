@@ -549,7 +549,7 @@ router.put('/orders/:id/status', async (req, res) => {
   const defaultNote = eventNotes[status] || 'Status updated'
 
   if (status === 'shipped') {
-    const carrier = String(req.body?.carrier ?? '').trim() || 'SpareXpress Logistics'
+    const carrier = String(req.body?.carrier ?? '').trim() || 'Assemble-on-line Logistics'
     const trackingNumber =
       String(req.body?.trackingNumber ?? '').trim() ||
       `SPX${Date.now().toString(36).toUpperCase()}${Math.floor(Math.random() * 1296)

@@ -319,7 +319,29 @@
   display: none;
 }
 
+/* mode toggle above bottom nav (mobile only) */
+.mode-toggle-mobile {
+  display: none;
+}
+
 @media (max-width: 768px) {
+  .mode-toggle-mobile {
+    display: flex;
+    justify-content: center;
+    position: fixed;
+    bottom: 62px;
+    left: 0;
+    right: 0;
+    z-index: 49;
+    padding: 8px 0;
+    background: linear-gradient(transparent, var(--bg) 20%);
+    pointer-events: none;
+  }
+
+  .mode-toggle-mobile .mode-pill {
+    pointer-events: auto;
+  }
+
   .bottom-nav {
     display: flex;
     position: fixed;
@@ -390,6 +412,6 @@
   }
 
   .main {
-    padding-bottom: 64px;
+    padding-bottom: 108px;
   }
 }

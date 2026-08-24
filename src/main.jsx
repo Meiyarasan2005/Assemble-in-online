@@ -14,6 +14,7 @@ import './css/profile.css'
 import './css/features.css'
 import './css/premium.css'
 import './css/seller.css'
+import './css/loader.css'
 import App from './App.jsx'
 
 createRoot(document.getElementById('root')).render(

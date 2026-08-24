@@ -230,7 +230,7 @@ export default function OrderConfirm() {
         <div className="card co-track-info">
           <div>
             <span className="co-track-k">Carrier</span>
-            <strong>{order.carrier || 'SpareXpress Logistics'}</strong>
+            <strong>{order.carrier || 'Assemble-on-line Logistics'}</strong>
           </div>
           <div>
             <span className="co-track-k">Tracking number</span>

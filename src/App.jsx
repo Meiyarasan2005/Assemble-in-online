@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { HashRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { StoreProvider } from './context/StoreContext.jsx'
 import { SellerProvider } from './context/SellerContext.jsx'
@@ -8,7 +8,6 @@ import BottomNav from './components/BottomNav'
 import Footer from './components/Footer'
 import CartDrawer from './components/CartDrawer'
 import Toast from './components/Toast'
-import Loader from './components/Loader'
 import PageTransition from './components/PageTransition'
 import Home from './pages/Home'
 import Shop from './pages/Shop'
@@ -22,6 +21,7 @@ import Wishlist from './pages/Wishlist'
 import Returns from './pages/Returns'
 import Garage from './pages/Garage'
 import PriceWatcher from './components/PriceWatcher'
+import SearchPage from './pages/SearchPage'
 
 function ScrollToTop() {
   const { pathname, search } = useLocation()
@@ -51,6 +51,7 @@ function Shell() {
               <Route path="/wishlist" element={<Wishlist />} />
               <Route path="/garage" element={<Garage />} />
               <Route path="/returns" element={<Returns />} />
+              <Route path="/search" element={<SearchPage />} />
               <Route path="*" element={<Home />} />
             </Routes>
           </PageTransition>
@@ -66,14 +67,10 @@ function Shell() {
 }
 
 export default function App() {
-  const [loaded, setLoaded] = useState(false)
-  const onLoaded = useCallback(() => setLoaded(true), [])
-
   return (
     <StoreProvider>
       <SellerProvider>
         <HashRouter>
-          {!loaded && <Loader onDone={onLoaded} />}
           <Shell />
         </HashRouter>
       </SellerProvider>

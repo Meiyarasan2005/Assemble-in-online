@@ -870,7 +870,7 @@ export const testimonials = [
     role: 'Owner, Mehta Motors & Auto Garage',
     city: 'Pune',
     quote:
-      'We switched our whole workshop to SpareXpress for B2B ordering. Part numbers always match, delivery is next-day and the pricing is unbeatable.',
+      'We switched our whole workshop to Assemble-on-line for B2B ordering. Part numbers always match, delivery is next-day and the pricing is unbeatable.',
   },
   {
     name: 'Anjali Sharma',

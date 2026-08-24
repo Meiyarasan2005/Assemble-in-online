@@ -1,6 +1,6 @@
 {
-  "name": "SpareXpress — Car Spare Parts",
-  "short_name": "SpareXpress",
+  "name": "Assemble-on-line — Car Spare Parts",
+  "short_name": "Assemble-on-line",
   "description": "Genuine car spare parts. Search by part number or vehicle fitment, track orders, download GST invoices.",
   "start_url": "/",
   "scope": "/",

@@ -78,6 +78,37 @@
   margin-top: 6px;
 }
 
+/* OTP email row */
+.otp-email-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.otp-email-row .input {
+  flex: 1;
+}
+
+.otp-email-row .btn {
+  white-space: nowrap;
+  padding: 0 16px;
+  flex-shrink: 0;
+}
+
+.otp-verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 14px;
+  background: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+  font-weight: 600;
+  font-size: 13px;
+  border-radius: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 .auth-switch {
   margin: 16px 0 0;
   text-align: center;

@@ -213,7 +213,7 @@
                 </div>
                 <div id="o-ship-fields" style="display:none;margin-top:10px">
                   <div class="form-grid">
-                    <div class="field"><label>Carrier</label><input class="input" id="o-carrier" value="SpareXpress Logistics" /></div>
+                    <div class="field"><label>Carrier</label><input class="input" id="o-carrier" value="Assemble-on-line Logistics" /></div>
                     <div class="field"><label>Tracking number</label><input class="input" id="o-track" placeholder="auto-generate if blank" /></div>
                   </div>
                 </div>

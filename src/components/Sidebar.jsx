@@ -49,10 +49,10 @@ export default function Sidebar({ open, onClose }) {
             <button
               className="brand"
               onClick={() => go('/')}
-              aria-label="SpareXpress home"
+              aria-label="Assemble-on-line home"
             >
               <span className="brand-mark">
-                <img className="brand-logo" src="/logo.png" alt="SpareXpress" />
+                <img className="brand-logo" src="/logo.png" alt="Assemble-on-line" />
               </span>
               <span className="brand-name">
                 SPARE<span className="brand-accent">XPRESS</span>

@@ -76,7 +76,7 @@ app.use('/admin', (_req, res) => res.sendFile(`${__dirname}/public/admin.html`))
 
 async function start() {
   app.listen(PORT, () => {
-    console.log(`\n  SpareXpress Inventory API  ->  http://localhost:${PORT}/api`)
+    console.log(`\n  Assemble-on-line Inventory API  ->  http://localhost:${PORT}/api`)
     console.log(`  Storefront API           ->  http://localhost:${PORT}/api/store`)
     console.log(`  Admin tool               ->  http://localhost:${PORT}/admin`)
     if (razorpayEnabled()) {
