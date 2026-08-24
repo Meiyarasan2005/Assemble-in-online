@@ -56,16 +56,13 @@ export default function Header() {
 
   return (
     <>
-      <header className="header">
+      <header className="header header-minimal">
         <div className="header-inner container">
           <Link to="/" className="header-brand">
-            <img className="header-logo" src="/favicon.png" alt="SpareXpress" />
-            <span className="header-brand-text">
-              SPARE<span className="header-brand-accent">XPRESS</span>
-            </span>
+            <img className="header-logo" src="/favicon.png" alt="Assemble-on-line" />
           </Link>
 
-          <form className="header-search" onSubmit={submit} onBlur={() => (blurTimer.current = setTimeout(() => setFocus(false), 150))}>
+          <form className="header-search header-search-desktop" onSubmit={submit} onBlur={() => (blurTimer.current = setTimeout(() => setFocus(false), 150))}>
             <IconSearch width="18" height="18" className="header-search-icon" />
             <input
               className="header-search-input"
@@ -93,6 +90,11 @@ export default function Header() {
               </div>
             )}
           </form>
+
+          <button className="header-search-mobile" onClick={() => navigate('/search')} aria-label="Search">
+            <IconSearch width="20" height="20" />
+            <span>Search parts...</span>
+          </button>
 
           <div className="header-actions">
             <button className={`mode-pill ${mode === 'preowned' ? 'is-preowned' : ''}`} onClick={toggleMode}>
@@ -147,10 +149,6 @@ export default function Header() {
               <Link to="/orders" onClick={() => setMobileMenuOpen(false)}>My Orders</Link>
               <Link to="/wishlist" onClick={() => setMobileMenuOpen(false)}>Wishlist</Link>
               <Link to="/returns" onClick={() => setMobileMenuOpen(false)}>Returns & Warranty</Link>
-              <button className={`mode-pill ${mode === 'preowned' ? 'is-preowned' : ''}`} onClick={() => { toggleMode(); setMobileMenuOpen(false) }}>
-                <span className="mode-pill-track"><span className="mode-pill-thumb" /></span>
-                <span className="mode-pill-label">{mode === 'preowned' ? 'Switch to New Parts' : 'Switch to Pre-Owned'}</span>
-              </button>
               <Link to="/account" onClick={() => setMobileMenuOpen(false)}>
                 {isAuthed ? 'My Account' : 'Login / Register'}
               </Link>

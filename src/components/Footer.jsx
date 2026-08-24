@@ -8,7 +8,7 @@ export default function Footer() {
         <div className="footer-grid">
           <div className="footer-brand-col">
             <Link to="/" className="footer-brand">
-              <img className="footer-logo" src="/logo.png" alt="SpareXpress logo" />
+              <img className="footer-logo" src="/logo.png" alt="Assemble-on-line logo" />
               <span className="footer-brand-text">
                 SPARE<span className="footer-brand-accent">XPRESS</span>
               </span>
@@ -55,7 +55,7 @@ export default function Footer() {
 
       <div className="footer-bottom">
         <div className="footer-bottom-inner container">
-          <span>© 2026 SpareXpress Retail & Trade Pvt. Ltd.</span>
+          <span>© 2026 Assemble-on-line Retail & Trade Pvt. Ltd.</span>
           <span className="footer-trust">GST invoices · Secure payments · Verified fitment</span>
         </div>
       </div>

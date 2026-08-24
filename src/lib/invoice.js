@@ -36,7 +36,7 @@ export function buildInvoiceHtml(order) {
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Tax Invoice ${esc(order.id)} — SpareXpress</title>
+<title>Tax Invoice ${esc(order.id)} — Assemble-on-line</title>
 <style>
   body { font-family: Arial, Helvetica, sans-serif; color: #10151d; margin: 24px; }
   .inv-head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #ff6a00; padding-bottom: 14px; margin-bottom: 18px; }
@@ -111,7 +111,7 @@ export function buildInvoiceHtml(order) {
   </table>
 
   <div class="foot">
-    <strong>Declaration:</strong> This is a computer-generated tax invoice. All parts supplied are new / certified pre-owned as marked and are covered by the SpareXpress warranty at the time of dispatch. For support call +91 93393 32933 or write to billing@sparexpress.in.
+    <strong>Declaration:</strong> This is a computer-generated tax invoice. All parts supplied are new / certified pre-owned as marked and are covered by the Assemble-on-line warranty at the time of dispatch. For support call +91 93393 32933 or write to billing@sparexpress.in.
   </div>
 </body>
 </html>`
@@ -123,7 +123,7 @@ export function downloadInvoice(order) {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `SpareXpress-Invoice-${order.id}.html`
+  a.download = `Assemble-on-line-Invoice-${order.id}.html`
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)

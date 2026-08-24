@@ -1,9 +1,36 @@
 import { randomBytes } from 'node:crypto'
+import { resolveMx } from 'node:dns'
 import { db, now } from './db.js'
 import { hashPassword, verifyPassword } from './auth.js'
 
 const TOKEN_BYTES = 24
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
+
+const DISPOSABLE_DOMAINS = new Set([
+  'tempmail.com','throwaway.email','guerrillamail.com','mailinator.com','yopmail.com',
+  'temp-mail.org','fakeinbox.com','sharklasers.com','guerrillamailblock.com',
+  'grr.la','dispostable.com','10minutemail.com','trashmail.com','maildrop.cc',
+  'discard.email','discardmail.com','mailcatch.com','tempail.com','tempr.email',
+  'tmpmail.net','mohmal.com','burnermail.io','harakirimail.com','getnada.com',
+  'emailondeck.com','spamgourmet.com','mytemp.email','tmpmail.org','mailsac.com',
+  'temptrack.com','mailnesia.com','fake-mail.com','tempinbox.com','discardmail.de',
+  'mailexpire.com','jetable.org','temp-mail.io','minutemail.com','tmpmail.fr',
+  'throwam.com','tmail.ws','emailfake.com','mailnull.com','temp-mail.com',
+  'crazymailing.com','zehnminutenmail.de','10minutemail.co.za','meltmail.com',
+  'tempomail.fr','filzmail.com','tempmailer.com','obobbo.com','mailmoat.com',
+])
+
+export async function verifyEmailDomain(email) {
+  const domain = email.split('@')[1]?.toLowerCase()
+  if (!domain) return false
+  if (DISPOSABLE_DOMAINS.has(domain)) return false
+  try {
+    const records = await resolveMx(domain)
+    return records && records.length > 0
+  } catch {
+    return false
+  }
+}
 
 export async function createCustomerSession(customerEmail) {
   const token = randomBytes(TOKEN_BYTES).toString('base64url')
@@ -31,6 +58,7 @@ export async function registerCustomer({ name, email, phone, password }) {
   const pass = String(password ?? '')
   if (cleanName.length < 2) throw Object.assign(new Error('Full name is required'), { status: 400 })
   if (!EMAIL_RE.test(cleanEmail)) throw Object.assign(new Error('Enter a valid email'), { status: 400 })
+  if (!(await verifyEmailDomain(cleanEmail))) throw Object.assign(new Error('Please use a valid email address (disposable emails not allowed)'), { status: 400 })
   if (cleanPhone.length !== 10) throw Object.assign(new Error('Enter a valid 10-digit mobile number'), { status: 400 })
   if (pass.length < 6) throw Object.assign(new Error('Password must be at least 6 characters'), { status: 400 })
 

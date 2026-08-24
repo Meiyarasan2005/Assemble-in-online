@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useStore } from '../context/useStore'
+import { sendOtp, verifyOtp } from '../lib/api'
 import {
   IconArrowLeft,
   IconArrowRight,
@@ -28,6 +29,13 @@ export default function Auth() {
   const [loginForm, setLoginForm] = useState({ email: '', password: '' })
   const [regForm, setRegForm] = useState({ name: '', email: '', phone: '', password: '', confirm: '' })
 
+  const [otpStep, setOtpStep] = useState(false)
+  const [otp, setOtp] = useState('')
+  const [otpBusy, setOtpBusy] = useState(false)
+  const [otpSent, setOtpSent] = useState(false)
+  const [otpVerified, setOtpVerified] = useState(false)
+  const [otpCountdown, setOtpCountdown] = useState(0)
+
   const setLogin = (key) => (e) => setLoginForm((f) => ({ ...f, [key]: e.target.value }))
   const setReg = (key) => (e) => setRegForm((f) => ({ ...f, [key]: e.target.value }))
 
@@ -49,9 +57,46 @@ export default function Auth() {
     }
   }
 
+  const startOtp = async () => {
+    setError('')
+    if (!EMAIL_RE.test(regForm.email.trim())) return setError('Enter a valid email')
+    setOtpBusy(true)
+    try {
+      await sendOtp(regForm.email.trim())
+      setOtpSent(true)
+      setOtpStep(true)
+      setOtpCountdown(60)
+      const interval = setInterval(() => {
+        setOtpCountdown((c) => {
+          if (c <= 1) { clearInterval(interval); return 0 }
+          return c - 1
+        })
+      }, 1000)
+    } catch (err) {
+      setError(err.message || 'Failed to send verification code')
+    }
+    setOtpBusy(false)
+  }
+
+  const submitOtp = async () => {
+    setError('')
+    if (!otp.trim() || otp.trim().length !== 6) return setError('Enter the 6-digit code')
+    setOtpBusy(true)
+    try {
+      await verifyOtp(regForm.email.trim(), otp.trim())
+      setOtpVerified(true)
+      setOtpStep(false)
+      showToast('Email verified!')
+    } catch (err) {
+      setError(err.message || 'Verification failed')
+    }
+    setOtpBusy(false)
+  }
+
   const submitRegister = async (e) => {
     e.preventDefault()
     setError('')
+    if (!otpVerified) return setError('Please verify your email first')
     if (regForm.name.trim().length < 2) return setError('Full name is required')
     if (!EMAIL_RE.test(regForm.email.trim())) return setError('Enter a valid email')
     if (!/^\d{10}$/.test(regForm.phone.trim())) return setError('Enter a valid 10-digit mobile number')
@@ -65,7 +110,7 @@ export default function Auth() {
         phone: regForm.phone.trim(),
         password: regForm.password,
       })
-      showToast('Account created — welcome to SpareXpress')
+      showToast('Account created — welcome to Assemble-on-line')
       goNext()
     } catch (err) {
       setError(err.message || 'Could not create account')
@@ -114,9 +159,6 @@ export default function Auth() {
         </div>
       ) : (
         <div className="auth-card card">
-          <div className="auth-logo-wrap">
-            <img className="auth-logo" src="/favicon.png" alt="SpareXpress" />
-          </div>
           <div className="auth-tabs" role="tablist">
             <button
               type="button"
@@ -175,6 +217,43 @@ export default function Auth() {
                   </button>
                 </p>
               </form>
+            ) : otpStep ? (
+              <div className="auth-form">
+                <h2>Verify your email</h2>
+                <p className="auth-lead">
+                  We sent a 6-digit code to <strong>{regForm.email}</strong>. Enter it below to continue.
+                </p>
+                <label className="co-field">
+                  <span>Verification code</span>
+                  <input
+                    className="input"
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    placeholder="000000"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    autoFocus
+                  />
+                </label>
+                {error && <p className="co-error">{error}</p>}
+                <button className="btn btn-primary btn-block" onClick={submitOtp} disabled={otpBusy}>
+                  {otpBusy ? 'Verifying…' : 'Verify email'}
+                  {!otpBusy && <IconCheck width="16" height="16" />}
+                </button>
+                <p className="auth-switch">
+                  {otpCountdown > 0 ? (
+                    <span>Resend code in {otpCountdown}s</span>
+                  ) : (
+                    <button type="button" onClick={startOtp}>Resend code</button>
+                  )}
+                </p>
+                <p className="auth-switch">
+                  <button type="button" onClick={() => { setOtpStep(false); setOtp(''); setError('') }}>
+                    ← Change email
+                  </button>
+                </p>
+              </div>
             ) : (
               <form className="auth-form" onSubmit={submitRegister}>
                 <h2>Create your account</h2>
@@ -182,30 +261,59 @@ export default function Auth() {
                   Register once and check out faster — your orders and invoices stay in one place.
                 </p>
                 <label className="co-field">
-                  <span>Full name</span>
-                  <input className="input" placeholder="Your name" value={regForm.name} onChange={setReg('name')} autoComplete="name" />
-                </label>
-                <label className="co-field">
                   <span>Email address</span>
-                  <input className="input" type="email" placeholder="you@example.com" value={regForm.email} onChange={setReg('email')} autoComplete="email" />
+                  <div className="otp-email-row">
+                    <input
+                      className="input"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={regForm.email}
+                      onChange={(e) => { setReg('email')(e); setOtpVerified(false); setOtpSent(false) }}
+                      autoComplete="email"
+                      disabled={otpVerified}
+                    />
+                    {!otpVerified && (
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-primary"
+                        onClick={startOtp}
+                        disabled={otpBusy || !EMAIL_RE.test(regForm.email.trim())}
+                      >
+                        {otpBusy ? 'Sending…' : 'Verify'}
+                      </button>
+                    )}
+                    {otpVerified && (
+                      <span className="otp-verified-badge"><IconCheck width="16" height="16" /> Verified</span>
+                    )}
+                  </div>
                 </label>
-                <label className="co-field">
-                  <span>Mobile number</span>
-                  <input className="input" inputMode="numeric" placeholder="10-digit mobile" value={regForm.phone} onChange={setReg('phone')} autoComplete="tel" />
-                </label>
-                <label className="co-field">
-                  <span>Password</span>
-                  <input className="input" type="password" placeholder="At least 6 characters" value={regForm.password} onChange={setReg('password')} autoComplete="new-password" />
-                </label>
-                <label className="co-field">
-                  <span>Confirm password</span>
-                  <input className="input" type="password" placeholder="Repeat password" value={regForm.confirm} onChange={setReg('confirm')} autoComplete="new-password" />
-                </label>
+                {otpVerified && (
+                  <>
+                    <label className="co-field">
+                      <span>Full name</span>
+                      <input className="input" placeholder="Your name" value={regForm.name} onChange={setReg('name')} autoComplete="name" />
+                    </label>
+                    <label className="co-field">
+                      <span>Mobile number</span>
+                      <input className="input" inputMode="numeric" placeholder="10-digit mobile" value={regForm.phone} onChange={setReg('phone')} autoComplete="tel" />
+                    </label>
+                    <label className="co-field">
+                      <span>Password</span>
+                      <input className="input" type="password" placeholder="At least 6 characters" value={regForm.password} onChange={setReg('password')} autoComplete="new-password" />
+                    </label>
+                    <label className="co-field">
+                      <span>Confirm password</span>
+                      <input className="input" type="password" placeholder="Repeat password" value={regForm.confirm} onChange={setReg('confirm')} autoComplete="new-password" />
+                    </label>
+                  </>
+                )}
                 {error && <p className="co-error">{error}</p>}
-                <button className="btn btn-primary btn-block" type="submit" disabled={busy}>
-                  {busy ? 'Creating account…' : 'Create account'}
-                  {!busy && <IconArrowRight width="16" height="16" />}
-                </button>
+                {otpVerified && (
+                  <button className="btn btn-primary btn-block" type="submit" disabled={busy}>
+                    {busy ? 'Creating account…' : 'Create account'}
+                    {!busy && <IconArrowRight width="16" height="16" />}
+                  </button>
+                )}
                 <p className="auth-switch">
                   Already have an account?{' '}
                   <button type="button" onClick={() => { setTab('login'); setError('') }}>

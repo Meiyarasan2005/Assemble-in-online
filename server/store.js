@@ -87,8 +87,112 @@ async function authedCustomer(req) {
   return customerFromToken(String(req.headers['x-auth-token'] || ''))
 }
 
+const OTP_EXPIRY_MS = 10 * 60 * 1000
+
+function generateOtp() {
+  return String(Math.floor(100000 + Math.random() * 900000))
+}
+
+router.post('/auth/send-otp', async (req, res) => {
+  try {
+    const { createTransport } = await import('nodemailer')
+    const email = String(req.body?.email ?? '').trim().toLowerCase()
+    if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      return res.status(400).json({ error: 'Enter a valid email address' })
+    }
+
+    const existing = await db.customers.findOne({ _id: email })
+    if (existing) {
+      return res.status(409).json({ error: 'An account already exists with this email — sign in instead' })
+    }
+
+    const otp = generateOtp()
+    const expires_at = new Date(Date.now() + OTP_EXPIRY_MS)
+
+    await db.otp_codes.deleteMany({ _id: email })
+    await db.otp_codes.insertOne({ _id: email, otp, expires_at, created_at: new Date() })
+
+    const smtpHost = process.env.SMTP_HOST
+    const smtpPort = process.env.SMTP_PORT
+    const smtpUser = process.env.SMTP_USER
+    const smtpPass = process.env.SMTP_PASS
+    const fromEmail = process.env.SMTP_FROM || smtpUser
+
+    if (smtpHost && smtpUser && smtpPass) {
+      const transporter = createTransport({
+        host: smtpHost,
+        port: Number(smtpPort) || 587,
+        secure: Number(smtpPort) === 465,
+        auth: { user: smtpUser, pass: smtpPass },
+      })
+      await transporter.sendMail({
+        from: `"Assemble-on-line" <${fromEmail}>`,
+        to: email,
+        subject: 'Your verification code — Assemble-on-line',
+        text: `Your OTP is ${otp}. It expires in 10 minutes.`,
+        html: `<div style="font-family:sans-serif;max-width:400px;margin:auto;padding:24px">
+          <h2 style="color:#ff6a00">Verify your email</h2>
+          <p>Your verification code is:</p>
+          <div style="font-size:32px;font-weight:bold;letter-spacing:8px;text-align:center;padding:16px;background:#f5f5f5;border-radius:8px;margin:16px 0">${otp}</div>
+          <p style="color:#666;font-size:13px">This code expires in 10 minutes. If you didn't request this, ignore this email.</p>
+        </div>`,
+      })
+    } else {
+      console.log(`[OTP] ${email} → ${otp}`)
+    }
+
+    res.json({ ok: true, message: 'Verification code sent to your email' })
+  } catch (err) {
+    console.error('[send-otp]', err)
+    res.status(500).json({ error: 'Failed to send verification code' })
+  }
+})
+
+router.post('/auth/verify-otp', async (req, res) => {
+  try {
+    const email = String(req.body?.email ?? '').trim().toLowerCase()
+    const otp = String(req.body?.otp ?? '').trim()
+
+    if (!email || !otp) {
+      return res.status(400).json({ error: 'Email and OTP are required' })
+    }
+
+    const record = await db.otp_codes.findOne({ _id: email })
+    if (!record) {
+      return res.status(400).json({ error: 'No verification code found. Please request a new one.' })
+    }
+
+    if (new Date() > new Date(record.expires_at)) {
+      await db.otp_codes.deleteOne({ _id: email })
+      return res.status(400).json({ error: 'Verification code expired. Please request a new one.' })
+    }
+
+    if (record.otp !== otp) {
+      return res.status(400).json({ error: 'Incorrect verification code' })
+    }
+
+    await db.otp_codes.deleteOne({ _id: email })
+    await db.otp_verified.updateOne(
+      { _id: email },
+      { $set: { verified_at: new Date() } },
+      { upsert: true },
+    )
+    res.json({ ok: true, message: 'Email verified successfully' })
+  } catch (err) {
+    console.error('[verify-otp]', err)
+    res.status(500).json({ error: 'Verification failed' })
+  }
+})
+
 router.post('/auth/register', async (req, res) => {
   try {
+    const email = String(req.body?.email ?? '').trim().toLowerCase()
+    const verified = await db.otp_verified.findOne({ _id: email })
+    if (!verified) {
+      return res.status(400).json({ error: 'Please verify your email first' })
+    }
+    await db.otp_verified.deleteOne({ _id: email })
+
     const customer = await registerCustomer(req.body || {})
     const token = await createCustomerSession(customer.id)
     res.status(201).json({ token, customer })
@@ -680,9 +784,9 @@ router.post('/orders/:id/cancel', async (req, res) => {
 router.get('/banner', async (_req, res) => {
   try {
     const doc = await db.site_settings.findOne({ _id: 'sale-banner' })
-    res.json(doc ? doc.data : { badge: 'SALE', title: 'Up to 40% Off on Braking Parts', desc: 'Pads, rotors, calipers & more — genuine brands at clearance prices.', image: '' })
+    res.json(doc ? doc.data : { badge: 'SALE', title: 'Up to 40% Off on Braking Parts', desc: 'Pads, rotors, calipers & more — genuine brands at clearance prices.', image: '/banner.jpeg' })
   } catch {
-    res.json({ badge: 'SALE', title: 'Up to 40% Off on Braking Parts', desc: 'Pads, rotors, calipers & more — genuine brands at clearance prices.', image: '' })
+    res.json({ badge: 'SALE', title: 'Up to 40% Off on Braking Parts', desc: 'Pads, rotors, calipers & more — genuine brands at clearance prices.', image: '/banner.jpeg' })
   }
 })
 

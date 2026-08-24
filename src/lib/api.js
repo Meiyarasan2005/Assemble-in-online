@@ -218,3 +218,11 @@ export async function updateBanner(payload, token) {
     headers: token ? { 'x-seller-token': token } : {},
   })
 }
+
+export async function sendOtp(email) {
+  return api('/auth/send-otp', { method: 'POST', body: JSON.stringify({ email }) })
+}
+
+export async function verifyOtp(email, otp) {
+  return api('/auth/verify-otp', { method: 'POST', body: JSON.stringify({ email, otp }) })
+}

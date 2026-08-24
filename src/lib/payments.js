@@ -25,7 +25,7 @@ export function openRazorpayCheckout({ intent, order }) {
       amount: Math.round(intent.amount * 100),
       currency: 'INR',
       order_id: intent.orderId,
-      name: 'SpareXpress',
+      name: 'Assemble-on-line',
       description: `Order ${order.id}`,
       prefill: { name: order.name || '', email: order.email, contact: order.phone },
       notes: { order_id: order.id },
