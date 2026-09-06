@@ -62,10 +62,17 @@ export async function ensureDbConnected() {
 // Fire an early connect so warm instances are ready for the first request.
 ensureDbConnected().catch(() => {})
 
-app.use('/api', (req, res, next) => {
+// Wait briefly for the first-time connect so cold-start requests are served
+// instead of returning 503 immediately. Caps at ~6s (function budget is 10s).
+const CONNECT_WAIT_MS = 6000
+
+app.use('/api', async (req, res, next) => {
   if (!dbReady) {
-    ensureDbConnected().catch(() => {})
-    return res.status(503).json({ error: 'Database is connecting, please retry…' })
+    const attempt = ensureDbConnected().catch(() => {})
+    await Promise.race([attempt, new Promise((r) => setTimeout(r, CONNECT_WAIT_MS))])
+    if (!dbReady) {
+      return res.status(503).json({ error: 'Database is connecting, please retry…' })
+    }
   }
   next()
 })
