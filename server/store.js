@@ -369,7 +369,10 @@ router.post('/checkout', async (req, res) => {
   const mode = body.mode === 'preowned' ? 'preowned' : 'retail'
   const email = account.email
   const name = String(body.name ?? '').trim() || String(account.name ?? '').trim()
-  const phone = String(body.phone ?? '').replace(/\D/g, '').slice(0, 10)
+  let phone = String(body.phone ?? '').replace(/\D/g, '')
+  if (phone.length === 12 && phone.startsWith('91')) phone = phone.slice(2)
+  else if (phone.length === 11 && phone.startsWith('0')) phone = phone.slice(1)
+  phone = phone.slice(0, 10)
   let address = {
     line1: String(body.address?.line1 ?? '').trim(),
     line2: String(body.address?.line2 ?? '').trim(),

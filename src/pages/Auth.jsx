@@ -15,6 +15,13 @@ import {
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 
+function normPhone(raw) {
+  let d = String(raw ?? '').replace(/\D/g, '')
+  if (d.length === 12 && d.startsWith('91')) d = d.slice(2)
+  else if (d.length === 11 && d.startsWith('0')) d = d.slice(1)
+  return d.slice(0, 10)
+}
+
 export default function Auth() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
@@ -112,7 +119,8 @@ export default function Auth() {
     setError('')
     if (regForm.name.trim().length < 2) return setError('Full name is required')
     if (!EMAIL_RE.test(regForm.email.trim())) return setError('Enter a valid email')
-    if (!/^\d{10}$/.test(regForm.phone.trim())) return setError('Enter a valid 10-digit mobile number')
+    const regPhone = normPhone(regForm.phone)
+    if (regPhone.length !== 10) return setError('Enter a valid 10-digit mobile number')
     if (regForm.password.length < 6) return setError('Password must be at least 6 characters')
     if (regForm.password !== regForm.confirm) return setError('Passwords do not match')
     setBusy(true)
@@ -120,7 +128,7 @@ export default function Auth() {
       await signUp({
         name: regForm.name.trim(),
         email: regForm.email.trim(),
-        phone: regForm.phone.trim(),
+        phone: regPhone,
         password: regForm.password,
       })
       showToast('Account created — welcome to Assemble-on-line')
