@@ -41,8 +41,9 @@ async function diagProbe() {
     nodeEnv: process.env.NODE_ENV,
     lastDbError,
   }
-  const base = process.env.MONGO_URI
-  if (!base) return { ...out, ok: false, stage: 'env', error: 'MONGO_URI not set' }
+  try {
+    const base = process.env.MONGO_URI
+    if (!base) return { ...out, ok: false, stage: 'env', error: 'MONGO_URI not set' }
   const { MongoClient } = await import('mongodb')
   const variants = [
     { label: 'orig', uri: base },
@@ -72,6 +73,12 @@ async function diagProbe() {
     }
   }
   return out
+  } catch (e) {
+    out.ok = false
+    out.stage = 'crash'
+    out.error = String(e?.stack || e).slice(0, 1000)
+    return out
+  }
 }
 
 /* Lazy DB connection. On serverless (Vercel) first requests return 503 until
@@ -107,11 +114,15 @@ ensureDbConnected().catch(() => {})
 app.use('/api', async (req, res, next) => {
   if (!dbReady) {
     if (req.headers['x-diag'] === '1') {
-      const probe = await diagProbe()
-      return res.status(probe?.ok ? 200 : 503).json({
-        error: probe?.ok ? 'ok' : 'probe failed',
-        diag: probe,
-      })
+      try {
+        const probe = await diagProbe()
+        return res.status(probe?.ok ? 200 : 503).json({
+          error: probe?.ok ? 'ok' : 'probe failed',
+          diag: probe,
+        })
+      } catch (e) {
+        return res.status(500).json({ error: 'diag crashed', detail: String(e?.stack || e).slice(0, 2000) })
+      }
     }
     ensureDbConnected().catch(() => {})
     return res.status(503).json({ error: 'Database is connecting, please retry…' })
