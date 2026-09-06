@@ -62,23 +62,27 @@ export async function ensureDbConnected() {
 // Fire an early connect so warm instances are ready for the first request.
 ensureDbConnected().catch(() => {})
 
-app.use('/api', (req, res, next) => {
+app.use('/api', async (req, res, next) => {
   if (!dbReady) {
-    ensureDbConnected().catch(() => {})
     if (req.headers['x-diag'] === '1') {
+      try {
+        await Promise.race([ensureDbConnected(), new Promise((r) => setTimeout(r, 25000))])
+      } catch {}
       const raw = process.env.MONGO_URI || ''
       const masked = raw.replace(/\/\/[^@]*@/, '//***:***@')
-      return res.status(503).json({
-        error: 'Database is connecting, please retry…',
+      return res.status(dbReady ? 200 : 503).json({
+        error: dbReady ? 'ok' : 'Database did not connect within 25s',
         diag: {
           mongoUriSet: Boolean(process.env.MONGO_URI),
           mongoUriMasked: process.env.MONGO_URI ? masked : '(fallback mongodb://localhost:27017)',
           dbName: process.env.DB_NAME || 'assembleonline',
+          dbReady,
           lastDbError,
           nodeEnv: process.env.NODE_ENV,
         },
       })
     }
+    ensureDbConnected().catch(() => {})
     return res.status(503).json({ error: 'Database is connecting, please retry…' })
   }
   next()
