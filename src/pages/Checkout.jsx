@@ -103,15 +103,33 @@ export default function Checkout() {
     }
   }
 
-  const validate = () => {
+  const values = (el) => {
+    const get = (n) => {
+      const f = el.elements.namedItem(n)
+      return f ? String(f.value ?? '').trim() : ''
+    }
+    return {
+      email: get('co-email') || form.email,
+      name: get('co-name') || form.name,
+      phone: get('co-phone') || form.phone,
+      line1: get('co-line1') || form.line1,
+      line2: get('co-line2') || form.line2,
+      location: get('co-location') || form.location,
+      city: get('co-city') || form.city,
+      state: get('co-state') || form.state,
+      pincode: get('co-pincode') || form.pincode,
+    }
+  }
+
+  const validate = (v) => {
     const e = {}
-    if (form.name.trim().length < 2) e.name = 'Please enter your full name'
-    if (!/^\d{10}$/.test(form.phone.trim())) e.phone = 'Enter a valid 10-digit mobile number'
-    if (form.line1.trim().length < 3) e.line1 = 'Please enter your delivery address'
-    if (form.city.trim().length < 2) e.city = 'Please enter your city'
-    if (form.state.trim().length < 2) e.state = 'Please select your state'
-    if (!/^\d{6}$/.test(form.pincode.trim())) e.pincode = 'Enter a valid 6-digit PIN code'
-    if (form.location.trim().length < 2) e.location = 'Please enter your location / area'
+    if (v.name.trim().length < 2) e.name = 'Please enter your full name'
+    if (!/^\d{10}$/.test(v.phone.trim())) e.phone = 'Enter a valid 10-digit mobile number'
+    if (v.line1.trim().length < 3) e.line1 = 'Please enter your delivery address'
+    if (v.city.trim().length < 2) e.city = 'Please enter your city'
+    if (v.state.trim().length < 2) e.state = 'Please select your state'
+    if (!/^\d{6}$/.test(v.pincode.trim())) e.pincode = 'Enter a valid 6-digit PIN code'
+    if (v.location.trim().length < 2) e.location = 'Please enter your location / area'
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -125,8 +143,10 @@ export default function Checkout() {
       setError('Your cart is empty')
       return
     }
+    const v = values(ev.currentTarget)
+    setForm(v)
     setTouched({ name: true, phone: true, line1: true, city: true, state: true, pincode: true, location: true })
-    if (!validate()) {
+    if (!validate(v)) {
       setError('Please fill in all required fields below')
       window.scrollTo({ top: 0, behavior: 'smooth' })
       return
@@ -137,17 +157,17 @@ export default function Checkout() {
       const result = await checkout(
         {
           mode,
-          email: form.email.trim(),
-          name: form.name.trim(),
-          phone: form.phone.trim(),
+          email: v.email,
+          name: v.name,
+          phone: v.phone,
           paymentMethod: 'cod',
           address: {
-            line1: form.line1.trim(),
-            line2: form.line2.trim(),
-            location: form.location.trim(),
-            city: form.city.trim(),
-            state: form.state.trim(),
-            pincode: form.pincode.trim(),
+            line1: v.line1,
+            line2: v.line2,
+            location: v.location,
+            city: v.city,
+            state: v.state,
+            pincode: v.pincode,
           },
           cart: cartPayload(),
         },
@@ -215,6 +235,8 @@ export default function Checkout() {
                 <label className="co-field co-span2">
                   <span>Full name</span>
                   <input
+                    name="co-name"
+                    autoComplete="name"
                     className={`input ${touched.name && errors.name ? 'input-err' : ''}`}
                     placeholder="Enter full name"
                     value={form.name}
@@ -226,6 +248,8 @@ export default function Checkout() {
                 <label className="co-field">
                   <span>Mobile number</span>
                   <input
+                    name="co-phone"
+                    autoComplete="tel"
                     className={`input ${touched.phone && errors.phone ? 'input-err' : ''}`}
                     inputMode="numeric"
                     placeholder="10-digit mobile number"
@@ -239,6 +263,8 @@ export default function Checkout() {
                 <label className="co-field">
                   <span>PIN code</span>
                   <input
+                    name="co-pincode"
+                    autoComplete="postal-code"
                     className={`input ${touched.pincode && errors.pincode ? 'input-err' : ''}`}
                     inputMode="numeric"
                     placeholder="6-digit PIN code"
@@ -252,6 +278,8 @@ export default function Checkout() {
                 <label className="co-field co-span2">
                   <span>Address (Area and Street)</span>
                   <input
+                    name="co-line1"
+                    autoComplete="address-line1"
                     className={`input ${touched.line1 && errors.line1 ? 'input-err' : ''}`}
                     placeholder="House no, building, street, area"
                     value={form.line1}
@@ -263,6 +291,7 @@ export default function Checkout() {
                 <label className="co-field co-span2">
                   <span>Location / Area</span>
                   <input
+                    name="co-location"
                     className={`input ${touched.location && errors.location ? 'input-err' : ''}`}
                     placeholder="E.g. Gandhipuram, Peelamedu, RS Puram"
                     value={form.location}
@@ -274,6 +303,7 @@ export default function Checkout() {
                 <label className="co-field co-span2">
                   <span>Landmark (optional)</span>
                   <input
+                    name="co-line2"
                     className="input"
                     placeholder="E.g. near HDFC bank, opposite park"
                     value={form.line2}
@@ -283,6 +313,8 @@ export default function Checkout() {
                 <label className="co-field">
                   <span>City</span>
                   <input
+                    name="co-city"
+                    autoComplete="address-level2"
                     className={`input ${touched.city && errors.city ? 'input-err' : ''}`}
                     placeholder="City"
                     value={form.city}
@@ -294,6 +326,8 @@ export default function Checkout() {
                 <label className="co-field">
                   <span>State</span>
                   <input
+                    name="co-state"
+                    autoComplete="address-level1"
                     className={`input ${touched.state && errors.state ? 'input-err' : ''}`}
                     placeholder="State"
                     value={form.state}

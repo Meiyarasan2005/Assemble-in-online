@@ -368,7 +368,7 @@ router.post('/checkout', async (req, res) => {
   const body = req.body || {}
   const mode = body.mode === 'preowned' ? 'preowned' : 'retail'
   const email = account.email
-  const name = String(body.name ?? '').trim()
+  const name = String(body.name ?? '').trim() || String(account.name ?? '').trim()
   const phone = String(body.phone ?? '').replace(/\D/g, '').slice(0, 10)
   let address = {
     line1: String(body.address?.line1 ?? '').trim(),
