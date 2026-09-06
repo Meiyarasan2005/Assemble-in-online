@@ -45,6 +45,19 @@ async function diagProbe() {
     const base = process.env.MONGO_URI
     if (!base) return { ...out, ok: false, stage: 'env', error: 'MONGO_URI not set' }
   const { MongoClient } = await import('mongodb')
+  const { connect: tlsConnect } = await import('node:tls')
+  const tlsProbe = async (host, port, servername) =>
+    new Promise((resolve) => {
+      const started = Date.now()
+      const sock = tlsConnect({ host, port, servername, timeout: 4000 })
+      sock.on('secureConnect', () => resolve({ ok: true, ms: Date.now() - started, proto: sock.getProtocol() }))
+      sock.on('error', (e) => resolve({ ok: false, ms: Date.now() - started, error: String(e?.message || e).split('\n')[0] }))
+      sock.on('timeout', () => { sock.destroy(); resolve({ ok: false, ms: Date.now() - started, error: 'timeout' }) })
+    })
+  out.rawTls = {
+    atlasDb: await tlsProbe('ac-ucfh5ov-shard-00-00.fev8dm9.mongodb.net', 27017, 'ac-ucfh5ov-shard-00-00.fev8dm9.mongodb.net'),
+    atlasApi: await tlsProbe('cloud.mongodb.com', 443, 'cloud.mongodb.com'),
+  }
   const cred = (base.match(/\/\/([^@]*)@/) || [])[1] || ''
   const nonSrv = `mongodb://${cred}@ac-ucfh5ov-shard-00-00.fev8dm9.mongodb.net:27017,ac-ucfh5ov-shard-00-01.fev8dm9.mongodb.net:27017,ac-ucfh5ov-shard-00-02.fev8dm9.mongodb.net:27017/?ssl=true&retryWrites=true&w=majority`
   const variants = [
