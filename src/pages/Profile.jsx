@@ -145,7 +145,6 @@ export default function Profile() {
       pincode: get('pf-addr-pincode') || form.pincode,
     }
     if (a.line1.trim().length < 3) return setAddrErr('Address line is required')
-    if (a.location.trim().length < 2) return setAddrErr('Location / Area is required')
     if (a.city.trim().length < 2) return setAddrErr('City is required')
     if (a.state.trim().length < 2) return setAddrErr('State is required')
     if (!/^\d{6}$/.test(a.pincode.trim())) return setAddrErr('Enter a valid 6-digit PIN code')
@@ -297,7 +296,7 @@ export default function Profile() {
                   <input name="pf-addr-line2" className="input" placeholder="Landmark, area" defaultValue={form.line2} onChange={set('line2')} />
                 </label>
                 <label className="co-field">
-                  <span>Location / Area</span>
+                  <span>Location / Area (optional)</span>
                   <input name="pf-addr-location" className="input" placeholder="E.g. Gandhipuram, Peelamedu, RS Puram" defaultValue={form.location} onChange={set('location')} />
                 </label>
                 <div className="co-grid">

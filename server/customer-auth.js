@@ -158,12 +158,23 @@ function customerPublic(row) {
 }
 
 export async function updateCustomerProfile(email, { name, phone }) {
-  const cleanName = String(name ?? '').trim()
-  const cleanPhone = normalizePhone(phone)
-  if (cleanName.length < 2) throw Object.assign(new Error('Full name is required'), { status: 400 })
-  if (cleanPhone.length !== 10) throw Object.assign(new Error('Enter a valid 10-digit mobile number'), { status: 400 })
-  await db.customers.updateOne({ _id: email }, { $set: { name: cleanName, phone: cleanPhone, updated_at: now() } })
+  const set = {}
+  if (String(name ?? '').trim() !== '') {
+    const cleanName = String(name).trim()
+    if (cleanName.length < 2) throw Object.assign(new Error('Full name is required'), { status: 400 })
+    set.name = cleanName
+  }
+  if (String(phone ?? '').replace(/\D/g, '') !== '') {
+    const cleanPhone = normalizePhone(phone)
+    if (cleanPhone.length !== 10) throw Object.assign(new Error('Enter a valid 10-digit mobile number'), { status: 400 })
+    set.phone = cleanPhone
+  }
   const row = await db.customers.findOne({ _id: email })
+  if (Object.keys(set).length) {
+    await db.customers.updateOne({ _id: email }, { $set: { ...set, updated_at: now() } })
+    const updated = await db.customers.findOne({ _id: email })
+    return customerPublic(updated)
+  }
   return customerPublic(row)
 }
 

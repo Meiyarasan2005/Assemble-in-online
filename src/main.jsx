@@ -26,8 +26,17 @@ createRoot(document.getElementById('root')).render(
 
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {
-      /* offline shell unavailable */
-    })
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then((reg) => {
+        const check = () => reg.update().catch(() => {})
+        setInterval(check, 4 * 60 * 1000)
+        document.addEventListener('visibilitychange', () => {
+          if (!document.hidden) check()
+        })
+      })
+      .catch(() => {
+        /* offline shell unavailable */
+      })
   })
 }
