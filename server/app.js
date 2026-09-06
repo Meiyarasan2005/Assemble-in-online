@@ -37,6 +37,7 @@ const PUBLIC_PATHS = ['/auth/login', '/auth/register', '/auth/status']
    automatically when the database comes back. */
 let dbReady = false
 let dbConnecting = null
+let lastDbError = null
 
 export async function ensureDbConnected() {
   if (dbReady) return
@@ -47,7 +48,8 @@ export async function ensureDbConnected() {
         dbReady = true
       })
       .catch((err) => {
-        console.error(`[db] connect failed: ${String(err.message || err).split('\n')[0]}`)
+        lastDbError = String(err?.message || err).split('\n')[0]
+        console.error(`[db] connect failed: ${lastDbError}`)
         throw err
       })
     dbConnecting.finally(() => {
@@ -63,6 +65,20 @@ ensureDbConnected().catch(() => {})
 app.use('/api', (req, res, next) => {
   if (!dbReady) {
     ensureDbConnected().catch(() => {})
+    if (req.headers['x-diag'] === '1') {
+      const raw = process.env.MONGO_URI || ''
+      const masked = raw.replace(/\/\/[^@]*@/, '//***:***@')
+      return res.status(503).json({
+        error: 'Database is connecting, please retry…',
+        diag: {
+          mongoUriSet: Boolean(process.env.MONGO_URI),
+          mongoUriMasked: process.env.MONGO_URI ? masked : '(fallback mongodb://localhost:27017)',
+          dbName: process.env.DB_NAME || 'assembleonline',
+          lastDbError,
+          nodeEnv: process.env.NODE_ENV,
+        },
+      })
+    }
     return res.status(503).json({ error: 'Database is connecting, please retry…' })
   }
   next()
