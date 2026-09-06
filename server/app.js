@@ -45,14 +45,23 @@ async function diagProbe() {
     const base = process.env.MONGO_URI
     if (!base) return { ...out, ok: false, stage: 'env', error: 'MONGO_URI not set' }
   const { MongoClient } = await import('mongodb')
+  const cred = (base.match(/\/\/([^@]*)@/) || [])[1] || ''
+  const nonSrv = `mongodb://${cred}@ac-ucfh5ov-shard-00-00.fev8dm9.mongodb.net:27017,ac-ucfh5ov-shard-00-01.fev8dm9.mongodb.net:27017,ac-ucfh5ov-shard-00-02.fev8dm9.mongodb.net:27017/?ssl=true&retryWrites=true&w=majority`
   const variants = [
     { label: 'orig', uri: base },
-    { label: 'direct', uri: `${base}&directConnection=true` },
     { label: 'insecure', uri: `${base}&tlsInsecure=true` },
+    { label: 'direct-nonsrv', uri: `${nonSrv}&directConnection=false` },
+    { label: 'direct01', uri: `${nonSrv}&directConnection=true` },
   ]
   out.variants = []
   for (const v of variants) {
-    const c = new MongoClient(v.uri, { serverSelectionTimeoutMS: 3000, connectTimeoutMS: 2500, retryWrites: false })
+    let c
+    try {
+      c = new MongoClient(v.uri, { serverSelectionTimeoutMS: 2500, connectTimeoutMS: 2000, retryWrites: false })
+    } catch (e) {
+      out.variants.push({ label: v.label, ok: false, stage: 'ctor', error: String(e?.message || e).split('\n')[0] })
+      continue
+    }
     try {
       await c.connect()
       await c.db(out.dbName).command({ ping: 1 })
