@@ -5,8 +5,7 @@
   "outputDirectory": "dist",
   "functions": {
     "api/index.mjs": {
-      "maxDuration": 10,
-      "runtime": "nodejs20.x"
+      "maxDuration": 10
     }
   },
   "rewrites": [
