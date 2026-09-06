@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname } from 'node:path'
 import routes from './routes.js'
 import storeRoutes from './store.js'
-import { connectDb } from './db.js'
+import { connectDb, seedIfEmpty } from './db.js'
 import { userFromToken } from './auth.js'
 import { handleRazorpayWebhook } from './payments.js'
 
@@ -42,7 +42,8 @@ export async function ensureDbConnected() {
   if (dbReady) return
   if (!dbConnecting) {
     dbConnecting = connectDb()
-      .then(() => {
+      .then(async () => {
+        await seedIfEmpty()
         dbReady = true
       })
       .catch((err) => {
