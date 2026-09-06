@@ -41,33 +41,37 @@ async function diagProbe() {
     nodeEnv: process.env.NODE_ENV,
     lastDbError,
   }
-  const uri = process.env.MONGO_URI
-  if (!uri) return { ...out, ok: false, stage: 'env', error: 'MONGO_URI not set' }
+  const base = process.env.MONGO_URI
+  if (!base) return { ...out, ok: false, stage: 'env', error: 'MONGO_URI not set' }
   const { MongoClient } = await import('mongodb')
-  const c = new MongoClient(uri, { serverSelectionTimeoutMS: 5000, connectTimeoutMS: 5000, retryWrites: false })
-  try {
-    await c.connect()
-    out.stage = 'connect'
+  const variants = [
+    { label: 'orig', uri: base },
+    { label: 'direct', uri: `${base}&directConnection=true` },
+    { label: 'insecure', uri: `${base}&tlsInsecure=true` },
+  ]
+  out.variants = []
+  for (const v of variants) {
+    const c = new MongoClient(v.uri, { serverSelectionTimeoutMS: 3000, connectTimeoutMS: 2500, retryWrites: false })
     try {
+      await c.connect()
       await c.db(out.dbName).command({ ping: 1 })
+      out.variants.push({ label: v.label, ok: true })
       out.ok = true
-      out.ping = 'ok'
+      out.stage = v.label
+      break
     } catch (e) {
-      out.ping = String(e?.message || e).split('\n')[0]
+      const msg = String(e?.message || e)
+      let stage = 'other'
+      if (/getaddrinfo|ENOTFOUND|EAI_AGAIN|dns/i.test(msg)) stage = 'dns'
+      else if (/ECONNREFUSED|ECONNRESET|ETIMEDOUT|timed out|connection/i.test(msg)) stage = 'tcp'
+      else if (/SASL|auth|Authentication|SCRAM/i.test(msg)) stage = 'auth'
+      else if (/TLS|SSL|certificate|handshake|peer|alert/i.test(msg)) stage = 'tls'
+      out.variants.push({ label: v.label, ok: false, stage, error: msg.split('\n')[0] })
+    } finally {
+      await c.close().catch(() => {})
     }
-    return out
-  } catch (e) {
-    const msg = String(e?.message || e)
-    if (/getaddrinfo|ENOTFOUND|EAI_AGAIN|dns/i.test(msg)) out.stage = 'dns'
-    else if (/ECONNREFUSED|ECONNRESET|ETIMEDOUT|timed out|connection/i.test(msg)) out.stage = 'tcp'
-    else if (/SASL|auth|Authentication|SCRAM/i.test(msg)) out.stage = 'auth'
-    else if (/TLS|SSL|certificate|handshake|peer/i.test(msg)) out.stage = 'tls'
-    else out.stage = 'other'
-    out.error = msg.split('\n')[0]
-    return out
-  } finally {
-    await c.close().catch(() => {})
   }
+  return out
 }
 
 /* Lazy DB connection. On serverless (Vercel) first requests return 503 until
