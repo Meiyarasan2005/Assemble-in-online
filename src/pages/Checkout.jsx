@@ -258,12 +258,12 @@ export default function Checkout() {
                     name="co-phone"
                     autoComplete="tel"
                     className={`input ${touched.phone && errors.phone ? 'input-err' : ''}`}
-                    inputMode="numeric"
+                    inputMode="tel"
                     placeholder="10-digit mobile number"
                     value={form.phone}
                     onChange={set('phone')}
                     onBlur={markTouched('phone')}
-                    maxLength={10}
+                    maxLength={15}
                   />
                   {touched.phone && errors.phone && <em className="co-err">{errors.phone}</em>}
                 </label>
