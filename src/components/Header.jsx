@@ -57,7 +57,7 @@ export default function Header() {
   return (
     <>
       <header className="header header-minimal">
-        <div className="header-inner container">
+        <div className="header-inner">
           <Link to="/" className="header-brand">
             <img className="header-logo" src="/favicon.png" alt="Assemble-on-line" />
           </Link>
@@ -147,8 +147,10 @@ export default function Header() {
               <Link to="/shop" onClick={() => setMobileMenuOpen(false)}>All Parts</Link>
               <Link to="/garage" onClick={() => setMobileMenuOpen(false)}>My Garage</Link>
               <Link to="/orders" onClick={() => setMobileMenuOpen(false)}>My Orders</Link>
+              <Link to="/track" onClick={() => setMobileMenuOpen(false)}>Track a Package</Link>
               <Link to="/wishlist" onClick={() => setMobileMenuOpen(false)}>Wishlist</Link>
               <Link to="/returns" onClick={() => setMobileMenuOpen(false)}>Returns & Warranty</Link>
+              <Link to="/contact" onClick={() => setMobileMenuOpen(false)}>Contact Us</Link>
               <Link to="/account" onClick={() => setMobileMenuOpen(false)}>
                 {isAuthed ? 'My Account' : 'Login / Register'}
               </Link>

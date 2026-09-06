@@ -55,7 +55,7 @@ export default function Sidebar({ open, onClose }) {
                 <img className="brand-logo" src="/logo.png" alt="Assemble-on-line" />
               </span>
               <span className="brand-name">
-                SPARE<span className="brand-accent">XPRESS</span>
+                ASSEMBLE<span className="brand-accent">-ON-LINE</span>
               </span>
             </button>
           </div>
@@ -127,7 +127,7 @@ export default function Sidebar({ open, onClose }) {
             <div className="side-contact">
               <IconPhone width="16" height="16" />
               <div>
-                <strong>+91 93393 32933</strong>
+                <strong>+91 90033 44069</strong>
                 <span>Mon–Sat · 9am–8pm</span>
               </div>
             </div>

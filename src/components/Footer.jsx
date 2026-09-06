@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { IconPhone, IconMapPin } from './icons'
+import { IconPhone, IconMapPin, IconWhatsApp } from './icons'
 
 export default function Footer() {
   return (
@@ -10,7 +10,7 @@ export default function Footer() {
             <Link to="/" className="footer-brand">
               <img className="footer-logo" src="/logo.png" alt="Assemble-on-line logo" />
               <span className="footer-brand-text">
-                SPARE<span className="footer-brand-accent">XPRESS</span>
+                ASSEMBLE<span className="footer-brand-accent">-ON-LINE</span>
               </span>
             </Link>
             <p className="footer-tagline">
@@ -19,10 +19,16 @@ export default function Footer() {
             </p>
             <div className="footer-contact">
               <span>
-                <IconPhone width="14" height="14" /> +91 93393 32933
+                <IconPhone width="14" height="14" /> +91 90033 44069
               </span>
               <span>
-                <IconMapPin width="14" height="14" /> Pune · serving all of India
+                <IconWhatsApp width="14" height="14" />{' '}
+                <a href="https://wa.me/9003344069" target="_blank" rel="noreferrer">
+                  WhatsApp: 90033 44069
+                </a>
+              </span>
+              <span>
+                <IconMapPin width="14" height="14" /> Coimbatore · serving all of India
               </span>
             </div>
           </div>
@@ -37,15 +43,15 @@ export default function Footer() {
 
           <div className="footer-col">
             <strong>Company</strong>
-            <a href="#about">About us</a>
+            <Link to="/contact">Contact Us</Link>
+            <Link to="/shop">About Store</Link>
             <a href="#careers">Careers</a>
             <a href="#press">Press</a>
-            <a href="#contact">Contact</a>
           </div>
 
           <div className="footer-col">
             <strong>Support</strong>
-            <Link to="/orders">Track orders</Link>
+            <Link to="/track">Track your order</Link>
             <Link to="/returns">Returns &amp; warranty</Link>
             <Link to="/wishlist">Wishlist</Link>
             <a href="#help">Help centre</a>

@@ -37,21 +37,43 @@
     }
     const isNew = !id
 
-    let imageValue = p.image || ''
+    let imagesValue = Array.isArray(p.images) && p.images.length ? [...p.images] : p.image ? [p.image] : []
+    const renderImageGrid = () => {
+      const $grid = $('#pf-images', m)
+      if (!imagesValue.length) {
+        $grid.innerHTML = '<div class="pf-img-empty">No images yet — add up to 12</div>'
+        return
+      }
+      $grid.innerHTML = imagesValue
+        .map(
+          (src, i) => `
+            <div class="pf-img-chip${i === 0 ? ' is-main' : ''}">
+              <img src="${src}" alt="" />
+              ${i === 0 ? '<span class="pf-img-main-tag">Main</span>' : ''}
+              <button class="pf-img-del" type="button" data-i="${i}" title="Remove">×</button>
+            </div>`,
+        )
+        .join('')
+      $$('[data-i]', $grid).forEach((b) =>
+        b.addEventListener('click', () => {
+          imagesValue.splice(Number(b.dataset.i), 1)
+          renderImageGrid()
+        }),
+      )
+    }
+
     const m = openModal(
       `
       <div class="modal-head"><h2>${isNew ? 'New product' : 'Edit product'}</h2><button class="x" data-close>×</button></div>
       <form id="pf-form" class="modal-body" novalidate>
         <div class="form-grid">
           <div class="field full">
-            <label>Image</label>
-            <div class="offer-upload">
-              <div class="offer-upload-preview" id="pf-preview">${p.image ? `<img src="${p.image}" alt="" />` : '<span>Preview</span>'}</div>
-              <div class="offer-upload-actions">
-                <label class="btn sm" for="pf-file">${ICON.stock} Upload image</label>
-                <input type="file" id="pf-file" accept="image/*" hidden />
-                <div class="hint" id="pf-file-hint">PNG / JPG, auto-resized</div>
-              </div>
+            <label>Images <small>(up to 12 — first is the main image)</small></label>
+            <div class="pf-images" id="pf-images"></div>
+            <div class="offer-upload-actions">
+              <label class="btn sm" for="pf-file">${ICON.stock} Add images</label>
+              <input type="file" id="pf-file" accept="image/*" multiple hidden />
+              <div class="hint" id="pf-file-hint">PNG / JPG, auto-resized — select multiple at once</div>
             </div>
           </div>
           <div class="field full">
@@ -141,34 +163,40 @@
       { wide: true }
     )
     bindModalClose()
+    renderImageGrid()
 
     const $file = $('#pf-file', m)
-    const $preview = $('#pf-preview', m)
     $file.addEventListener('change', async () => {
-      const file = $file.files && $file.files[0]
-      if (!file) return
+      const files = Array.from($file.files || [])
+      if (!files.length) return
       try {
-        imageValue = await readImage(file)
-        $preview.innerHTML = `<img src="${imageValue}" alt="" />`
-        $('#pf-file-hint', m).textContent = 'Image ready ✓'
+        for (const file of files) {
+          imagesValue.push(await readImage(file))
+        }
+        renderImageGrid()
+        $('#pf-file-hint', m).textContent = `${imagesValue.length} image${imagesValue.length === 1 ? '' : 's'} ready ✓`
       } catch (e) {
         toast(e.message, 'err')
       }
+      $file.value = ''
     })
 
-    $('#pf-save').addEventListener('click', () => submitProductForm(id, m, () => imageValue))
+    $('#pf-save').addEventListener('click', () => submitProductForm(id, m, () => imagesValue))
   }
 
-  async function submitProductForm(id, m, getImage) {
+  async function submitProductForm(id, m, getImages) {
     const f = $('#pf-form', m)
     if (!f.reportValidity()) return
     const fd = new FormData(f)
+    const images = getImages().filter(Boolean).slice(0, 12)
     const body = {
       name: fd.get('name'),
       category: fd.get('category'),
       brand: fd.get('brand'),
       part_no: fd.get('part_no'),
       badge: fd.get('badge'),
+      image: images[0] || '',
+      images,
       price: Number(fd.get('price')) || 0,
       mrp: Number(fd.get('mrp')) || 0,
       rating: Number(fd.get('rating')) || 0,
@@ -178,7 +206,6 @@
       features: (fd.get('features_text') || '').split('\n').map((s) => s.trim()).filter(Boolean),
       fits: $$('input[name=fits]:checked', f).map((c) => c.value),
     }
-    body.image = getImage() || ''
     if (!id) body.stock = Number(fd.get('stock')) || 0
     try {
       if (id) {

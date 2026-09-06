@@ -18,13 +18,16 @@ function adminToken(req) {
 }
 
 function serializeProduct(body) {
-  return {
+  const p = {
     id: String(body.id ?? '').trim() || randomUUID(),
     name: String(body.name ?? '').trim(),
     category: String(body.category ?? '').trim(),
     brand: String(body.brand ?? '').trim(),
     part_no: String(body.part_no ?? '').trim(),
     image: String(body.image ?? ''),
+    images: Array.isArray(body.images)
+      ? body.images.filter(Boolean).map(String).slice(0, 12)
+      : [],
     price: Number(body.price) || 0,
     mrp: Number(body.mrp) || 0,
     stock: Math.max(0, Math.round(Number(body.stock) || 0)),
@@ -36,6 +39,8 @@ function serializeProduct(body) {
     features: Array.isArray(body.features) ? body.features.map(String) : [],
     fits: Array.isArray(body.fits) ? body.fits.map(String) : [],
   }
+  if (!p.image && p.images.length) p.image = p.images[0]
+  return p
 }
 
 async function validateProduct(p, res) {
@@ -260,6 +265,7 @@ router.put('/products/:id', async (req, res) => {
         brand: p.brand,
         part_no: p.part_no,
         image: p.image,
+        images: p.images,
         price: p.price,
         mrp: p.mrp,
         stock: p.stock,

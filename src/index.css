@@ -27,7 +27,7 @@
   --radius-sm: 8px;
   --shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
-  --header-h: 80px;
+  --header-h: 140px;
   --catbar-h: 52px;
 
   font-family: var(--sans);

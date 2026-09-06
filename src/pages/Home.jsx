@@ -1,28 +1,25 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   formatINR,
   categories,
 } from '../data'
-import { fetchOffers, fetchBanner, updateBanner } from '../lib/api'
+import { fetchOffers } from '../lib/api'
 import { useSeller } from '../context/useSeller'
 import useCatalog from '../hooks/useCatalog'
 import ProductCard from '../components/ProductCard'
 import ProductArt from '../components/ProductArt'
 import OfferPopup from '../components/OfferPopup'
 import AddProduct from '../components/AddProduct'
+import HeroCarousel from '../components/HeroCarousel'
 import {
   IconArrowRight,
   IconClock,
   IconGauge,
-  IconPackage,
   IconShield,
   IconTruck,
-  IconBolt,
   IconPlus,
 } from '../components/icons'
-
-const defaultBanner = { badge: 'SALE', title: 'Up to 40% Off on Braking Parts', desc: 'Pads, rotors, calipers & more — genuine brands at clearance prices.', image: '/banner.jpeg' }
 
 function CategoryMarquee() {
   const navigate = useNavigate()
@@ -56,97 +53,29 @@ function CategoryMarquee() {
   )
 }
 
-function SaleBanner() {
+function CategoryShowcase() {
   const navigate = useNavigate()
-  const { isSeller, token: sellerToken } = useSeller()
-  const [banner, setBanner] = useState(defaultBanner)
-  const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState(defaultBanner)
-  const [saved, setSaved] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const fileRef = useRef(null)
-
-  useEffect(() => {
-    fetchBanner()
-      .then((data) => { setBanner(data); setDraft(data) })
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [])
-
-  const set = (field) => (e) => setDraft((d) => ({ ...d, [field]: e.target.value }))
-
-  const handleSave = async () => {
-    try {
-      const updated = await updateBanner(draft, sellerToken)
-      setBanner(updated)
-      setDraft(updated)
-      setEditing(false)
-      setSaved(true)
-      setTimeout(() => setSaved(false), 2000)
-    } catch (err) {
-      alert('Failed to save: ' + (err.message || 'Unknown error'))
-    }
-  }
-
-  const handleImage = (e) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    const reader = new FileReader()
-    reader.onload = () => setDraft((d) => ({ ...d, image: reader.result }))
-    reader.readAsDataURL(file)
-  }
-
-  if (editing) {
-    return (
-      <section className="sec">
-        <div className="container">
-          <div className="sale-banner seller-banner-edit">
-            <div className="sale-banner-content">
-              <input className="sb-edit-badge" value={draft.badge} onChange={set('badge')} placeholder="Badge" />
-              <input className="sb-edit-title" value={draft.title} onChange={set('title')} placeholder="Title" />
-              <input className="sb-edit-desc" value={draft.desc} onChange={set('desc')} placeholder="Description" />
-              <div className="sb-edit-img-row">
-                <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleImage} />
-                <button className="btn btn-sm" onClick={() => fileRef.current?.click()}>Upload Image</button>
-                <input className="sb-edit-url" value={draft.image} onChange={set('image')} placeholder="Or paste image URL" />
-              </div>
-              <div className="sb-edit-actions">
-                <button className="btn btn-primary btn-sm" onClick={handleSave}>Save Banner</button>
-                <button className="btn btn-sm" onClick={() => { setDraft(banner); setEditing(false) }}>Cancel</button>
-              </div>
-            </div>
-            {draft.image && (
-              <div className="sale-banner-art sale-banner-art-edit">
-                <img src={draft.image} alt="Banner" />
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-    )
-  }
-
   return (
     <section className="sec">
       <div className="container">
-        <div className={`sale-banner ${isSeller ? 'seller-clickable' : ''}`} onClick={() => !isSeller && navigate('/shop')}>
-          {isSeller && (
-            <button className="sb-seller-edit-btn" onClick={(e) => { e.stopPropagation(); setDraft(banner); setEditing(true) }} title="Edit banner">
-              &#9998;
+        <div className="sec-head">
+          <h2>Shop by Category</h2>
+          <Link to="/shop" className="sec-link">All categories <IconArrowRight width="14" height="14" /></Link>
+        </div>
+        <div className="cat-grid">
+          {categories.map((c) => (
+            <button
+              key={c.id}
+              className="cat-card card"
+              onClick={() => navigate(`/shop?cat=${c.id}`)}
+            >
+              <span className="cat-card-art">
+                <ProductArt category={c.icon} showImage={true} alt={c.name} />
+              </span>
+              <span className="cat-card-name">{c.short}</span>
+              <span className="cat-card-count">{c.name}</span>
             </button>
-          )}
-          {saved && <div className="sb-saved-toast">Banner updated!</div>}
-          <div className="sale-banner-content">
-            <span className="sale-badge">{banner.badge}</span>
-            <h2>{banner.title}</h2>
-            <p>{banner.desc}</p>
-            <button className="btn btn-primary btn-sm" onClick={(e) => { e.stopPropagation(); navigate('/shop') }}>
-              Shop the Sale <IconArrowRight width="14" height="14" />
-            </button>
-          </div>
-          <div className="sale-banner-art">
-            {banner.image ? <img src={banner.image} alt="Sale" /> : <ProductArt category="braking" />}
-          </div>
+          ))}
         </div>
       </div>
     </section>
@@ -329,31 +258,6 @@ function OffersSection({ offers }) {
   )
 }
 
-function HowItWorks() {
-  const steps = [
-    { icon: <IconPackage width="24" height="24" />, title: 'Find the part', text: 'Search by part number or use fitment finder.' },
-    { icon: <IconBolt width="24" height="24" />, title: 'Order in minutes', text: 'GST invoice, bulk quantities, fast checkout.' },
-    { icon: <IconTruck width="24" height="24" />, title: 'Delivered fast', text: 'Metro in 12 hours, nationwide in 24-48 hrs.' },
-  ]
-  return (
-    <section className="sec">
-      <div className="container">
-        <div className="sec-head"><h2>How It Works</h2></div>
-        <div className="how-grid">
-          {steps.map((s, i) => (
-            <div key={s.title} className="how-step card">
-              <span className="how-num">{i + 1}</span>
-              <span className="how-icon">{s.icon}</span>
-              <h3>{s.title}</h3>
-              <p>{s.text}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
 function Perks() {
   const perks = [
     { icon: <IconShield width="22" height="22" />, t: '100% Genuine', s: 'OE & OES sourced' },
@@ -392,14 +296,14 @@ export default function Home() {
 
   return (
     <div>
+      <HeroCarousel />
       <CategoryMarquee />
-      <SaleBanner />
+      <CategoryShowcase />
       <OfferZone offers={offers} />
       <FeaturedParts />
       <PromoStrip />
       <NewArrivals />
       <OffersSection offers={offers} />
-      <HowItWorks />
       <Perks />
       <OfferPopup offers={offers} />
     </div>

@@ -61,8 +61,8 @@ export function buildInvoiceHtml(order) {
 <body>
   <div class="inv-head">
     <div>
-      <h1>SPARE<span style="color:#ff6a00">XPRESS</span></h1>
-      <div class="sub">Genuine Auto Parts · Retail & Trade Pvt. Ltd.<br />Pune · GSTIN 27AABCS1234X1Z5 · serving all of India</div>
+      <h1>ASSEMBLE<span style="color:#ff6a00">-ON-LINE</span></h1>
+      <div class="sub">Genuine Auto Parts · Retail & Trade Pvt. Ltd.<br />Coimbatore · GSTIN 33AABCS1234X1Z5 · serving all of India</div>
     </div>
     <div class="tax">
       <b>TAX INVOICE</b><br />
@@ -111,7 +111,7 @@ export function buildInvoiceHtml(order) {
   </table>
 
   <div class="foot">
-    <strong>Declaration:</strong> This is a computer-generated tax invoice. All parts supplied are new / certified pre-owned as marked and are covered by the Assemble-on-line warranty at the time of dispatch. For support call +91 93393 32933 or write to billing@sparexpress.in.
+    <strong>Declaration:</strong> This is a computer-generated tax invoice. All parts supplied are new / certified pre-owned as marked and are covered by the Assemble-on-line warranty at the time of dispatch. For support call +91 90033 44069 or write to billing@assembleonline.in.
   </div>
 </body>
 </html>`

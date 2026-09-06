@@ -15,6 +15,7 @@ import './css/features.css'
 import './css/premium.css'
 import './css/seller.css'
 import './css/loader.css'
+import './css/contact.css'
 import App from './App.jsx'
 
 createRoot(document.getElementById('root')).render(

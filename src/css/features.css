@@ -716,6 +716,7 @@
 }
 
 .pd-img-main {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -731,10 +732,28 @@
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
+  cursor: zoom-in;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.pd-zoom-hint {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--faint);
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px 10px;
+  pointer-events: none;
 }
 
 .pd-img-thumbs {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -750,10 +769,139 @@
   padding: 4px;
   cursor: pointer;
   transition: border-color 0.15s;
+  background: var(--surface-2);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pd-img-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+  display: block;
 }
 
 .pd-img-thumb.active {
   border-color: var(--accent);
+}
+
+/* --- tap-to-zoom overlay (dudeme-style) --- */
+.zoom-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.92);
+  display: flex;
+  flex-direction: column;
+  animation: zoomFadeIn 0.2s ease;
+}
+
+@keyframes zoomFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.zoom-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  color: #fff;
+  z-index: 2;
+}
+
+.zoom-caption {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.zoom-hint {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .zoom-hint { display: block; }
+}
+
+.zoom-close {
+  margin-left: auto;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 0;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 0.15s;
+}
+
+.zoom-close:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.zoom-stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+  overflow: hidden;
+  cursor: grab;
+}
+
+.zoom-stage:active {
+  cursor: grabbing;
+}
+
+.zoom-stage img {
+  max-width: 92%;
+  max-height: 92%;
+  display: block;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+  transition: none;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.zoom-fallback {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+  text-align: center;
+  padding: 24px;
+}
+
+.zoom-foot {
+  display: flex;
+  justify-content: center;
+  padding: 14px;
+  z-index: 2;
+}
+
+.zoom-reset {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.zoom-reset:hover {
+  background: rgba(255, 255, 255, 0.24);
 }
 
 .pd-img-desc {
@@ -1184,6 +1332,39 @@
   background: #e85d13;
 }
 
+.pd-btn-call {
+  flex: 1;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: #1a1a1a;
+  color: #fff;
+  text-decoration: none;
+  justify-content: center;
+}
+
+.pd-btn-call:hover {
+  background: #333;
+}
+
+.pd-btn-wa {
+  flex: 1;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: #25d366;
+  color: #fff;
+  border-color: #25d366;
+  text-decoration: none;
+  justify-content: center;
+}
+
+.pd-btn-wa:hover {
+  background: #1ebe57;
+}
+
 /* --- trust --- */
 .pd-trust-row {
   display: flex;
@@ -1310,6 +1491,11 @@
     flex: 1 1 45%;
   }
 
+  .pd-btn-call,
+  .pd-btn-wa {
+    flex: 1;
+  }
+
   .pd-trust-row {
     flex-direction: column;
     gap: 10px;
@@ -1323,6 +1509,11 @@
 
   .pd-btn-cart,
   .pd-btn-buy {
+    width: 100%;
+  }
+
+  .pd-btn-call,
+  .pd-btn-wa {
     width: 100%;
   }
 }

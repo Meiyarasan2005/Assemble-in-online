@@ -37,7 +37,7 @@ const upload = multer({
     destination: (_req, _file, cb) => cb(null, uploadsDir),
     filename: (_req, file, cb) => {
       const ext = extname(file.originalname).toLowerCase() || '.jpg'
-      cb(null, `product-${Date.now()}${ext}`)
+      cb(null, `product-${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`)
     },
   }),
   limits: { fileSize: 5 * 1024 * 1024 },
@@ -55,9 +55,15 @@ const DELIVERY_FEE = 149
 /* ---------- helpers ---------- */
 
 function orderNumber() {
-  return `MS-${Date.now().toString(36).toUpperCase()}${Math.floor(Math.random() * 1296)
-    .toString(36)
-    .toUpperCase()}`
+  const stamp = Date.now().toString().slice(-8)
+  const rnd = Math.floor(1000 + Math.random() * 9000)
+  return `AO-${stamp}-${rnd}`
+}
+
+function trackingNumber() {
+  const stamp = Date.now().toString(36).toUpperCase()
+  const rnd = Math.floor(1000 + Math.random() * 9000)
+  return `AOL-${stamp}${rnd}`
 }
 
 async function deductStock(orderId, items, session) {
@@ -95,7 +101,6 @@ function generateOtp() {
 
 router.post('/auth/send-otp', async (req, res) => {
   try {
-    const { createTransport } = await import('nodemailer')
     const email = String(req.body?.email ?? '').trim().toLowerCase()
     if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
       return res.status(400).json({ error: 'Enter a valid email address' })
@@ -112,39 +117,10 @@ router.post('/auth/send-otp', async (req, res) => {
     await db.otp_codes.deleteMany({ _id: email })
     await db.otp_codes.insertOne({ _id: email, otp, expires_at, created_at: new Date() })
 
-    const smtpHost = process.env.SMTP_HOST
-    const smtpPort = process.env.SMTP_PORT
-    const smtpUser = process.env.SMTP_USER
-    const smtpPass = process.env.SMTP_PASS
-    const fromEmail = process.env.SMTP_FROM || smtpUser
-
-    if (smtpHost && smtpUser && smtpPass) {
-      const transporter = createTransport({
-        host: smtpHost,
-        port: Number(smtpPort) || 587,
-        secure: Number(smtpPort) === 465,
-        auth: { user: smtpUser, pass: smtpPass },
-      })
-      await transporter.sendMail({
-        from: `"Assemble-on-line" <${fromEmail}>`,
-        to: email,
-        subject: 'Your verification code — Assemble-on-line',
-        text: `Your OTP is ${otp}. It expires in 10 minutes.`,
-        html: `<div style="font-family:sans-serif;max-width:400px;margin:auto;padding:24px">
-          <h2 style="color:#ff6a00">Verify your email</h2>
-          <p>Your verification code is:</p>
-          <div style="font-size:32px;font-weight:bold;letter-spacing:8px;text-align:center;padding:16px;background:#f5f5f5;border-radius:8px;margin:16px 0">${otp}</div>
-          <p style="color:#666;font-size:13px">This code expires in 10 minutes. If you didn't request this, ignore this email.</p>
-        </div>`,
-      })
-    } else {
-      console.log(`[OTP] ${email} → ${otp}`)
-    }
-
-    res.json({ ok: true, message: 'Verification code sent to your email' })
+    res.json({ ok: true, otp })
   } catch (err) {
     console.error('[send-otp]', err)
-    res.status(500).json({ error: 'Failed to send verification code' })
+    res.status(500).json({ error: 'Failed to generate verification code' })
   }
 })
 
@@ -186,13 +162,6 @@ router.post('/auth/verify-otp', async (req, res) => {
 
 router.post('/auth/register', async (req, res) => {
   try {
-    const email = String(req.body?.email ?? '').trim().toLowerCase()
-    const verified = await db.otp_verified.findOne({ _id: email })
-    if (!verified) {
-      return res.status(400).json({ error: 'Please verify your email first' })
-    }
-    await db.otp_verified.deleteOne({ _id: email })
-
     const customer = await registerCustomer(req.body || {})
     const token = await createCustomerSession(customer.id)
     res.status(201).json({ token, customer })
@@ -394,11 +363,12 @@ router.post('/checkout', async (req, res) => {
   let address = {
     line1: String(body.address?.line1 ?? '').trim(),
     line2: String(body.address?.line2 ?? '').trim(),
+    location: String(body.address?.location ?? '').trim(),
     city: String(body.address?.city ?? '').trim(),
     state: String(body.address?.state ?? '').trim(),
     pincode: String(body.address?.pincode ?? '').trim(),
   }
-  const paymentMethod = String(body.paymentMethod ?? '')
+  const paymentMethod = 'cod'
   const cart = Array.isArray(body.cart) ? body.cart : []
 
   if (body.addressId) {
@@ -408,6 +378,7 @@ router.post('/checkout', async (req, res) => {
     address = {
       line1: picked.line1,
       line2: picked.line2 || '',
+      location: picked.location || '',
       city: picked.city,
       state: picked.state,
       pincode: picked.pincode,
@@ -418,9 +389,6 @@ router.post('/checkout', async (req, res) => {
   if (phone.length !== 10) return res.status(400).json({ error: 'A valid 10-digit phone number is required' })
   if (!address.line1 || !address.city || !address.state || !/^\d{6}$/.test(address.pincode)) {
     return res.status(400).json({ error: 'Complete delivery address with 6-digit PIN is required' })
-  }
-  if (!['upi', 'card', 'netbanking', 'cod'].includes(paymentMethod)) {
-    return res.status(400).json({ error: 'Choose a payment method (UPI, card, net banking or COD)' })
   }
   if (cart.length === 0) return res.status(400).json({ error: 'Your cart is empty' })
 
@@ -476,13 +444,12 @@ router.post('/checkout', async (req, res) => {
 
   const orderId = orderNumber()
   const orderToken = randomUUID()
-  const isCod = paymentMethod === 'cod'
-  const status = isCod ? 'confirmed' : 'pending'
-  const paymentStatus = isCod ? 'cod' : 'unpaid'
+  const status = 'confirmed'
+  const paymentStatus = 'cod'
   const createdAt = now()
   const events = [
     { status: 'placed', note: 'Order placed', at: createdAt },
-    ...(isCod ? [{ status: 'confirmed', note: 'Payment method: Cash on delivery', at: createdAt }] : []),
+    { status: 'confirmed', note: 'Payment method: Cash on delivery', at: createdAt },
   ]
 
   await withTx(async (session) => {
@@ -508,6 +475,7 @@ router.post('/checkout', async (req, res) => {
         payment_status: paymentStatus,
         payment_ref: '',
         estimated_delivery: addDaysIso(createdAt, 4),
+        tracking_number: trackingNumber(),
         events,
         created_at: createdAt,
         updated_at: createdAt,
@@ -537,53 +505,7 @@ router.post('/checkout', async (req, res) => {
   })
 
   const order = await orderDetail(orderId, orderToken)
-
-  if (isCod) {
-    res.status(201).json({ order })
-    return
-  }
-
-  if (razorpayEnabled()) {
-    let pgOrder
-    try {
-      pgOrder = await createRazorpayOrder({
-        amount: total * 100,
-        receipt: orderId,
-        notes: { order_id: orderId, email, name },
-      })
-      await db.orders.updateOne({ _id: orderId }, { $set: { pg_order_id: pgOrder.id } })
-    } catch (e) {
-      console.error(`[rz] order create failed for ${orderId}: ${e.message}`)
-      pgOrder = null
-    }
-    if (pgOrder) {
-      res.status(201).json({
-        order,
-        paymentIntent: {
-          provider: 'razorpay',
-          keyId: razorpayConfig().keyId,
-          orderId: pgOrder.id,
-          amount: total,
-          currency: 'INR',
-          sandbox: true,
-        },
-      })
-      return
-    }
-  }
-
-  // Simulated sandbox gateway (fallback when Razorpay keys are not configured):
-  // in production this returns a Razorpay/Stripe intent created above.
-  res.status(201).json({
-    order,
-    paymentIntent: {
-      id: `pay_${orderId.toLowerCase()}`,
-      amount: total,
-      currency: 'INR',
-      method: paymentMethod,
-      sandbox: true,
-    },
-  })
+  res.status(201).json({ order })
 })
 
 /* ---------- sandbox payment ---------- */
@@ -757,6 +679,20 @@ router.get('/orders/:id', async (req, res) => {
   res.json(order)
 })
 
+router.post('/track', async (req, res) => {
+  const orderId = String(req.body?.orderId ?? '').trim()
+  const phone = String(req.body?.phone ?? '').replace(/\D/g, '').slice(-10)
+  if (orderId.length < 5) return res.status(400).json({ error: 'Enter a valid order ID (e.g. AO-xxxxxxxx-xxxx)' })
+  if (phone.length !== 10) return res.status(400).json({ error: 'Enter a valid 10-digit mobile number' })
+  const row = await db.orders.findOne({ _id: orderId })
+  if (!row) return res.status(404).json({ error: 'No order found with that order ID' })
+  if (String(row.phone || '').replace(/\D/g, '').slice(-10) !== phone) {
+    return res.status(404).json({ error: 'Order ID and mobile number do not match' })
+  }
+  const items = await db.order_items.find({ order_id: row._id }).sort({ _id: 1 }).toArray()
+  res.json(serializeOrder(row, items))
+})
+
 router.post('/orders/:id/cancel', async (req, res) => {
   const token = String(req.body?.token ?? '')
   const row = await db.orders.findOne({ _id: req.params.id, token })
@@ -784,9 +720,9 @@ router.post('/orders/:id/cancel', async (req, res) => {
 router.get('/banner', async (_req, res) => {
   try {
     const doc = await db.site_settings.findOne({ _id: 'sale-banner' })
-    res.json(doc ? doc.data : { badge: 'SALE', title: 'Up to 40% Off on Braking Parts', desc: 'Pads, rotors, calipers & more — genuine brands at clearance prices.', image: '/banner.jpeg' })
+    res.json(doc ? doc.data : { badge: 'SALE', title: 'Up to 40% Off on Braking Parts', desc: 'Pads, rotors, calipers & more — genuine brands at clearance prices.', image: '/images/cooling.jpg' })
   } catch {
-    res.json({ badge: 'SALE', title: 'Up to 40% Off on Braking Parts', desc: 'Pads, rotors, calipers & more — genuine brands at clearance prices.', image: '/banner.jpeg' })
+    res.json({ badge: 'SALE', title: 'Up to 40% Off on Braking Parts', desc: 'Pads, rotors, calipers & more — genuine brands at clearance prices.', image: '/images/cooling.jpg' })
   }
 })
 
@@ -869,6 +805,10 @@ router.put('/seller/products/:id', async (req, res) => {
     }
   }
   if (b.image != null) update.image = String(b.image)
+  if (b.images != null) {
+    update.images = Array.isArray(b.images) ? b.images.filter(Boolean).map(String).slice(0, 12) : []
+    update.image = update.images[0] || ''
+  }
   if (b.name != null) update.name = String(b.name).trim()
   if (b.desc != null) update.desc = String(b.desc)
 
@@ -888,15 +828,31 @@ router.post('/seller/products/:id/image', upload.single('image'), async (req, re
   if (!req.file) return res.status(400).json({ error: 'No image file provided' })
 
   const imageUrl = `/uploads/${req.file.filename}`
-  await db.products.updateOne(
-    { _id: existing._id },
-    { $set: { image: imageUrl, updated_at: now() } },
-  )
+  const images = [...(Array.isArray(existing.images) ? existing.images : []), imageUrl].slice(0, 12)
+  const set = { image: imageUrl, images, updated_at: now() }
+  await db.products.updateOne({ _id: existing._id }, { $set: set })
   const updated = await db.products.findOne({ _id: existing._id })
   res.json(docOut(updated))
 })
 
-router.post('/seller/products', upload.single('image'), async (req, res) => {
+router.post('/seller/products/:id/images', upload.array('images', 12), async (req, res) => {
+  const seller = await sellerFromToken(req)
+  if (!seller) return res.status(401).json({ error: 'Seller login required' })
+
+  const existing = await db.products.findOne({ _id: req.params.id })
+  if (!existing) return res.status(404).json({ error: 'Product not found' })
+  const files = req.files || []
+  if (!files.length) return res.status(400).json({ error: 'No image files provided' })
+
+  const added = files.map((f) => `/uploads/${f.filename}`)
+  const images = [...(Array.isArray(existing.images) ? existing.images : []), ...added].slice(0, 12)
+  const set = { images, image: (existing.image || images[0]) || '', updated_at: now() }
+  await db.products.updateOne({ _id: existing._id }, { $set: set })
+  const updated = await db.products.findOne({ _id: existing._id })
+  res.json(docOut(updated))
+})
+
+router.post('/seller/products', upload.fields([{ name: 'image', maxCount: 1 }, { name: 'images', maxCount: 12 }]), async (req, res) => {
   const seller = await sellerFromToken(req)
   if (!seller) return res.status(401).json({ error: 'Seller login required' })
 
@@ -912,8 +868,9 @@ router.post('/seller/products', upload.single('image'), async (req, res) => {
   const exists = await db.products.findOne({ _id: id })
   if (exists) return res.status(409).json({ error: 'Product ID already exists' })
 
-  let imageUrl = String(b.image ?? '')
-  if (req.file) imageUrl = `/uploads/${req.file.filename}`
+  const fileUrls = (req.files?.images || []).map((f) => `/uploads/${f.filename}`)
+  const images = [...fileUrls, ...(Array.isArray(b.images) ? b.images.filter(Boolean).map(String).slice(0, 12) : [])].slice(0, 12)
+  const imageUrl = (req.files?.image?.[0] ? `/uploads/${req.files.image[0].filename}` : String(b.image ?? '')) || images[0] || ''
 
   const doc = {
     _id: id,
@@ -922,6 +879,7 @@ router.post('/seller/products', upload.single('image'), async (req, res) => {
     brand,
     part_no: String(b.part_no ?? '').trim(),
     image: imageUrl,
+    images: images,
     price: Math.max(0, Number(b.price) || 0),
     mrp: Math.max(0, Number(b.mrp) || 0),
     stock: Math.max(0, Math.round(Number(b.stock) || 0)),

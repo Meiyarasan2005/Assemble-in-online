@@ -21,6 +21,10 @@
   align-items: center;
   gap: 16px;
   height: 100%;
+  width: 100%;
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 0 24px;
 }
 
 .header-brand {
@@ -32,8 +36,8 @@
 }
 
 .header-logo {
-  width: 64px;
-  height: 64px;
+  width: 136px;
+  height: 136px;
   object-fit: contain;
   border-radius: 12px;
 }
@@ -537,8 +541,8 @@
 }
 
 .footer-logo {
-  width: 32px;
-  height: 32px;
+  width: 48px;
+  height: 48px;
   border-radius: 6px;
   object-fit: contain;
 }

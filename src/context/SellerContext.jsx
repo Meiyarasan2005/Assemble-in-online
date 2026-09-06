@@ -1,5 +1,5 @@
 import { createContext, useCallback, useEffect, useState } from 'react'
-import { sellerLogin as apiSellerLogin, sellerLogout as apiSellerLogout, sellerMe, sellerUpdateProduct, sellerUploadImage, sellerCreateProduct } from '../lib/api'
+import { sellerLogin as apiSellerLogin, sellerLogout as apiSellerLogout, sellerMe, sellerUpdateProduct, sellerUploadImage, sellerUploadImages, sellerCreateProduct } from '../lib/api'
 
 export const SellerContext = createContext(null)
 
@@ -81,6 +81,11 @@ export function SellerProvider({ children }) {
     return sellerUploadImage(productId, file, token)
   }, [token])
 
+  const uploadImages = useCallback(async (productId, files) => {
+    if (!token) throw new Error('Not authenticated as seller')
+    return sellerUploadImages(productId, files, token)
+  }, [token])
+
   const createProduct = useCallback(async (formData) => {
     if (!token) throw new Error('Not authenticated as seller')
     const result = await sellerCreateProduct(formData, token)
@@ -91,7 +96,7 @@ export function SellerProvider({ children }) {
   const bumpCatalog = useCallback(() => setCatalogVersion((v) => v + 1), [])
 
   return (
-    <SellerContext.Provider value={{ token, seller, isSeller, sellerReady, login, logout, updateProduct, uploadImage, createProduct, catalogVersion, bumpCatalog }}>
+    <SellerContext.Provider value={{ token, seller, isSeller, sellerReady, login, logout, updateProduct, uploadImage, uploadImages, createProduct, catalogVersion, bumpCatalog }}>
       {children}
     </SellerContext.Provider>
   )

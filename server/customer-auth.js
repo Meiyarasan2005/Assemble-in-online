@@ -28,7 +28,7 @@ export async function verifyEmailDomain(email) {
     const records = await resolveMx(domain)
     return records && records.length > 0
   } catch {
-    return false
+    return true
   }
 }
 
@@ -58,16 +58,24 @@ export async function registerCustomer({ name, email, phone, password }) {
   const pass = String(password ?? '')
   if (cleanName.length < 2) throw Object.assign(new Error('Full name is required'), { status: 400 })
   if (!EMAIL_RE.test(cleanEmail)) throw Object.assign(new Error('Enter a valid email'), { status: 400 })
-  if (!(await verifyEmailDomain(cleanEmail))) throw Object.assign(new Error('Please use a valid email address (disposable emails not allowed)'), { status: 400 })
   if (cleanPhone.length !== 10) throw Object.assign(new Error('Enter a valid 10-digit mobile number'), { status: 400 })
   if (pass.length < 6) throw Object.assign(new Error('Password must be at least 6 characters'), { status: 400 })
 
   const exists = await db.customers.findOne({ _id: cleanEmail })
-  if (exists) {
+  if (exists && exists.password_hash) {
     throw Object.assign(new Error('An account already exists with this email — sign in instead'), { status: 409 })
   }
 
   const { salt, hash } = hashPassword(pass)
+
+  if (exists && !exists.password_hash) {
+    await db.customers.updateOne(
+      { _id: cleanEmail },
+      { $set: { name: cleanName, phone: cleanPhone, password_hash: hash, salt, updated_at: now() } },
+    )
+    return { id: cleanEmail, email: cleanEmail, name: cleanName, phone: cleanPhone }
+  }
+
   await db.customers.insertOne({
     _id: cleanEmail,
     email: cleanEmail,
@@ -83,8 +91,14 @@ export async function registerCustomer({ name, email, phone, password }) {
 export async function loginCustomer({ email, password }) {
   const cleanEmail = String(email ?? '').trim().toLowerCase()
   const row = await db.customers.findOne({ _id: cleanEmail })
-  if (!row || !row.password_hash) {
+  if (!row) {
     throw Object.assign(new Error('No account found for this email'), { status: 401 })
+  }
+  if (!row.password_hash) {
+    throw Object.assign(
+      new Error('This account was created during checkout. Please sign up with this email to set a password, or place a new order.'),
+      { status: 401, code: 'NO_PASSWORD' },
+    )
   }
   if (!verifyPassword(String(password ?? ''), row.salt, row.password_hash)) {
     throw Object.assign(new Error('Incorrect password'), { status: 401 })
@@ -141,6 +155,7 @@ function normalizeAddress(body, index) {
     label,
     line1: clean(body.line1),
     line2: clean(body.line2),
+    location: clean(body.location),
     city: clean(body.city),
     state: clean(body.state),
     pincode: clean(body.pincode),

@@ -3,7 +3,7 @@ import { useSeller } from '../context/useSeller'
 import { IconX } from './icons'
 
 export default function AddProduct({ category, onClose }) {
-  const { createProduct, uploadImage } = useSeller()
+  const { createProduct } = useSeller()
   const fileRef = useRef(null)
   const [form, setForm] = useState({
     name: '',
@@ -15,8 +15,7 @@ export default function AddProduct({ category, onClose }) {
     desc: '',
     category: category || '',
   })
-  const [file, setFile] = useState(null)
-  const [preview, setPreview] = useState('')
+  const [files, setFiles] = useState([])
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState('')
   const [done, setDone] = useState(false)
@@ -24,10 +23,17 @@ export default function AddProduct({ category, onClose }) {
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
 
   const onFile = (e) => {
-    const f = e.target.files?.[0]
-    if (!f) return
-    setFile(f)
-    setPreview(URL.createObjectURL(f))
+    const picked = Array.from(e.target.files || [])
+    if (!picked.length) return
+    setFiles((prev) => [
+      ...prev,
+      ...picked.map((f) => ({ file: f, url: URL.createObjectURL(f) })),
+    ])
+    e.target.value = ''
+  }
+
+  const removeFile = (i) => {
+    setFiles((prev) => prev.filter((_, idx) => idx !== i))
   }
 
   const handleSubmit = async (e) => {
@@ -48,7 +54,7 @@ export default function AddProduct({ category, onClose }) {
       fd.append('mrp', form.mrp || form.price || '0')
       fd.append('stock', form.stock || '0')
       fd.append('desc', form.desc.trim())
-      if (file) fd.append('image', file)
+      files.forEach(({ file: f }) => f && fd.append('images', f))
       const created = await createProduct(fd)
       setDone(true)
       setMsg(`"${created.name}" added!`)
@@ -89,10 +95,19 @@ export default function AddProduct({ category, onClose }) {
             {msg && <div className="seller-error">{msg}</div>}
 
             <div className="seller-add-img-row">
-              <div className="seller-add-img-preview" onClick={() => fileRef.current?.click()}>
-                {preview ? <img src={preview} alt="Preview" /> : <span>+ Image</span>}
+              <div className="seller-add-img-preview seller-add-img-multi" onClick={() => fileRef.current?.click()}>
+                {files.length === 0 ? (
+                  <span>+ Images</span>
+                ) : (
+                  files.map((item, i) => (
+                    <div className="seller-add-img-cell" key={item.url}>
+                      <img src={item.url} alt="Preview" />
+                      <button className="seller-add-img-del" type="button" onClick={(ev) => { ev.stopPropagation(); removeFile(i) }}>&times;</button>
+                    </div>
+                  ))
+                )}
               </div>
-              <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={onFile} />
+              <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={onFile} />
             </div>
 
             <div className="seller-add-grid">

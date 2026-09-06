@@ -9,6 +9,12 @@ import { IconStar } from './icons'
 
 const vehicleById = new Map(vehicles.map((v) => [v.id, v]))
 
+function productThumb(p) {
+  if (p && p.image) return p.image
+  if (p && p.category) return `/images/${p.category}.jpg`
+  return ''
+}
+
 function InlineEdit({ value, onSave, type = 'number', className, prefix }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(value)
@@ -63,6 +69,7 @@ export default function ProductCard({ product, compact = false }) {
   const stock = overrides.stock ?? product.stock
 
   const cat = getCategory(product.category)
+  const thumb = productThumb(product)
   const pre = Boolean(product.condition)
   const save = mrp - price
   const savePct = mrp > 0 ? Math.round((save / mrp) * 100) : 0
@@ -80,8 +87,8 @@ export default function ProductCard({ product, compact = false }) {
     <article className={`pcard ${compact ? 'pcard-compact' : ''} ${isSeller ? 'seller-mode' : ''}`}>
       <Link to={`/product/${product.id}`} className="pcard-art-wrap">
         <span className={`pcard-art pcard-art-${cat.id}`}>
-          {product.image ? (
-            <img src={product.image} alt={product.name} loading="lazy" />
+          {thumb ? (
+            <img src={thumb} alt={product.name} loading="lazy" />
           ) : (
             <ProductArt category={cat.icon} />
           )}

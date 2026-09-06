@@ -92,7 +92,7 @@ async function start() {
     await connectWithRetry()
     const seeded = await seedIfEmpty()
     console.log(seeded ? '[db] Seeded catalogue into MongoDB' : '[db] Using existing MongoDB data')
-    console.log(`  Database                 ->  MongoDB Atlas (${process.env.DB_NAME || 'sparexpress'}) connected`)
+    console.log(`  Database                 ->  MongoDB Atlas (${process.env.DB_NAME || 'assembleonline'}) connected`)
     if (seeded) console.log('  Auth: user accounts (login on the admin page)')
   } catch (err) {
     console.error('[db] Could not connect:', err.message.split('\n')[0])

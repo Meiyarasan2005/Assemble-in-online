@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { formatINR } from '../data'
 import { useStore } from '../context/useStore'
-import { checkout, completePayment, verifyPayment } from '../lib/api'
-import { loadRazorpayScript, openRazorpayCheckout } from '../lib/payments'
+import { checkout } from '../lib/api'
 import { getCategory } from '../data'
 import ProductArt from '../components/ProductArt'
 import {
@@ -13,29 +12,29 @@ import {
   IconShield,
   IconTag,
   IconTruck,
+  IconPackage,
 } from '../components/icons'
 
 const FREE_DELIVERY = 1999
 const DELIVERY_FEE = 149
 
-const METHODS = [
-  { id: 'upi', label: 'UPI', hint: 'GPay · PhonePe · Paytm' },
-  { id: 'card', label: 'Card', hint: 'Credit / debit' },
-  { id: 'netbanking', label: 'Net Banking', hint: 'All major banks' },
-  { id: 'cod', label: 'Cash on Delivery', hint: 'Pay when it arrives' },
-]
+const PIN_STATE = {
+  '110': 'Delhi', '400': 'Maharashtra', '411': 'Maharashtra', '560': 'Karnataka',
+  '500': 'Telangana', '600': 'Tamil Nadu', '641': 'Tamil Nadu', '410': 'Maharashtra',
+  '700': 'West Bengal', '302': 'Rajasthan', '380': 'Gujarat', '421': 'Maharashtra',
+  '226': 'Uttar Pradesh', '520': 'Andhra Pradesh', '462': 'Madhya Pradesh',
+  '360': 'Gujarat', '682': 'Kerala', '695': 'Kerala', '800': 'Bihar',
+  '201': 'Uttar Pradesh', '208': 'Uttar Pradesh', '211': 'Uttar Pradesh',
+  '395': 'Gujarat', '422': 'Tamil Nadu', '431': 'Tamil Nadu', '440': 'Maharashtra',
+  '530': 'Andhra Pradesh', '575': 'Karnataka', '576': 'Karnataka',
+  '625': 'Tamil Nadu', '683': 'Kerala',
+  '721': 'West Bengal', '751': 'Odisha', '781': 'Assam',
+}
 
-const BANKS = [
-  'HDFC Bank',
-  'ICICI Bank',
-  'State Bank of India',
-  'Axis Bank',
-  'Kotak Mahindra Bank',
-  'Punjab National Bank',
-]
-
-function sleep(ms) {
-  return new Promise((r) => setTimeout(r, ms))
+function pinToState(pin) {
+  const p = pin.replace(/\D/g, '')
+  if (p.length < 3) return ''
+  return PIN_STATE[p.slice(0, 3)] || ''
 }
 
 function rememberOrder(email, orderId, token) {
@@ -65,13 +64,11 @@ export default function Checkout() {
     city: '',
     state: '',
     pincode: '',
+    location: '',
   })
-  const [method, setMethod] = useState('upi')
-  const [upiId, setUpiId] = useState('')
-  const [card, setCard] = useState({ number: '', name: '', expiry: '', cvv: '' })
-  const [bank, setBank] = useState(BANKS[0])
   const [errors, setErrors] = useState({})
-  const [stage, setStage] = useState('idle') // idle | placing | processing
+  const [touched, setTouched] = useState({})
+  const [stage, setStage] = useState('idle')
   const [error, setError] = useState('')
 
   const prefilled = useRef(false)
@@ -92,23 +89,29 @@ export default function Checkout() {
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
 
+  const markTouched = (key) => () => setTouched((t) => ({ ...t, [key]: true }))
+
+  const handlePincodeBlur = (e) => {
+    markTouched('pincode')(e)
+    const val = e.target.value.trim()
+    const st = pinToState(val)
+    if (st && !form.state) {
+      setForm((f) => ({ ...f, state: st }))
+    }
+    if (st) {
+      setTouched((t) => ({ ...t, state: true }))
+    }
+  }
+
   const validate = () => {
     const e = {}
-    if (form.name.trim().length < 2) e.name = 'Full name is required'
-    if (!/^\d{10}$/.test(form.phone.trim())) e.phone = '10-digit mobile number'
-    if (form.line1.trim().length < 3) e.line1 = 'Address line is required'
-    if (form.city.trim().length < 2) e.city = 'City is required'
-    if (form.state.trim().length < 2) e.state = 'State is required'
-    if (!/^\d{6}$/.test(form.pincode.trim())) e.pincode = '6-digit PIN code'
-    if (method === 'upi' && !/^[\w.-]{2,}@[\w.-]{2,}$/.test(upiId.trim())) {
-      e.upi = 'Enter a UPI ID like name@upi'
-    }
-    if (method === 'card') {
-      if (!/^[\d\s]{16,19}$/.test(card.number.trim())) e.cardNumber = 'Enter card number'
-      if (card.name.trim().length < 2) e.cardName = 'Name on card'
-      if (!/^\d{2}\/\d{2}$/.test(card.expiry.trim())) e.cardExpiry = 'MM/YY'
-      if (!/^\d{3,4}$/.test(card.cvv.trim())) e.cardCvv = 'CVV'
-    }
+    if (form.name.trim().length < 2) e.name = 'Please enter your full name'
+    if (!/^\d{10}$/.test(form.phone.trim())) e.phone = 'Enter a valid 10-digit mobile number'
+    if (form.line1.trim().length < 3) e.line1 = 'Please enter your delivery address'
+    if (form.city.trim().length < 2) e.city = 'Please enter your city'
+    if (form.state.trim().length < 2) e.state = 'Please select your state'
+    if (!/^\d{6}$/.test(form.pincode.trim())) e.pincode = 'Enter a valid 6-digit PIN code'
+    if (form.location.trim().length < 2) e.location = 'Please enter your location / area'
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -122,8 +125,10 @@ export default function Checkout() {
       setError('Your cart is empty')
       return
     }
+    setTouched({ name: true, phone: true, line1: true, city: true, state: true, pincode: true, location: true })
     if (!validate()) {
-      setError('Please fix the highlighted fields')
+      setError('Please fill in all required fields below')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
       return
     }
     setError('')
@@ -135,10 +140,11 @@ export default function Checkout() {
           email: form.email.trim(),
           name: form.name.trim(),
           phone: form.phone.trim(),
-          paymentMethod: method,
+          paymentMethod: 'cod',
           address: {
             line1: form.line1.trim(),
             line2: form.line2.trim(),
+            location: form.location.trim(),
             city: form.city.trim(),
             state: form.state.trim(),
             pincode: form.pincode.trim(),
@@ -149,47 +155,8 @@ export default function Checkout() {
       )
       const order = result.order
       rememberOrder(order.email, order.id, order.token)
-
-      if (method === 'cod') {
-        clearCart()
-        showToast('Order placed — pay on delivery')
-        navigate(`/order/${order.id}?token=${order.token}`)
-        return
-      }
-
-      const intent = result.paymentIntent || {}
-      if (intent.provider === 'razorpay') {
-        setStage('paying')
-        await loadRazorpayScript()
-        const { response, failed } = await openRazorpayCheckout({
-          intent,
-          order,
-        })
-        if (response) {
-          try {
-            await verifyPayment(order.id, order.token, response)
-            clearCart()
-            showToast('Payment successful')
-            navigate(`/order/${order.id}?token=${order.token}`)
-          } catch (err) {
-            setError(err.message || 'Payment could not be confirmed. Your order is saved — try paying again from the order page.')
-            setStage('idle')
-          }
-        } else if (failed) {
-          setError('Payment failed. Your order is saved — you can retry from the order page.')
-          setStage('idle')
-        } else {
-          setStage('idle')
-          navigate(`/order/${order.id}?token=${order.token}`, { state: { paymentSkipped: true } })
-        }
-        return
-      }
-
-      setStage('processing')
-      await sleep(2200) // simulated sandbox gateway
-      await completePayment(order.id, order.token, method)
       clearCart()
-      showToast('Payment successful')
+      showToast('Order placed successfully!')
       navigate(`/order/${order.id}?token=${order.token}`)
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.')
@@ -201,18 +168,10 @@ export default function Checkout() {
 
   return (
     <div className="container">
-      <nav className="crumbs" aria-label="Breadcrumb">
-        <Link to="/">Home</Link>
-        <IconArrowRight width="13" height="13" />
-        <Link to="/shop">Shop</Link>
-        <IconArrowRight width="13" height="13" />
-        <span>Checkout</span>
-      </nav>
-
       <div className="checkout-head">
         <h1>Checkout</h1>
         <p className="checkout-sub">
-          Secure checkout · {mode === 'preowned' ? 'Pre-owned parts' : 'Retail parts'}
+          {mode === 'preowned' ? 'Pre-owned parts' : 'Retail parts'} · Cash on Delivery · Delivering across India
         </p>
       </div>
 
@@ -234,10 +193,9 @@ export default function Checkout() {
           <div className="auth-gate-ic">
             <IconLock width="26" height="26" />
           </div>
-          <h3>Log in or create an account to place this order</h3>
+          <h3>Log in to place your order</h3>
           <p>
-            Browse freely — you only need an account when you buy. Sign in once and your
-            orders, invoices and tracking stay in one place.
+            Sign in once and your orders, invoices and tracking stay in one place.
           </p>
           <div className="auth-gate-actions">
             <Link to="/account?next=/checkout" className="btn btn-primary btn-sm">
@@ -249,143 +207,139 @@ export default function Checkout() {
           </div>
         </div>
       ) : (
-        <form className="checkout" onSubmit={submit}>
+        <form className="checkout" onSubmit={submit} noValidate>
           <div className="checkout-main">
             <section className="checkout-card card">
-              <h2>1 · Contact details</h2>
+              <h2>1 · Delivery address</h2>
               <div className="co-grid">
                 <label className="co-field co-span2">
-                  <span>Signed in as</span>
-                  <div className="co-email-readonly">
-                    <IconCheck width="15" height="15" />
-                    <span>{form.email}</span>
-                  </div>
-                </label>
-                <label className="co-field">
                   <span>Full name</span>
-                  <input className="input" placeholder="Name" value={form.name} onChange={set('name')} />
-                  {errors.name && <em className="co-err">{errors.name}</em>}
+                  <input
+                    className={`input ${touched.name && errors.name ? 'input-err' : ''}`}
+                    placeholder="Enter full name"
+                    value={form.name}
+                    onChange={set('name')}
+                    onBlur={markTouched('name')}
+                  />
+                  {touched.name && errors.name && <em className="co-err">{errors.name}</em>}
                 </label>
                 <label className="co-field">
                   <span>Mobile number</span>
-                  <input className="input" inputMode="numeric" placeholder="10-digit mobile" value={form.phone} onChange={set('phone')} />
-                  {errors.phone && <em className="co-err">{errors.phone}</em>}
-                </label>
-              </div>
-            </section>
-
-            <section className="checkout-card card">
-              <h2>2 · Delivery address</h2>
-              <div className="co-grid">
-                <label className="co-field co-span2">
-                  <span>Address line 1</span>
-                  <input className="input" placeholder="Shop / house no, street" value={form.line1} onChange={set('line1')} />
-                  {errors.line1 && <em className="co-err">{errors.line1}</em>}
-                </label>
-                <label className="co-field co-span2">
-                  <span>Address line 2 (optional)</span>
-                  <input className="input" placeholder="Landmark, area" value={form.line2} onChange={set('line2')} />
-                </label>
-                <label className="co-field">
-                  <span>City</span>
-                  <input className="input" placeholder="City" value={form.city} onChange={set('city')} />
-                  {errors.city && <em className="co-err">{errors.city}</em>}
-                </label>
-                <label className="co-field">
-                  <span>State</span>
-                  <input className="input" placeholder="State" value={form.state} onChange={set('state')} />
-                  {errors.state && <em className="co-err">{errors.state}</em>}
+                  <input
+                    className={`input ${touched.phone && errors.phone ? 'input-err' : ''}`}
+                    inputMode="numeric"
+                    placeholder="10-digit mobile number"
+                    value={form.phone}
+                    onChange={set('phone')}
+                    onBlur={markTouched('phone')}
+                    maxLength={10}
+                  />
+                  {touched.phone && errors.phone && <em className="co-err">{errors.phone}</em>}
                 </label>
                 <label className="co-field">
                   <span>PIN code</span>
-                  <input className="input" inputMode="numeric" placeholder="411001" value={form.pincode} onChange={set('pincode')} />
-                  {errors.pincode && <em className="co-err">{errors.pincode}</em>}
+                  <input
+                    className={`input ${touched.pincode && errors.pincode ? 'input-err' : ''}`}
+                    inputMode="numeric"
+                    placeholder="6-digit PIN code"
+                    value={form.pincode}
+                    onChange={set('pincode')}
+                    onBlur={handlePincodeBlur}
+                    maxLength={6}
+                  />
+                  {touched.pincode && errors.pincode && <em className="co-err">{errors.pincode}</em>}
                 </label>
+                <label className="co-field co-span2">
+                  <span>Address (Area and Street)</span>
+                  <input
+                    className={`input ${touched.line1 && errors.line1 ? 'input-err' : ''}`}
+                    placeholder="House no, building, street, area"
+                    value={form.line1}
+                    onChange={set('line1')}
+                    onBlur={markTouched('line1')}
+                  />
+                  {touched.line1 && errors.line1 && <em className="co-err">{errors.line1}</em>}
+                </label>
+                <label className="co-field co-span2">
+                  <span>Location / Area</span>
+                  <input
+                    className={`input ${touched.location && errors.location ? 'input-err' : ''}`}
+                    placeholder="E.g. Gandhipuram, Peelamedu, RS Puram"
+                    value={form.location}
+                    onChange={set('location')}
+                    onBlur={markTouched('location')}
+                  />
+                  {touched.location && errors.location && <em className="co-err">{errors.location}</em>}
+                </label>
+                <label className="co-field co-span2">
+                  <span>Landmark (optional)</span>
+                  <input
+                    className="input"
+                    placeholder="E.g. near HDFC bank, opposite park"
+                    value={form.line2}
+                    onChange={set('line2')}
+                  />
+                </label>
+                <label className="co-field">
+                  <span>City</span>
+                  <input
+                    className={`input ${touched.city && errors.city ? 'input-err' : ''}`}
+                    placeholder="City"
+                    value={form.city}
+                    onChange={set('city')}
+                    onBlur={markTouched('city')}
+                  />
+                  {touched.city && errors.city && <em className="co-err">{errors.city}</em>}
+                </label>
+                <label className="co-field">
+                  <span>State</span>
+                  <input
+                    className={`input ${touched.state && errors.state ? 'input-err' : ''}`}
+                    placeholder="State"
+                    value={form.state}
+                    onChange={set('state')}
+                    onBlur={markTouched('state')}
+                  />
+                  {touched.state && errors.state && <em className="co-err">{errors.state}</em>}
+                </label>
+              </div>
+              <div className="co-delivery-est">
+                <IconTruck width="16" height="16" />
+                <span>Delivery by {subtotal >= FREE_DELIVERY ? 'tomorrow' : '2–4 business days'} · {delivery === 0 ? 'FREE delivery' : `₹${DELIVERY_FEE} delivery charge`}</span>
               </div>
             </section>
 
             <section className="checkout-card card">
-              <h2>3 · Payment method</h2>
-              <div className="pay-methods">
-                {METHODS.map((m) => (
-                  <label key={m.id} className={`pay-method ${method === m.id ? 'pay-method-on' : ''}`}>
-                    <input
-                      type="radio"
-                      name="method"
-                      checked={method === m.id}
-                      onChange={() => setMethod(m.id)}
-                    />
-                    <span className="pay-method-label">{m.label}</span>
-                    <span className="pay-method-hint">{m.hint}</span>
-                    {method === m.id && <IconCheck className="pay-method-check" width="16" height="16" />}
-                  </label>
-                ))}
+              <h2>2 · Payment — Cash on Delivery</h2>
+              <div className="cod-info">
+                <div className="cod-row">
+                  <IconPackage width="18" height="18" />
+                  <div>
+                    <strong>Pay ₹{formatINR(total).replace('₹', '')} when delivered</strong>
+                    <span>No advance payment needed — cash at your doorstep</span>
+                  </div>
+                </div>
+                <div className="cod-row">
+                  <IconShield width="18" height="18" />
+                  <div>
+                    <strong>100% Genuine parts guaranteed</strong>
+                    <span>Inspect before payment — no questions asked</span>
+                  </div>
+                </div>
               </div>
-
-              {method === 'upi' && (
-                <div className="pay-fields">
-                  <label className="co-field co-span2">
-                    <span>UPI ID</span>
-                    <input className="input" placeholder="yourname@okhdfcbank" value={upiId} onChange={(e) => setUpiId(e.target.value)} />
-                    {errors.upi && <em className="co-err">{errors.upi}</em>}
-                  </label>
-                </div>
-              )}
-
-              {method === 'card' && (
-                <div className="pay-fields">
-                  <label className="co-field co-span2">
-                    <span>Card number</span>
-                    <input className="input" placeholder="4111 1111 1111 1111" value={card.number} onChange={(e) => setCard({ ...card, number: e.target.value })} />
-                    {errors.cardNumber && <em className="co-err">{errors.cardNumber}</em>}
-                  </label>
-                  <label className="co-field co-span2">
-                    <span>Name on card</span>
-                    <input className="input" placeholder="Name as printed" value={card.name} onChange={(e) => setCard({ ...card, name: e.target.value })} />
-                    {errors.cardName && <em className="co-err">{errors.cardName}</em>}
-                  </label>
-                  <label className="co-field">
-                    <span>Expiry</span>
-                    <input className="input" placeholder="MM/YY" value={card.expiry} onChange={(e) => setCard({ ...card, expiry: e.target.value })} />
-                    {errors.cardExpiry && <em className="co-err">{errors.cardExpiry}</em>}
-                  </label>
-                  <label className="co-field">
-                    <span>CVV</span>
-                    <input className="input" type="password" inputMode="numeric" placeholder="•••" value={card.cvv} onChange={(e) => setCard({ ...card, cvv: e.target.value })} />
-                    {errors.cardCvv && <em className="co-err">{errors.cardCvv}</em>}
-                  </label>
-                </div>
-              )}
-
-              {method === 'netbanking' && (
-                <div className="pay-fields">
-                  <label className="co-field co-span2">
-                    <span>Bank</span>
-                    <select className="select" value={bank} onChange={(e) => setBank(e.target.value)}>
-                      {BANKS.map((b) => (
-                        <option key={b} value={b}>{b}</option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-              )}
-
-              {method === 'cod' && (
-                <p className="cod-note">
-                  <IconTruck width="16" height="16" /> Pay {formatINR(total)} in cash when your order arrives.
-                </p>
-              )}
-
-              <p className="sandbox-note">
-                <IconLock width="13" height="13" /> Payments run through the Razorpay test gateway when keys are configured —
-                otherwise the built-in sandbox simulates cards, UPI and net banking.
-              </p>
             </section>
+
+            <div className="co-trust-strip">
+              <span><IconShield width="14" height="14" /> 100% Genuine</span>
+              <span><IconTruck width="14" height="14" /> Fast Delivery</span>
+              <span><IconTag width="14" height="14" /> GST Invoice</span>
+              <span><IconCheck width="14" height="14" /> Pay on Delivery</span>
+            </div>
           </div>
 
           <aside className="checkout-side">
             <div className="co-summary card">
-              <h2>Order summary</h2>
+              <h2>Order summary ({lines.length} {lines.length === 1 ? 'item' : 'items'})</h2>
               <ul className="co-items">
                 {lines.map(({ product, qty, price }) => {
                   const cat = getCategory(product.category)
@@ -396,7 +350,7 @@ export default function Checkout() {
                       </span>
                       <div className="co-item-info">
                         <strong>{product.name}</strong>
-                        <span>{product.partNo} · Qty {qty}</span>
+                        <span>{product.partNo} · Qty: {qty}</span>
                       </div>
                       <em>{formatINR(price * qty)}</em>
                     </li>
@@ -410,12 +364,12 @@ export default function Checkout() {
                 </div>
                 {savings > 0 && (
                   <div className="co-row co-row-good">
-                    <span>You save</span>
-                    <span>{formatINR(savings)}</span>
+                    <span>Total savings</span>
+                    <span>- {formatINR(savings)}</span>
                   </div>
                 )}
                 <div className="co-row">
-                  <span>Delivery</span>
+                  <span>Delivery charge</span>
                   <span>
                     {delivery === 0 ? (
                       <em className="co-free">FREE</em>
@@ -425,43 +379,40 @@ export default function Checkout() {
                   </span>
                 </div>
                 <div className="co-row co-row-total">
-                  <span>Total</span>
+                  <span>Total payable on delivery</span>
                   <span>{formatINR(total)}</span>
                 </div>
               </div>
-              <button className="btn btn-primary btn-block" type="submit" disabled={busy}>
-                {stage === 'placing' ? 'Placing order…' : stage === 'processing' ? 'Confirming payment…' : stage === 'paying' ? 'Awaiting payment…' : (
+              {savings > 0 && (
+                <div className="co-savings-badge">
+                  You are saving {formatINR(savings)} on this order!
+                </div>
+              )}
+              <button className="btn btn-primary btn-block co-cta" type="submit" disabled={busy}>
+                {stage === 'placing' ? (
+                  'Placing your order…'
+                ) : (
                   <>
-                    {method === 'cod' ? 'Place order · pay on delivery' : `Pay ${formatINR(total)}`}
+                    Place Order
                     <IconArrowRight width="16" height="16" />
                   </>
                 )}
               </button>
               {error && <p className="co-error">{error}</p>}
-              <div className="co-perks">
-                <span><IconShield width="14" height="14" /> 100% genuine</span>
-                <span><IconTruck width="14" height="14" /> 12-hr metro delivery</span>
-                <span><IconTag width="14" height="14" /> GST invoice</span>
-              </div>
+              <p className="co-safe-note">
+                <IconLock width="12" height="12" /> Cash on Delivery · Pay only when your parts arrive
+              </p>
             </div>
           </aside>
         </form>
       )}
 
-      {busy && stage !== 'paying' && (
+      {busy && (
         <div className="pay-overlay">
           <div className="pay-card card">
             <span className="spinner" />
-            <h3>
-              {stage === 'placing'
-                ? 'Securing your order…'
-                : 'Processing payment…'}
-            </h3>
-            <p>
-              {stage === 'placing'
-                ? 'Reserving stock and preparing your invoice.'
-                : 'Do not close this window. Confirming with the gateway.'}
-            </p>
+            <h3>Placing your order…</h3>
+            <p>Reserving stock and preparing your order.</p>
           </div>
         </div>
       )}

@@ -27,7 +27,8 @@ function normalize(row) {
     desc: row.desc ?? '',
     features: row.features ?? [],
     fits: row.fits ?? [],
-    image: row.image ?? '',
+    image: (row.image ?? '') || (row.category ? `/images/${row.category}.jpg` : ''),
+    images: Array.isArray(row.images) ? row.images.filter(Boolean) : [],
   }
 }
 
@@ -104,6 +105,7 @@ export default function useCatalog() {
     () => ({
       ready: state.ready,
       online: state.online,
+      catalog: state.products,
       products: mode === 'preowned' ? staticPreowned : state.products,
       categories: state.meta.categories,
       brands: state.meta.brands,
