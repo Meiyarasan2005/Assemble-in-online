@@ -1,4 +1,4 @@
-const CACHE = 'assembleonline-shell-v2'
+const CACHE = 'assembleonline-shell-v3'
 const STATIC_ASSETS = ['/', '/index.html', '/manifest.webmanifest', '/favicon.png', '/favicon.svg', '/logo.png']
 
 self.addEventListener('install', (event) => {
@@ -13,10 +13,14 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
-      .then(() => self.clients.claim()),
+    (async () => {
+      const keys = await caches.keys()
+      await Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
+      await self.clients.claim()
+      /* Force every already-open tab to load the newest bundle. */
+      const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+      await Promise.all(clients.map((c) => c.navigate(c.url).catch(() => c.reload())))
+    })(),
   )
 })
 
