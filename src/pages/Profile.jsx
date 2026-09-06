@@ -23,6 +23,13 @@ import {
 
 const EMPTY_ADDR = { label: '', line1: '', line2: '', location: '', city: '', state: '', pincode: '' }
 
+function normPhone(raw) {
+  let d = String(raw ?? '').replace(/\D/g, '')
+  if (d.length === 12 && d.startsWith('91')) d = d.slice(2)
+  else if (d.length === 11 && d.startsWith('0')) d = d.slice(1)
+  return d.slice(0, 10)
+}
+
 export default function Profile() {
   const { customer, token, isAuthed, authReady, refreshCustomer } = useStore()
 
@@ -82,9 +89,9 @@ export default function Profile() {
       return f ? String(f.value ?? '') : ''
     }
     const pName = get('pf-name') || name
-    const pPhone = get('pf-phone') || phone
+    const pPhone = normPhone(get('pf-phone')) || normPhone(phone)
     if (pName.trim().length < 2) return setSaveErr('Full name is required')
-    if (!/^\d{10}$/.test(pPhone.trim())) return setSaveErr('Enter a valid 10-digit mobile number')
+    if (pPhone.length !== 10) return setSaveErr('Enter a valid 10-digit mobile number')
     setName(pName)
     setPhone(pPhone)
     try {

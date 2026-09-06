@@ -37,6 +37,13 @@ function pinToState(pin) {
   return PIN_STATE[p.slice(0, 3)] || ''
 }
 
+function normPhone(raw) {
+  let d = String(raw ?? '').replace(/\D/g, '')
+  if (d.length === 12 && d.startsWith('91')) d = d.slice(2)
+  else if (d.length === 11 && d.startsWith('0')) d = d.slice(1)
+  return d.slice(0, 10)
+}
+
 function rememberOrder(email, orderId, token) {
   try {
     const raw = localStorage.getItem('meispare-orders')
@@ -111,7 +118,7 @@ export default function Checkout() {
     return {
       email: get('co-email') || form.email,
       name: get('co-name') || form.name,
-      phone: get('co-phone') || form.phone,
+      phone: normPhone(get('co-phone')) || normPhone(form.phone),
       line1: get('co-line1') || form.line1,
       line2: get('co-line2') || form.line2,
       location: get('co-location') || form.location,

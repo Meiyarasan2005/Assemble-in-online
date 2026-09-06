@@ -69,10 +69,17 @@ export async function customerFromToken(token) {
   return { id: row._id, email: row._id, name: row.name, phone: row.phone, createdAt: row.created_at }
 }
 
+function normalizePhone(raw) {
+  let d = String(raw ?? '').replace(/\D/g, '')
+  if (d.length === 12 && d.startsWith('91')) d = d.slice(2)
+  else if (d.length === 11 && d.startsWith('0')) d = d.slice(1)
+  return d.slice(0, 10)
+}
+
 export async function registerCustomer({ name, email, phone, password }) {
   const cleanName = String(name ?? '').trim()
   const cleanEmail = String(email ?? '').trim().toLowerCase()
-  const cleanPhone = String(phone ?? '').replace(/\D/g, '').slice(0, 10)
+  const cleanPhone = normalizePhone(phone)
   const pass = String(password ?? '')
   if (cleanName.length < 2) throw Object.assign(new Error('Full name is required'), { status: 400 })
   if (!EMAIL_RE.test(cleanEmail)) throw Object.assign(new Error('Enter a valid email'), { status: 400 })
@@ -152,7 +159,7 @@ function customerPublic(row) {
 
 export async function updateCustomerProfile(email, { name, phone }) {
   const cleanName = String(name ?? '').trim()
-  const cleanPhone = String(phone ?? '').replace(/\D/g, '').slice(0, 10)
+  const cleanPhone = normalizePhone(phone)
   if (cleanName.length < 2) throw Object.assign(new Error('Full name is required'), { status: 400 })
   if (cleanPhone.length !== 10) throw Object.assign(new Error('Enter a valid 10-digit mobile number'), { status: 400 })
   await db.customers.updateOne({ _id: email }, { $set: { name: cleanName, phone: cleanPhone, updated_at: now() } })
