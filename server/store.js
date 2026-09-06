@@ -372,6 +372,12 @@ router.post('/checkout', async (req, res) => {
   let phone = String(body.phone ?? '').replace(/\D/g, '')
   if (phone.length === 12 && phone.startsWith('91')) phone = phone.slice(2)
   else if (phone.length === 11 && phone.startsWith('0')) phone = phone.slice(1)
+  if (phone.length !== 10) {
+    const acct = String(account.phone ?? '').replace(/\D/g, '')
+    if (acct.length === 12 && acct.startsWith('91')) phone = acct.slice(2)
+    else if (acct.length === 11 && acct.startsWith('0')) phone = acct.slice(1)
+    else phone = acct
+  }
   phone = phone.slice(0, 10)
   let address = {
     line1: String(body.address?.line1 ?? '').trim(),
