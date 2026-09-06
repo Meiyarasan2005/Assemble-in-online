@@ -201,7 +201,7 @@ export default function Profile() {
             </label>
             <label className="co-field">
               <span>Mobile number</span>
-              <input name="pf-phone" className="input" inputMode="numeric" value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" />
+              <input name="pf-phone" className="input" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" />
             </label>
             {saveErr && <p className="co-error">{saveErr}</p>}
             <button className="btn btn-primary btn-block" type="submit">

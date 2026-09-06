@@ -318,7 +318,7 @@ export default function Auth() {
                 </label>
                 <label className="co-field">
                   <span>Mobile number</span>
-                  <input className="input" inputMode="numeric" placeholder="10-digit mobile" value={regForm.phone} onChange={setReg('phone')} autoComplete="tel" />
+                  <input className="input" inputMode="tel" placeholder="10-digit mobile" value={regForm.phone} onChange={setReg('phone')} autoComplete="tel" />
                 </label>
                 <label className="co-field">
                   <span>Password</span>
