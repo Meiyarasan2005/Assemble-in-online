@@ -33,8 +33,6 @@ function normPhone(raw) {
 export default function Profile() {
   const { customer, token, isAuthed, authReady, refreshCustomer } = useStore()
 
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
   const [saved, setSaved] = useState(false)
   const [saveErr, setSaveErr] = useState('')
 
@@ -49,13 +47,6 @@ export default function Profile() {
   const [form, setForm] = useState(EMPTY_ADDR)
   const [savingAddr, setSavingAddr] = useState(false)
 
-  useEffect(() => {
-    if (customer) {
-      setName(customer.name || '')
-      setPhone(customer.phone || '')
-    }
-  }, [customer])
-
   const loadAddresses = useCallback(async () => {
     try {
       setAddresses(await fetchAddresses(token))
@@ -68,7 +59,16 @@ export default function Profile() {
     if (isAuthed && authReady) loadAddresses()
   }, [isAuthed, authReady, loadAddresses])
 
-  if (authReady && !isAuthed) {
+  if (!authReady) {
+    return (
+      <div className="container" style={{ padding: '48px 0', textAlign: 'center' }}>
+        <span className="spinner" />
+        <p>Loading your profile…</p>
+      </div>
+    )
+  }
+
+  if (!isAuthed) {
     return (
       <div className="container empty-state card" style={{ marginTop: 40 }}>
         <h3>Please log in</h3>
@@ -88,14 +88,12 @@ export default function Profile() {
       const f = el.elements.namedItem(n)
       return f ? String(f.value ?? '') : ''
     }
-    const pName = get('pf-name') || name
-    const pPhone = normPhone(get('pf-phone')) || normPhone(phone)
-    if (pName.trim().length < 2) return setSaveErr('Full name is required')
+    const pName = get('pf-name').trim()
+    const pPhone = normPhone(get('pf-phone'))
+    if (pName.length < 2) return setSaveErr('Full name is required')
     if (pPhone.length !== 10) return setSaveErr('Enter a valid 10-digit mobile number')
-    setName(pName)
-    setPhone(pPhone)
     try {
-      await updateProfile({ name: pName.trim(), phone: pPhone.trim() }, token)
+      await updateProfile({ name: pName, phone: pPhone }, token)
       await refreshCustomer()
       setSaved(true)
       setTimeout(() => setSaved(false), 2600)
@@ -132,15 +130,29 @@ export default function Profile() {
     e.preventDefault()
     setAddrErr('')
     setAddrNote('')
-    if (form.line1.trim().length < 3) return setAddrErr('Address line is required')
-    if (form.location.trim().length < 2) return setAddrErr('Location / Area is required')
-    if (form.city.trim().length < 2) return setAddrErr('City is required')
-    if (form.state.trim().length < 2) return setAddrErr('State is required')
-    if (!/^\d{6}$/.test(form.pincode.trim())) return setAddrErr('Enter a valid 6-digit PIN code')
+    const el = e.currentTarget
+    const get = (n) => {
+      const f = el.elements.namedItem(n)
+      return f ? String(f.value ?? '') : ''
+    }
+    const a = {
+      label: get('pf-addr-label') || form.label,
+      line1: get('pf-addr-line1') || form.line1,
+      line2: get('pf-addr-line2') || form.line2,
+      location: get('pf-addr-location') || form.location,
+      city: get('pf-addr-city') || form.city,
+      state: get('pf-addr-state') || form.state,
+      pincode: get('pf-addr-pincode') || form.pincode,
+    }
+    if (a.line1.trim().length < 3) return setAddrErr('Address line is required')
+    if (a.location.trim().length < 2) return setAddrErr('Location / Area is required')
+    if (a.city.trim().length < 2) return setAddrErr('City is required')
+    if (a.state.trim().length < 2) return setAddrErr('State is required')
+    if (!/^\d{6}$/.test(a.pincode.trim())) return setAddrErr('Enter a valid 6-digit PIN code')
     setSavingAddr(true)
     try {
-      if (editing === 'new') await addAddress(form, token)
-      else await updateAddress(editing.id, form, token)
+      if (editing === 'new') await addAddress(a, token)
+      else await updateAddress(editing.id, a, token)
       setEditing(null)
       setAddrNote('Address saved')
       await loadAddresses()
@@ -186,7 +198,7 @@ export default function Profile() {
 
       <div className="profile-grid">
         <div className="profile-col">
-          <form className="card profile-card" onSubmit={saveProfile}>
+          <form key={`${customer?.name ?? ''}|${customer?.phone ?? ''}`} className="card profile-card" onSubmit={saveProfile}>
             <h2>Account details</h2>
             <label className="co-field">
               <span>Email address</span>
@@ -197,11 +209,11 @@ export default function Profile() {
             </label>
             <label className="co-field">
               <span>Full name</span>
-              <input name="pf-name" className="input" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
+              <input name="pf-name" className="input" defaultValue={customer?.name || ''} autoComplete="name" />
             </label>
             <label className="co-field">
               <span>Mobile number</span>
-              <input name="pf-phone" className="input" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" />
+              <input name="pf-phone" className="input" inputMode="tel" defaultValue={customer?.phone || ''} autoComplete="tel" />
             </label>
             {saveErr && <p className="co-error">{saveErr}</p>}
             <button className="btn btn-primary btn-block" type="submit">
@@ -274,33 +286,33 @@ export default function Profile() {
                 <h3>{editing === 'new' ? 'Add an address' : 'Edit address'}</h3>
                 <label className="co-field">
                   <span>Label</span>
-                  <input className="input" placeholder="e.g. Home, Workshop" value={form.label} onChange={set('label')} />
+                  <input name="pf-addr-label" className="input" placeholder="e.g. Home, Workshop" defaultValue={form.label} onChange={set('label')} />
                 </label>
                 <label className="co-field">
                   <span>Address line 1</span>
-                  <input className="input" placeholder="House / shop no, street" value={form.line1} onChange={set('line1')} />
+                  <input name="pf-addr-line1" className="input" placeholder="House / shop no, street" defaultValue={form.line1} onChange={set('line1')} />
                 </label>
                 <label className="co-field">
                   <span>Address line 2 (optional)</span>
-                  <input className="input" placeholder="Landmark, area" value={form.line2} onChange={set('line2')} />
+                  <input name="pf-addr-line2" className="input" placeholder="Landmark, area" defaultValue={form.line2} onChange={set('line2')} />
                 </label>
                 <label className="co-field">
                   <span>Location / Area</span>
-                  <input className="input" placeholder="E.g. Gandhipuram, Peelamedu, RS Puram" value={form.location} onChange={set('location')} />
+                  <input name="pf-addr-location" className="input" placeholder="E.g. Gandhipuram, Peelamedu, RS Puram" defaultValue={form.location} onChange={set('location')} />
                 </label>
                 <div className="co-grid">
                   <label className="co-field">
                     <span>City</span>
-                    <input className="input" value={form.city} onChange={set('city')} />
+                    <input name="pf-addr-city" className="input" defaultValue={form.city} onChange={set('city')} />
                   </label>
                   <label className="co-field">
                     <span>State</span>
-                    <input className="input" value={form.state} onChange={set('state')} />
+                    <input name="pf-addr-state" className="input" defaultValue={form.state} onChange={set('state')} />
                   </label>
                 </div>
                 <label className="co-field">
                   <span>PIN code</span>
-                  <input className="input" inputMode="numeric" placeholder="411001" value={form.pincode} onChange={set('pincode')} />
+                  <input name="pf-addr-pincode" className="input" inputMode="numeric" placeholder="411001" defaultValue={form.pincode} onChange={set('pincode')} />
                 </label>
                 {addrErr && <p className="co-error">{addrErr}</p>}
                 <div className="addr-form-actions">

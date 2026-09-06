@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { formatINR } from '../data'
 import { useStore } from '../context/useStore'
@@ -62,69 +62,44 @@ export default function Checkout() {
   const navigate = useNavigate()
   const { mode, lines, subtotal, savings, clearCart, showToast, isAuthed, authReady, customer, token } = useStore()
 
-  const [form, setForm] = useState({
-    email: '',
-    name: '',
-    phone: '',
-    line1: '',
-    line2: '',
-    city: '',
-    state: '',
-    pincode: '',
-    location: '',
-  })
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
   const [stage, setStage] = useState('idle')
   const [error, setError] = useState('')
 
-  const prefilled = useRef(false)
-  useEffect(() => {
-    if (customer && !prefilled.current) {
-      setForm((f) => ({
-        ...f,
-        email: customer.email,
-        name: f.name || customer.name,
-        phone: f.phone || customer.phone,
-      }))
-      prefilled.current = true
-    }
-  }, [customer])
-
   const delivery = subtotal >= FREE_DELIVERY ? 0 : DELIVERY_FEE
   const total = subtotal + delivery
-
-  const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
 
   const markTouched = (key) => () => setTouched((t) => ({ ...t, [key]: true }))
 
   const handlePincodeBlur = (e) => {
     markTouched('pincode')(e)
-    const val = e.target.value.trim()
-    const st = pinToState(val)
-    if (st && !form.state) {
-      setForm((f) => ({ ...f, state: st }))
-    }
+    const st = pinToState(e.target.value)
     if (st) {
+      const stateInput = e.target.form.elements.namedItem('co-state')
+      if (stateInput && !String(stateInput.value ?? '').trim()) {
+        stateInput.value = st
+      }
       setTouched((t) => ({ ...t, state: true }))
     }
   }
 
-  const values = (el) => {
+  const readValues = (el) => {
     const get = (n) => {
       const f = el.elements.namedItem(n)
       return f ? String(f.value ?? '').trim() : ''
     }
+    const pincode = get('co-pincode')
     return {
-      email: get('co-email') || form.email,
-      name: get('co-name') || form.name,
-      phone: normPhone(get('co-phone')) || normPhone(form.phone),
-      line1: get('co-line1') || form.line1,
-      line2: get('co-line2') || form.line2,
-      location: get('co-location') || form.location,
-      city: get('co-city') || form.city,
-      state: get('co-state') || form.state,
-      pincode: get('co-pincode') || form.pincode,
+      email: customer?.email || '',
+      name: get('co-name'),
+      phone: normPhone(get('co-phone')),
+      line1: get('co-line1'),
+      line2: get('co-line2'),
+      location: get('co-location'),
+      city: get('co-city'),
+      state: get('co-state') || pinToState(pincode),
+      pincode,
     }
   }
 
@@ -150,8 +125,7 @@ export default function Checkout() {
       setError('Your cart is empty')
       return
     }
-    const v = values(ev.currentTarget)
-    setForm(v)
+    const v = readValues(ev.currentTarget)
     setTouched({ name: true, phone: true, line1: true, city: true, state: true, pincode: true, location: true })
     if (!validate(v)) {
       setError('Please fill in all required fields below')
@@ -246,8 +220,7 @@ export default function Checkout() {
                     autoComplete="name"
                     className={`input ${touched.name && errors.name ? 'input-err' : ''}`}
                     placeholder="Enter full name"
-                    value={form.name}
-                    onChange={set('name')}
+                    defaultValue={customer?.name || ''}
                     onBlur={markTouched('name')}
                   />
                   {touched.name && errors.name && <em className="co-err">{errors.name}</em>}
@@ -260,8 +233,7 @@ export default function Checkout() {
                     className={`input ${touched.phone && errors.phone ? 'input-err' : ''}`}
                     inputMode="tel"
                     placeholder="10-digit mobile number"
-                    value={form.phone}
-                    onChange={set('phone')}
+                    defaultValue={customer?.phone || ''}
                     onBlur={markTouched('phone')}
                     maxLength={15}
                   />
@@ -275,8 +247,6 @@ export default function Checkout() {
                     className={`input ${touched.pincode && errors.pincode ? 'input-err' : ''}`}
                     inputMode="numeric"
                     placeholder="6-digit PIN code"
-                    value={form.pincode}
-                    onChange={set('pincode')}
                     onBlur={handlePincodeBlur}
                     maxLength={6}
                   />
@@ -289,8 +259,6 @@ export default function Checkout() {
                     autoComplete="address-line1"
                     className={`input ${touched.line1 && errors.line1 ? 'input-err' : ''}`}
                     placeholder="House no, building, street, area"
-                    value={form.line1}
-                    onChange={set('line1')}
                     onBlur={markTouched('line1')}
                   />
                   {touched.line1 && errors.line1 && <em className="co-err">{errors.line1}</em>}
@@ -301,8 +269,6 @@ export default function Checkout() {
                     name="co-location"
                     className={`input ${touched.location && errors.location ? 'input-err' : ''}`}
                     placeholder="E.g. Gandhipuram, Peelamedu, RS Puram"
-                    value={form.location}
-                    onChange={set('location')}
                     onBlur={markTouched('location')}
                   />
                   {touched.location && errors.location && <em className="co-err">{errors.location}</em>}
@@ -313,8 +279,6 @@ export default function Checkout() {
                     name="co-line2"
                     className="input"
                     placeholder="E.g. near HDFC bank, opposite park"
-                    value={form.line2}
-                    onChange={set('line2')}
                   />
                 </label>
                 <label className="co-field">
@@ -324,8 +288,6 @@ export default function Checkout() {
                     autoComplete="address-level2"
                     className={`input ${touched.city && errors.city ? 'input-err' : ''}`}
                     placeholder="City"
-                    value={form.city}
-                    onChange={set('city')}
                     onBlur={markTouched('city')}
                   />
                   {touched.city && errors.city && <em className="co-err">{errors.city}</em>}
@@ -337,8 +299,6 @@ export default function Checkout() {
                     autoComplete="address-level1"
                     className={`input ${touched.state && errors.state ? 'input-err' : ''}`}
                     placeholder="State"
-                    value={form.state}
-                    onChange={set('state')}
                     onBlur={markTouched('state')}
                   />
                   {touched.state && errors.state && <em className="co-err">{errors.state}</em>}
