@@ -1,5 +1,7 @@
 import { randomBytes } from 'node:crypto'
 import { resolveMx } from 'node:dns'
+import { lookup } from 'node:dns/promises'
+import { isIP } from 'node:net'
 import { db, now } from './db.js'
 import { hashPassword, verifyPassword } from './auth.js'
 
@@ -20,15 +22,31 @@ const DISPOSABLE_DOMAINS = new Set([
   'tempomail.fr','filzmail.com','tempmailer.com','obobbo.com','mailmoat.com',
 ])
 
+/* Reserved, non-deliverable hostnames/TLDs (RFC 2606 + loopback). */
+const RESERVED_DOMAINS = new Set(['localhost', 'local', 'test', 'invalid', 'example', 'example.com', 'example.net', 'example.org', 'example.edu', 'example.invalid'])
+const RESERVED_SUFFIXES = ['.local', '.test', '.invalid', '.example', '.localhost', '.internal', '.home', '.lan']
+
+/* Verify an email is not a throwaway/fake address. Returns
+   { ok: true } for real deliverable domains, otherwise
+   { ok: false, reason: 'disposable' | 'no-mx' }. */
 export async function verifyEmailDomain(email) {
   const domain = email.split('@')[1]?.toLowerCase()
-  if (!domain) return false
-  if (DISPOSABLE_DOMAINS.has(domain)) return false
+  if (!domain) return { ok: false, reason: 'no-mx' }
+  if (DISPOSABLE_DOMAINS.has(domain)) return { ok: false, reason: 'disposable' }
+  if (isIP(domain) || RESERVED_DOMAINS.has(domain) || RESERVED_SUFFIXES.some((s) => domain.endsWith(s))) {
+    return { ok: false, reason: 'no-mx' }
+  }
   try {
-    const records = await resolveMx(domain)
-    return records && records.length > 0
+    const mxs = await resolveMx(domain)
+    if (mxs.length > 0) return { ok: true }
   } catch {
-    return true
+    /* fall through to A/AAAA record check */
+  }
+  try {
+    await lookup(domain)
+    return { ok: true }
+  } catch {
+    return { ok: false, reason: 'no-mx' }
   }
 }
 
@@ -61,6 +79,15 @@ export async function registerCustomer({ name, email, phone, password }) {
   if (cleanPhone.length !== 10) throw Object.assign(new Error('Enter a valid 10-digit mobile number'), { status: 400 })
   if (pass.length < 6) throw Object.assign(new Error('Password must be at least 6 characters'), { status: 400 })
 
+  const domainCheck = await verifyEmailDomain(cleanEmail)
+  if (!domainCheck.ok) {
+    const msg =
+      domainCheck.reason === 'disposable'
+        ? 'Disposable email addresses are not allowed — use your real email'
+        : 'We could not verify this email domain — please use a real email address'
+    throw Object.assign(new Error(msg), { status: 400 })
+  }
+
   const exists = await db.customers.findOne({ _id: cleanEmail })
   if (exists && exists.password_hash) {
     throw Object.assign(new Error('An account already exists with this email — sign in instead'), { status: 409 })
@@ -76,15 +103,22 @@ export async function registerCustomer({ name, email, phone, password }) {
     return { id: cleanEmail, email: cleanEmail, name: cleanName, phone: cleanPhone }
   }
 
-  await db.customers.insertOne({
-    _id: cleanEmail,
-    email: cleanEmail,
-    phone: cleanPhone,
-    name: cleanName,
-    password_hash: hash,
-    salt,
-    created_at: now(),
-  })
+  try {
+    await db.customers.insertOne({
+      _id: cleanEmail,
+      email: cleanEmail,
+      phone: cleanPhone,
+      name: cleanName,
+      password_hash: hash,
+      salt,
+      created_at: now(),
+    })
+  } catch (err) {
+    if (err?.code === 11000 || /duplicate key/i.test(String(err?.message || ''))) {
+      throw Object.assign(new Error('An account already exists with this email — sign in instead'), { status: 409 })
+    }
+    throw err
+  }
   return { id: cleanEmail, email: cleanEmail, name: cleanName, phone: cleanPhone }
 }
 
