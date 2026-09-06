@@ -26,6 +26,7 @@ import {
   registerCustomer,
   updateCustomerAddress,
   updateCustomerProfile,
+  verifyEmailDomain,
 } from './customer-auth.js'
 import { userFromToken as adminUserFromToken, createSession as createAdminSession, destroySession as destroyAdminSession } from './auth.js'
 
@@ -109,6 +110,15 @@ router.post('/auth/send-otp', async (req, res) => {
     const existing = await db.customers.findOne({ _id: email })
     if (existing) {
       return res.status(409).json({ error: 'An account already exists with this email — sign in instead' })
+    }
+
+    const domainCheck = await verifyEmailDomain(email)
+    if (!domainCheck.ok) {
+      const msg =
+        domainCheck.reason === 'disposable'
+          ? 'Disposable email addresses are not allowed — use your real email'
+          : 'We could not verify this email domain — please use a real email address'
+      return res.status(400).json({ error: msg })
     }
 
     const otp = generateOtp()
