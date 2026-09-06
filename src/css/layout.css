@@ -653,6 +653,21 @@
 }
 
 @media (max-width: 768px) {
+  :root {
+    --header-h: 62px;
+  }
+
+  .header-inner {
+    gap: 10px;
+    padding: 0 12px;
+  }
+
+  .header-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+  }
+
   .header-search-desktop {
     display: none;
   }
@@ -664,11 +679,12 @@
     gap: 8px;
     background: var(--bg-2);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    height: 40px;
-    padding: 0 14px;
+    border-radius: 12px;
+    height: 48px;
+    padding: 0 16px;
     color: var(--faint);
-    font-size: 14px;
+    font-size: 15px;
+    font-weight: 500;
     cursor: pointer;
     min-width: 0;
   }
