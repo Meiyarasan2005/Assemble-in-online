@@ -127,11 +127,7 @@ export default function Checkout() {
     }
     const v = readValues(ev.currentTarget)
     setTouched({ name: true, phone: true, line1: true, city: true, state: true, pincode: true, location: true })
-    if (!validate(v)) {
-      setError('Please fill in all required fields below')
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-      return
-    }
+    validate(v)
     setError('')
     setStage('placing')
     try {

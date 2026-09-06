@@ -90,10 +90,8 @@ export default function Profile() {
     }
     const pName = get('pf-name').trim()
     const pPhone = normPhone(get('pf-phone'))
-    if (pName.length < 2) return setSaveErr('Full name is required')
-    if (pPhone.length !== 10) return setSaveErr('Enter a valid 10-digit mobile number')
     try {
-      await updateProfile({ name: pName, phone: pPhone }, token)
+      await updateProfile({ name: pName || undefined, phone: pPhone || undefined }, token)
       await refreshCustomer()
       setSaved(true)
       setTimeout(() => setSaved(false), 2600)
@@ -144,10 +142,6 @@ export default function Profile() {
       state: get('pf-addr-state') || form.state,
       pincode: get('pf-addr-pincode') || form.pincode,
     }
-    if (a.line1.trim().length < 3) return setAddrErr('Address line is required')
-    if (a.city.trim().length < 2) return setAddrErr('City is required')
-    if (a.state.trim().length < 2) return setAddrErr('State is required')
-    if (!/^\d{6}$/.test(a.pincode.trim())) return setAddrErr('Enter a valid 6-digit PIN code')
     setSavingAddr(true)
     try {
       if (editing === 'new') await addAddress(a, token)

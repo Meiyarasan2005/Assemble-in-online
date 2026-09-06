@@ -4,6 +4,7 @@ import { lookup } from 'node:dns/promises'
 import { isIP } from 'node:net'
 import { db, now } from './db.js'
 import { hashPassword, verifyPassword } from './auth.js'
+import { pinToStateHint } from './pin-hints.js'
 
 const TOKEN_BYTES = 24
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
@@ -214,6 +215,7 @@ function normalizeAddress(body, index) {
   }
   if (address.line1.length < 3) throw Object.assign(new Error('Address line is required'), { status: 400 })
   if (address.city.length < 2) throw Object.assign(new Error('City is required'), { status: 400 })
+  if (!address.state) address.state = pinToStateHint(address.pincode)
   if (address.state.length < 2) throw Object.assign(new Error('State is required'), { status: 400 })
   if (!/^\d{6}$/.test(address.pincode)) throw Object.assign(new Error('Enter a valid 6-digit PIN code'), { status: 400 })
   return address
@@ -231,7 +233,11 @@ export async function updateCustomerAddress(email, id, body) {
   const addresses = await customerAddresses(email)
   const index = addresses.findIndex((a) => String(a.id) === String(id))
   if (index === -1) throw Object.assign(new Error('Address not found'), { status: 404 })
-  const merged = { ...addresses[index], ...body, id: addresses[index].id }
+  const merged = { ...addresses[index], id: addresses[index].id }
+  for (const k of ['label', 'line1', 'line2', 'location', 'city', 'state', 'pincode']) {
+    const v = String(body[k] ?? '')
+    if (v.trim() !== '') merged[k] = v.trim()
+  }
   const address = normalizeAddress(merged, index)
   addresses[index] = address
   await db.customers.updateOne({ _id: email }, { $set: { addresses, updated_at: now() } })
