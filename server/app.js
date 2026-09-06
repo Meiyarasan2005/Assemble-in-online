@@ -32,6 +32,44 @@ app.use(express.json({ limit: '1mb' }))
 
 const PUBLIC_PATHS = ['/auth/login', '/auth/register', '/auth/status']
 
+/* Fast low-level probe: DNS -> TCP -> TLS -> auth. Uses a throwaway client so
+   it never touches the shared connection and always returns within ~6s. */
+async function diagProbe() {
+  const out = {
+    mongoUriSet: Boolean(process.env.MONGO_URI),
+    dbName: process.env.DB_NAME || 'assembleonline',
+    nodeEnv: process.env.NODE_ENV,
+    lastDbError,
+  }
+  const uri = process.env.MONGO_URI
+  if (!uri) return { ...out, ok: false, stage: 'env', error: 'MONGO_URI not set' }
+  const { MongoClient } = await import('mongodb')
+  const c = new MongoClient(uri, { serverSelectionTimeoutMS: 5000, connectTimeoutMS: 5000, retryWrites: false })
+  try {
+    await c.connect()
+    out.stage = 'connect'
+    try {
+      await c.db(out.dbName).command({ ping: 1 })
+      out.ok = true
+      out.ping = 'ok'
+    } catch (e) {
+      out.ping = String(e?.message || e).split('\n')[0]
+    }
+    return out
+  } catch (e) {
+    const msg = String(e?.message || e)
+    if (/getaddrinfo|ENOTFOUND|EAI_AGAIN|dns/i.test(msg)) out.stage = 'dns'
+    else if (/ECONNREFUSED|ECONNRESET|ETIMEDOUT|timed out|connection/i.test(msg)) out.stage = 'tcp'
+    else if (/SASL|auth|Authentication|SCRAM/i.test(msg)) out.stage = 'auth'
+    else if (/TLS|SSL|certificate|handshake|peer/i.test(msg)) out.stage = 'tls'
+    else out.stage = 'other'
+    out.error = msg.split('\n')[0]
+    return out
+  } finally {
+    await c.close().catch(() => {})
+  }
+}
+
 /* Lazy DB connection. On serverless (Vercel) first requests return 503 until
    the connection finishes instead of blocking on a retry loop. Connects again
    automatically when the database comes back. */
@@ -65,21 +103,10 @@ ensureDbConnected().catch(() => {})
 app.use('/api', async (req, res, next) => {
   if (!dbReady) {
     if (req.headers['x-diag'] === '1') {
-      try {
-        await Promise.race([ensureDbConnected(), new Promise((r) => setTimeout(r, 25000))])
-      } catch {}
-      const raw = process.env.MONGO_URI || ''
-      const masked = raw.replace(/\/\/[^@]*@/, '//***:***@')
-      return res.status(dbReady ? 200 : 503).json({
-        error: dbReady ? 'ok' : 'Database did not connect within 25s',
-        diag: {
-          mongoUriSet: Boolean(process.env.MONGO_URI),
-          mongoUriMasked: process.env.MONGO_URI ? masked : '(fallback mongodb://localhost:27017)',
-          dbName: process.env.DB_NAME || 'assembleonline',
-          dbReady,
-          lastDbError,
-          nodeEnv: process.env.NODE_ENV,
-        },
+      const probe = await diagProbe()
+      return res.status(probe?.ok ? 200 : 503).json({
+        error: probe?.ok ? 'ok' : 'probe failed',
+        diag: probe,
       })
     }
     ensureDbConnected().catch(() => {})
