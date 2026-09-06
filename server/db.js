@@ -115,12 +115,21 @@ export function isConnected() {
 
 /* ---------- seeding ---------- */
 
+async function insertManyIgnoreDupes(collection, docs) {
+  try {
+    await db[collection].insertMany(docs, { ordered: false })
+  } catch (err) {
+    if (!String(err?.code ?? err?.message ?? '').match(/duplicate|already exists|E11000/i)) throw err
+  }
+}
+
 export async function seedIfEmpty() {
   const count = await db.products.countDocuments()
   if (count > 0) return false
 
   const ts = now()
-  await db.categories.insertMany(
+  await insertManyIgnoreDupes(
+    'categories',
     seedCategories.map((c, i) => ({
       _id: c.id,
       name: c.name,
@@ -130,10 +139,12 @@ export async function seedIfEmpty() {
       sort_order: i,
     })),
   )
-  await db.vehicles.insertMany(
+  await insertManyIgnoreDupes(
+    'vehicles',
     seedVehicles.map((v) => ({ _id: v.id, make: v.make, model: v.model, years: v.years, engine: v.engine })),
   )
-  await db.products.insertMany(
+  await insertManyIgnoreDupes(
+    'products',
     seedProducts.map((p) => ({
       _id: p.id,
       name: p.name,
@@ -156,7 +167,8 @@ export async function seedIfEmpty() {
   )
   if (seedProducts.some((p) => p.stock > 0)) {
     const seeded = seedProducts.filter((p) => p.stock > 0)
-    await db.stock_movements.insertMany(
+    await insertManyIgnoreDupes(
+      'stock_movements',
       seeded.map((p, i) => ({
         _id: i + 1,
         product_id: p.id,
