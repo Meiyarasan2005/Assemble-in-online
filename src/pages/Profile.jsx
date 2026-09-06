@@ -21,7 +21,7 @@ import {
   IconUser,
 } from '../components/icons'
 
-const EMPTY_ADDR = { label: '', line1: '', line2: '', city: '', state: '', pincode: '' }
+const EMPTY_ADDR = { label: '', line1: '', line2: '', location: '', city: '', state: '', pincode: '' }
 
 export default function Profile() {
   const { customer, token, isAuthed, authReady, refreshCustomer } = useStore()
@@ -76,10 +76,19 @@ export default function Profile() {
   const saveProfile = async (e) => {
     e.preventDefault()
     setSaveErr('')
-    if (name.trim().length < 2) return setSaveErr('Full name is required')
-    if (!/^\d{10}$/.test(phone.trim())) return setSaveErr('Enter a valid 10-digit mobile number')
+    const el = e.currentTarget
+    const get = (n) => {
+      const f = el.elements.namedItem(n)
+      return f ? String(f.value ?? '') : ''
+    }
+    const pName = get('pf-name') || name
+    const pPhone = get('pf-phone') || phone
+    if (pName.trim().length < 2) return setSaveErr('Full name is required')
+    if (!/^\d{10}$/.test(pPhone.trim())) return setSaveErr('Enter a valid 10-digit mobile number')
+    setName(pName)
+    setPhone(pPhone)
     try {
-      await updateProfile({ name: name.trim(), phone: phone.trim() }, token)
+      await updateProfile({ name: pName.trim(), phone: pPhone.trim() }, token)
       await refreshCustomer()
       setSaved(true)
       setTimeout(() => setSaved(false), 2600)
@@ -117,6 +126,7 @@ export default function Profile() {
     setAddrErr('')
     setAddrNote('')
     if (form.line1.trim().length < 3) return setAddrErr('Address line is required')
+    if (form.location.trim().length < 2) return setAddrErr('Location / Area is required')
     if (form.city.trim().length < 2) return setAddrErr('City is required')
     if (form.state.trim().length < 2) return setAddrErr('State is required')
     if (!/^\d{6}$/.test(form.pincode.trim())) return setAddrErr('Enter a valid 6-digit PIN code')
@@ -180,11 +190,11 @@ export default function Profile() {
             </label>
             <label className="co-field">
               <span>Full name</span>
-              <input className="input" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
+              <input name="pf-name" className="input" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
             </label>
             <label className="co-field">
               <span>Mobile number</span>
-              <input className="input" inputMode="numeric" value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" />
+              <input name="pf-phone" className="input" inputMode="numeric" value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" />
             </label>
             {saveErr && <p className="co-error">{saveErr}</p>}
             <button className="btn btn-primary btn-block" type="submit">
@@ -238,7 +248,7 @@ export default function Profile() {
                   <div className="addr-ic"><IconMapPin width="16" height="16" /></div>
                   <div className="addr-info">
                     <strong>{a.label}</strong>
-                    <span>{a.line1}{a.line2 ? `, ${a.line2}` : ''}</span>
+                    <span>{a.line1}{a.line2 ? `, ${a.line2}` : ''}{a.location ? `, ${a.location}` : ''}</span>
                     <span>{a.city}, {a.state} — {a.pincode}</span>
                   </div>
                   <div className="addr-actions">
@@ -266,6 +276,10 @@ export default function Profile() {
                 <label className="co-field">
                   <span>Address line 2 (optional)</span>
                   <input className="input" placeholder="Landmark, area" value={form.line2} onChange={set('line2')} />
+                </label>
+                <label className="co-field">
+                  <span>Location / Area</span>
+                  <input className="input" placeholder="E.g. Gandhipuram, Peelamedu, RS Puram" value={form.location} onChange={set('location')} />
                 </label>
                 <div className="co-grid">
                   <label className="co-field">
