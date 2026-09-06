@@ -868,7 +868,7 @@ export const testimonials = [
   {
     name: 'Rakesh Mehta',
     role: 'Owner, Mehta Motors & Auto Garage',
-    city: 'Pune',
+    city: 'Coimbatore',
     quote:
       'We switched our whole workshop to Assemble-on-line for B2B ordering. Part numbers always match, delivery is next-day and the pricing is unbeatable.',
   },

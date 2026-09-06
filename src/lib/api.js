@@ -143,6 +143,10 @@ export async function fetchOrder(orderId, token) {
   return api(`/orders/${encodeURIComponent(orderId)}?token=${encodeURIComponent(token)}`)
 }
 
+export async function trackOrder(orderId, phone) {
+  return api('/track', { method: 'POST', body: JSON.stringify({ orderId, phone }) })
+}
+
 export async function cancelOrder(orderId, token) {
   return api(`/orders/${encodeURIComponent(orderId)}/cancel`, {
     method: 'POST',
@@ -177,6 +181,24 @@ export async function sellerUploadImage(productId, file, token) {
   const form = new FormData()
   form.append('image', file)
   const url = API_BASE ? `${API_BASE}/api/store/seller/products/${encodeURIComponent(productId)}/image` : `/api/store/seller/products/${encodeURIComponent(productId)}/image`
+  const res = await fetch(url, {
+    method: 'POST',
+    body: form,
+    headers: { 'x-seller-token': token },
+  })
+  const data = await res.json().catch(() => null)
+  if (!res.ok) {
+    const err = new Error(data?.error || `Upload failed (${res.status})`)
+    err.status = res.status
+    throw err
+  }
+  return data
+}
+
+export async function sellerUploadImages(productId, files, token) {
+  const form = new FormData()
+  Array.from(files).forEach((f) => form.append('images', f))
+  const url = API_BASE ? `${API_BASE}/api/store/seller/products/${encodeURIComponent(productId)}/images` : `/api/store/seller/products/${encodeURIComponent(productId)}/images`
   const res = await fetch(url, {
     method: 'POST',
     body: form,

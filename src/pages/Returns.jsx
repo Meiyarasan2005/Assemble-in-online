@@ -175,7 +175,7 @@ export default function Returns() {
         <section className="card returns-form-card">
           <h2>Raise a return / warranty request</h2>
           <p className="returns-form-sub">
-            Keep this for your records — requests are also emailed to support@sparexpress.in.
+            Keep this for your records — requests are also emailed to support@assembleonline.in.
           </p>
           <form onSubmit={submitReturn}>
             <div className="returns-field">

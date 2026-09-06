@@ -183,6 +183,135 @@
   flex-shrink: 0;
 }
 
+/* ---------- COD info ---------- */
+
+.cod-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.cod-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(255, 106, 0, 0.04);
+  border: 1px solid rgba(255, 106, 0, 0.12);
+}
+
+.cod-row svg {
+  color: var(--accent);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.cod-row div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cod-row strong {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.cod-row span {
+  font-size: 12px;
+  color: var(--faint);
+}
+
+/* ---------- delivery estimate ---------- */
+
+.co-delivery-est {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(42, 157, 42, 0.06);
+  border: 1px solid rgba(42, 157, 42, 0.15);
+  font-size: 13px;
+  color: var(--green);
+  font-weight: 500;
+}
+
+.co-delivery-est svg {
+  flex-shrink: 0;
+}
+
+/* ---------- trust strip ---------- */
+
+.co-trust-strip {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 12px 0;
+  font-size: 12px;
+  color: var(--faint);
+}
+
+.co-trust-strip span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.co-trust-strip svg {
+  color: var(--accent);
+}
+
+/* ---------- savings badge ---------- */
+
+.co-savings-badge {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #2a9d2a;
+  padding: 8px 0 4px;
+}
+
+/* ---------- safe note ---------- */
+
+.co-safe-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--faint);
+  margin-top: 8px;
+}
+
+/* ---------- CTA button ---------- */
+
+.co-cta {
+  margin-top: 4px;
+}
+
+/* ---------- input error state ---------- */
+
+.input-err {
+  border-color: var(--red) !important;
+}
+
+/* ---------- pay-method cod highlight ---------- */
+
+.pay-method-cod {
+  background: rgba(42, 157, 42, 0.04);
+  border-color: rgba(42, 157, 42, 0.2);
+}
+
+.pay-method-cod.pay-method-on {
+  border-color: #2a9d2a;
+  background: rgba(42, 157, 42, 0.08);
+}
+
 /* ---------- summary panel ---------- */
 
 .co-summary {
@@ -840,6 +969,15 @@
     grid-template-columns: 1fr;
   }
 
+  .co-trust-strip {
+    flex-wrap: wrap;
+    gap: 12px 18px;
+  }
+
+  .co-delivery-est {
+    font-size: 12px;
+  }
+
   .co-confirm {
     flex-direction: column;
     align-items: flex-start;
@@ -1039,6 +1177,92 @@
   }
 
   .co-track-info {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================
+   track order page
+   ============================================================ */
+.track-search {
+  padding: 18px;
+  max-width: 640px;
+  margin-top: 6px;
+}
+
+.track-search .btn {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.track-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.track-fields .co-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.track-hint {
+  margin-top: 12px;
+  font-size: 12.5px;
+  color: var(--faint);
+  line-height: 1.5;
+}
+
+.track-hint strong {
+  font-family: var(--mono);
+  color: var(--accent-hi);
+}
+
+.track-result {
+  margin-top: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.track-result .co-confirm {
+  width: 100%;
+}
+
+.track-cols {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.track-cols .co-timeline {
+  margin-bottom: 0;
+}
+
+.track-side {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.track-side .co-detail {
+  margin-bottom: 0;
+}
+
+@media (max-width: 760px) {
+  .track-cols {
+    grid-template-columns: 1fr;
+  }
+
+  .track-fields {
     grid-template-columns: 1fr;
   }
 }

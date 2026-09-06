@@ -23,10 +23,11 @@ if (existsSync(envPath)) {
 }
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017'
-const DB_NAME = process.env.DB_NAME || 'sparexpress'
+const DB_NAME = process.env.DB_NAME || 'assembleonline'
 
 export const client = new MongoClient(MONGO_URI, {
   serverSelectionTimeoutMS: 15000,
+  retryWrites: false,
 })
 
 /* `db.products`, `db.orders`, ... -> Mongo collection handles */
@@ -89,7 +90,8 @@ export async function withTx(fn) {
     if (
       msg.includes('replica set') ||
       msg.includes('Transaction numbers') ||
-      msg.includes('does not support transactions')
+      msg.includes('does not support transactions') ||
+      msg.includes('does not support retryable writes')
     ) {
       txAvailable = false
       return fn(null)

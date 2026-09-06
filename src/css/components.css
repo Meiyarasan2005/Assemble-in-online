@@ -222,6 +222,10 @@
   margin-top: auto;
 }
 
+.drawer-clear {
+  margin-top: 10px;
+}
+
 .drawer-rows {
   display: flex;
   flex-direction: column;

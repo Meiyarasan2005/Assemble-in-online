@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Assemble-on-line · Inventory Admin</title>
+  <title>Admin Portal</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23ff6a00'/%3E%3Cpath d='M40.7 20.3a12 12 0 0 0-16 14.9L12 47.9a5.6 5.6 0 0 0 8 8l12.7-12.7a12 12 0 0 0 14.9-16l-7.7 7.7-7-1.9-1.9-7 7.7-5.7Z' fill='%230c1016'/%3E%3C/svg%3E" />
   <style>
     :root {
@@ -315,6 +315,16 @@
     .offer-upload-preview { width: 160px; height: 100px; border-radius: 10px; border: 1px dashed var(--line2); background: var(--bg2); display: grid; place-items: center; overflow: hidden; color: var(--faint); font-size: 12px; flex-shrink: 0; }
     .offer-upload-preview img { width: 100%; height: 100%; object-fit: cover; }
     .offer-upload-actions { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+
+    /* ---- product images grid (multi) ---- */
+    .pf-images { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 10px; margin-bottom: 10px; }
+    .pf-img-chip { position: relative; width: 100%; aspect-ratio: 1; border-radius: 10px; border: 1px solid var(--line2); overflow: hidden; background: var(--bg2); }
+    .pf-img-chip img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .pf-img-chip.is-main { border: 2px solid var(--green); }
+    .pf-img-chip.is-main .pf-img-main-tag { position: absolute; left: 4px; top: 4px; background: var(--green); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 6px; }
+    .pf-img-del { position: absolute; right: 4px; top: 4px; width: 22px; height: 22px; border-radius: 50%; border: 0; background: rgba(0,0,0,.55); color: #fff; font-size: 14px; line-height: 1; cursor: pointer; display: grid; place-items: center; }
+    .pf-img-del:hover { background: var(--red); }
+    .pf-img-empty { border: 1px dashed var(--line2); border-radius: 10px; padding: 18px; text-align: center; color: var(--faint); font-size: 12px; margin-bottom: 10px; }
 
     /* ---- product thumb ---- */
     .prod-cell { display: flex; align-items: center; gap: 10px; }

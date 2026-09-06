@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { formatINR } from '../data'
-import { fetchOrder, cancelOrder, retryPayment, verifyPayment, completePayment } from '../lib/api'
-import { loadRazorpayScript, openRazorpayCheckout } from '../lib/payments'
+import { fetchOrder, cancelOrder } from '../lib/api'
 import { downloadInvoice, courierUrl } from '../lib/invoice'
 import { getCategory } from '../data'
 import ProductArt from '../components/ProductArt'
@@ -17,7 +16,7 @@ import {
   IconX,
 } from '../components/icons'
 
-const STEPS = ['Order placed', 'Payment', 'Packed', 'Shipped', 'Out for delivery', 'Delivered']
+const STEPS = ['Order placed', 'Packed', 'Shipped', 'Out for delivery', 'Delivered']
 
 const STATUS_TEXT = {
   pending: 'Awaiting payment',
@@ -30,13 +29,13 @@ const STATUS_TEXT = {
 function activeStep(order) {
   switch (order.status) {
     case 'pending':
-      return 1
+      return 0
     case 'confirmed':
-      return 2
+      return 1
     case 'shipped':
-      return order.events?.some((e) => e.status === 'out_for_delivery') ? 4 : 3
+      return order.events?.some((e) => e.status === 'out_for_delivery') ? 3 : 2
     case 'delivered':
-      return 5
+      return 4
     default:
       return 0
   }
@@ -88,7 +87,6 @@ export default function OrderConfirm() {
   const [order, setOrder] = useState(null)
   const [state, setState] = useState('loading') // loading | ready | error
   const [cancelling, setCancelling] = useState(false)
-  const [paying, setPaying] = useState(false)
 
   const load = useCallback(async () => {
     setState('loading')
@@ -106,39 +104,13 @@ export default function OrderConfirm() {
   }, [load])
 
   const onCancel = async () => {
-    if (!window.confirm('Cancel this order? Any online payment will be refunded and stock released.')) return
+    if (!window.confirm('Cancel this order? Stock will be released.')) return
     setCancelling(true)
     try {
       const data = await cancelOrder(id, token)
       setOrder(data)
     } finally {
       setCancelling(false)
-    }
-  }
-
-  const onPay = async () => {
-    setPaying(true)
-    try {
-      const { order: latest, paymentIntent } = await retryPayment(id, token)
-      setOrder(latest)
-      const intent = paymentIntent || {}
-      if (intent.provider === 'razorpay') {
-        await loadRazorpayScript()
-        const { response } = await openRazorpayCheckout({ intent, order: latest })
-        if (response) {
-          const updated = await verifyPayment(id, token, response)
-          setOrder(updated)
-        } else {
-          await load()
-        }
-      } else {
-        await completePayment(id, token, latest.paymentMethod || 'upi')
-        await load()
-      }
-    } catch (err) {
-      window.alert(err.message || 'Could not start payment. Please try again.')
-    } finally {
-      setPaying(false)
     }
   }
 
@@ -166,7 +138,6 @@ export default function OrderConfirm() {
   const step = activeStep(order)
   const cancelled = order.status === 'cancelled'
   const cancelable = !cancelled && ['pending', 'confirmed'].includes(order.status)
-  const payable = !cancelled && order.status === 'pending' && order.paymentStatus === 'unpaid'
 
   return (
     <div className="container">
@@ -196,13 +167,8 @@ export default function OrderConfirm() {
           </div>
         </div>
         <div className="co-confirm-actions">
-          {payable && (
-            <button className="btn btn-primary" onClick={onPay} disabled={paying}>
-              {paying ? 'Starting payment…' : 'Pay now · complete payment'}
-            </button>
-          )}
           {cancelable && (
-            <button className="btn co-cancel-btn" onClick={onCancel} disabled={cancelling || paying}>
+            <button className="btn co-cancel-btn" onClick={onCancel} disabled={cancelling}>
               {cancelling ? 'Cancelling…' : 'Cancel order'}
             </button>
           )}

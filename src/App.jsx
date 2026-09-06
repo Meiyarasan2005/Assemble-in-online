@@ -15,6 +15,7 @@ import ProductDetail from './pages/ProductDetail'
 import Checkout from './pages/Checkout'
 import OrderConfirm from './pages/OrderConfirm'
 import Orders from './pages/Orders'
+import Track from './pages/Track'
 import Auth from './pages/Auth'
 import Profile from './pages/Profile'
 import Wishlist from './pages/Wishlist'
@@ -22,6 +23,8 @@ import Returns from './pages/Returns'
 import Garage from './pages/Garage'
 import PriceWatcher from './components/PriceWatcher'
 import SearchPage from './pages/SearchPage'
+import Contact from './pages/Contact'
+import WhatsAppChat from './components/WhatsAppChat'
 
 function ScrollToTop() {
   const { pathname, search } = useLocation()
@@ -48,9 +51,11 @@ function Shell() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/order/:id" element={<OrderConfirm />} />
               <Route path="/orders" element={<Orders />} />
+              <Route path="/track" element={<Track />} />
               <Route path="/wishlist" element={<Wishlist />} />
               <Route path="/garage" element={<Garage />} />
               <Route path="/returns" element={<Returns />} />
+              <Route path="/contact" element={<Contact />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="*" element={<Home />} />
             </Routes>
@@ -61,6 +66,7 @@ function Shell() {
       <CartDrawer />
       <BottomNav />
       <PriceWatcher />
+      <WhatsAppChat />
       <Toast />
     </div>
   )

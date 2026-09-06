@@ -87,7 +87,7 @@ export default function CartDrawer() {
             <button className="btn btn-primary btn-block" onClick={goCheckout}>
               Place Order <IconArrowRight width="16" height="16" />
             </button>
-            <button className="btn btn-block btn-sm" onClick={clearCart}>Clear cart</button>
+            <button className="btn btn-block btn-sm drawer-clear" onClick={clearCart}>Clear cart</button>
             <div className="drawer-perks">
               <span><IconTruck width="14" height="14" /> 12-hr metro delivery</span>
               <span><IconShield width="14" height="14" /> 100% genuine</span>

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { formatINR, getCategory, getProduct, interchangesFor, products as allProducts, preownedProducts, reviews as allReviews } from '../data'
 import { useStore } from '../context/useStore'
@@ -6,6 +6,7 @@ import { useSeller } from '../context/useSeller'
 import useCatalog from '../hooks/useCatalog'
 import ProductArt from '../components/ProductArt'
 import ProductCard from '../components/ProductCard'
+import ImageZoom from '../components/ImageZoom'
 import FitmentWizard from '../components/FitmentWizard'
 import PartLookup from '../components/PartLookup'
 import ReviewSection from '../components/ReviewSection'
@@ -16,28 +17,56 @@ import {
   IconClock,
   IconHeart,
   IconMinus,
+  IconPhone,
   IconPlus,
   IconShield,
   IconStar,
   IconTruck,
   IconTag,
+  IconWhatsApp,
 } from '../components/icons'
 
 export default function ProductDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { addToCart, wishlist, toggleWishlist } = useStore()
-  const { isSeller, updateProduct, uploadImage } = useSeller()
-  const { products } = useCatalog()
+  const { isSeller, updateProduct, uploadImages, bumpCatalog } = useSeller()
+  const { products, catalog } = useCatalog()
   const [qty, setQty] = useState(1)
   const [sellerDraft, setSellerDraft] = useState({})
   const [sellerSaving, setSellerSaving] = useState(false)
   const [sellerMsg, setSellerMsg] = useState('')
   const [editImage, setEditImage] = useState(false)
   const [imageUrl, setImageUrl] = useState('')
+  const [imgBusy, setImgBusy] = useState(false)
+  const [imgIdx, setImgIdx] = useState(0)
+  const [zoomImg, setZoomImg] = useState(null)
   const fileRef = useRef(null)
 
-  const product = products.find((p) => p.id === id) || getProduct(id)
+  const product = (catalog || products).find((p) => p.id === id) || getProduct(id)
+
+  const rawImages =
+    product && (Array.isArray(product.images) && product.images.length
+      ? product.images.filter(Boolean)
+      : product.image
+        ? [product.image]
+        : [])
+
+  const placeholder = (i) => `https://picsum.photos/seed/${encodeURIComponent(product.id)}-${i}/640/640`
+  const gallery =
+    product && rawImages.length
+      ? rawImages.length >= 3
+        ? rawImages
+        : [...rawImages, ...Array.from({ length: 3 - rawImages.length }, (_, i) => placeholder(rawImages.length + i))]
+      : product
+        ? [placeholder(0), placeholder(1), placeholder(2)]
+        : []
+  const active =
+    product && gallery.length ? gallery[Math.min(imgIdx, gallery.length - 1)] || null : null
+
+  useEffect(() => {
+    if (gallery.length && imgIdx >= gallery.length) setImgIdx(0)
+  }, [gallery.length, imgIdx])
 
   if (!product) {
     return (
@@ -87,38 +116,64 @@ export default function ProductDetail() {
     }
   }
 
-  const handleImageUpload = async (file) => {
-    if (!file || !product) return
-    setSellerSaving(true)
+  const addImageFiles = async (files) => {
+    const list = Array.from(files || [])
+    if (!list.length || !product) return
+    setImgBusy(true)
     setSellerMsg('')
     try {
-      const updated = await uploadImage(product.id, file)
-      product.image = updated.image
-      setEditImage(false)
-      setSellerMsg('Image uploaded!')
+      const updated = await uploadImages(product.id, list)
+      product.images = Array.isArray(updated.images) ? updated.images : product.images
+      product.image = updated.image ?? product.image
+      bumpCatalog()
+      setSellerMsg('Images added!')
       setTimeout(() => setSellerMsg(''), 2000)
     } catch (err) {
       setSellerMsg(err.message || 'Upload failed')
     } finally {
-      setSellerSaving(false)
+      setImgBusy(false)
     }
   }
 
-  const handleImageUrl = async () => {
-    if (!imageUrl.trim() || !product) return
-    setSellerSaving(true)
+  const removeImage = async (i) => {
+    if (!product) return
+    const list = rawImages.filter((_, idx) => idx !== i)
+    setImgBusy(true)
     setSellerMsg('')
     try {
-      await updateProduct(product.id, { image: imageUrl.trim() })
-      product.image = imageUrl.trim()
-      setImageUrl('')
-      setEditImage(false)
-      setSellerMsg('Image updated!')
+      const payload = { images: list }
+      if (list.length) payload.image = list[0]
+      const updated = await updateProduct(product.id, payload)
+      product.images = Array.isArray(updated.images) ? updated.images : list
+      product.image = updated.image ?? list[0] ?? ''
+      bumpCatalog()
+      setSellerMsg('Image removed')
       setTimeout(() => setSellerMsg(''), 2000)
     } catch (err) {
       setSellerMsg(err.message || 'Save failed')
     } finally {
-      setSellerSaving(false)
+      setImgBusy(false)
+    }
+  }
+
+  const handleAddImageUrl = async () => {
+    const url = imageUrl.trim()
+    if (!url || !product) return
+    setImgBusy(true)
+    setSellerMsg('')
+    try {
+      const list = [...rawImages, url]
+      const updated = await updateProduct(product.id, { images: list, image: list[0] })
+      product.images = Array.isArray(updated.images) ? updated.images : list
+      product.image = updated.image ?? list[0]
+      setImageUrl('')
+      bumpCatalog()
+      setSellerMsg('Image added!')
+      setTimeout(() => setSellerMsg(''), 2000)
+    } catch (err) {
+      setSellerMsg(err.message || 'Save failed')
+    } finally {
+      setImgBusy(false)
     }
   }
 
@@ -165,21 +220,34 @@ export default function ProductDetail() {
                 {sellerSaving ? 'Saving...' : 'Save Changes'}
               </button>
               <button className="btn seller-img-btn" onClick={() => setEditImage(!editImage)}>
-                {editImage ? 'Cancel Image' : 'Change Image'}
+                {editImage ? 'Done' : 'Manage Images'}
               </button>
             </div>
-            {sellerMsg && <span className={`seller-msg ${sellerMsg === 'Saved!' || sellerMsg.includes('uploaded') || sellerMsg.includes('updated') ? 'seller-msg-ok' : ''}`}>{sellerMsg}</span>}
+            {sellerMsg && <span className={`seller-msg ${sellerMsg === 'Saved!' || sellerMsg.includes('Added') || sellerMsg.includes('added') || sellerMsg.includes('removed') || sellerMsg.includes('updated') || sellerMsg.includes('uploaded') ? 'seller-msg-ok' : ''}`}>{sellerMsg}</span>}
           </div>
           {editImage && (
             <div className="seller-image-editor">
-              <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { if (e.target.files?.[0]) handleImageUpload(e.target.files[0]) }} />
-              <button className="btn" onClick={() => fileRef.current?.click()} disabled={sellerSaving}>
-                Upload from device
-              </button>
-              <span className="seller-or">or paste URL:</span>
-              <div className="seller-url-row">
-                <input className="seller-url-input" type="url" placeholder="https://example.com/image.jpg" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
-                <button className="btn" onClick={handleImageUrl} disabled={!imageUrl.trim() || sellerSaving}>Set URL</button>
+              <div className="seller-img-caption">{rawImages.length}/12 images · first one shows on cards · customers see 3</div>
+              <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={(e) => { if (e.target.files?.length) addImageFiles(e.target.files); e.target.value = '' }} />
+              <div className="seller-img-grid">
+                {rawImages.length === 0 && <div className="seller-img-empty">No images yet — add from device or URL below.</div>}
+                {rawImages.map((src, i) => (
+                  <div className={`seller-img-cell ${i === 0 ? 'is-main' : ''}`} key={src + i}>
+                    <img src={src} alt="" />
+                    {i === 0 && <span className="seller-img-main-tag">Main</span>}
+                    <button className="seller-img-del" onClick={() => removeImage(i)} disabled={imgBusy} title="Remove">×</button>
+                  </div>
+                ))}
+              </div>
+              <div className="seller-img-tools">
+                <button className="btn" onClick={() => fileRef.current?.click()} disabled={imgBusy || rawImages.length >= 12}>
+                  {imgBusy ? 'Working…' : '+ Add images'}
+                </button>
+                <span className="seller-or">or paste URL:</span>
+                <div className="seller-url-row">
+                  <input className="seller-url-input" type="url" placeholder="https://example.com/image.jpg" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
+                  <button className="btn" onClick={handleAddImageUrl} disabled={!imageUrl.trim() || imgBusy}>Add URL</button>
+                </div>
               </div>
             </div>
           )}
@@ -190,23 +258,28 @@ export default function ProductDetail() {
         {/* LEFT: Image */}
         <div className="pd-img-col">
           <div className={`pd-img-main pd-art-${cat.id}`}>
-            {product.image ? (
-              <img src={product.image} alt={product.name} />
+            {active ? (
+              <img key={active} src={active} alt={product.name} onClick={() => setZoomImg(active)} draggable={false} />
             ) : (
               <ProductArt category={cat.icon} />
             )}
+            {active && <span className="pd-zoom-hint">Tap to zoom</span>}
           </div>
-          <div className="pd-img-thumbs">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className={`pd-img-thumb pd-art-${cat.id} ${i === 0 ? 'active' : ''}`}>
-                {product.image ? (
-                  <img src={product.image} alt={product.name} />
-                ) : (
-                  <ProductArt category={cat.icon} />
-                )}
-              </div>
-            ))}
-          </div>
+          {gallery.length > 1 && (
+            <div className="pd-img-thumbs">
+              {gallery.map((src, i) => (
+                <button
+                  key={src + i}
+                  type="button"
+                  className={`pd-img-thumb ${i === imgIdx ? 'active' : ''}`}
+                  onClick={() => setImgIdx(i)}
+                  aria-label={`View image ${i + 1} of ${gallery.length}`}
+                >
+                  <img src={src} alt="" />
+                </button>
+              ))}
+            </div>
+          )}
           <div className="pd-img-desc">
             <h4>Description</h4>
             <p>{product.desc}</p>
@@ -332,36 +405,54 @@ export default function ProductDetail() {
           )}
 
           <div className="pd-buy-box">
-            <div className="pd-buy-qty">
-              <button
-                className="pd-qty-btn"
-                onClick={() => setQty((n) => Math.max(1, n - 1))}
-                disabled={qty <= 1}
-              >
-                <IconMinus width="14" height="14" />
-              </button>
-              <span className="pd-qty-val">{qty}</span>
-              <button
-                className="pd-qty-btn"
-                onClick={() => setQty((n) => n + 1)}
-              >
-                <IconPlus width="14" height="14" />
-              </button>
-            </div>
-            <button
-              className="btn btn-primary pd-btn-cart"
-              disabled={out}
-              onClick={() => addToCart(product.id, qty, product)}
-            >
-              {out ? 'Out of stock' : 'ADD TO CART'}
-            </button>
-            <button
-              className="btn pd-btn-buy"
-              disabled={out}
-              onClick={() => { addToCart(product.id, qty, product); navigate('/checkout') }}
-            >
-              BUY NOW
-            </button>
+            {pre ? (
+              <>
+                <a className="btn pd-btn-call" href="tel:+919003344069">
+                  <IconPhone width="16" height="16" /> Call us
+                </a>
+                <a
+                  className="btn pd-btn-wa"
+                  href={`https://wa.me/9003344069?text=${encodeURIComponent(`Hi, I'm interested in this pre-owned part: ${product.name} (${product.partNo})`)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <IconWhatsApp width="16" height="16" /> WhatsApp
+                </a>
+              </>
+            ) : (
+              <>
+                <div className="pd-buy-qty">
+                  <button
+                    className="pd-qty-btn"
+                    onClick={() => setQty((n) => Math.max(1, n - 1))}
+                    disabled={qty <= 1}
+                  >
+                    <IconMinus width="14" height="14" />
+                  </button>
+                  <span className="pd-qty-val">{qty}</span>
+                  <button
+                    className="pd-qty-btn"
+                    onClick={() => setQty((n) => n + 1)}
+                  >
+                    <IconPlus width="14" height="14" />
+                  </button>
+                </div>
+                <button
+                  className="btn btn-primary pd-btn-cart"
+                  disabled={out}
+                  onClick={() => addToCart(product.id, qty, product)}
+                >
+                  {out ? 'Out of stock' : 'ADD TO CART'}
+                </button>
+                <button
+                  className="btn pd-btn-buy"
+                  disabled={out}
+                  onClick={() => { addToCart(product.id, qty, product); navigate('/checkout') }}
+                >
+                  BUY NOW
+                </button>
+              </>
+            )}
           </div>
 
           <div className="pd-trust-row">
@@ -422,6 +513,8 @@ export default function ProductDetail() {
           </div>
         </section>
       )}
+
+      {zoomImg && <ImageZoom src={zoomImg} alt={product.name} onClose={() => setZoomImg(null)} />}
     </div>
   )
 }
