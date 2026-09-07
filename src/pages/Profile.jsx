@@ -275,7 +275,7 @@ export default function Profile() {
 
             {addrNote && <p className="profile-ok">{addrNote}</p>}
             {editing && (
-              <form className="addr-form" onSubmit={submitAddress}>
+              <form className="addr-form" onSubmit={submitAddress} autoComplete="off">
                 <h3>{editing === 'new' ? 'Add an address' : 'Edit address'}</h3>
                 <label className="co-field">
                   <span>Label</span>
