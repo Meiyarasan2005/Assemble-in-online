@@ -5,8 +5,11 @@ export const API_BASE =
 export async function api(path, opts = {}) {
   const url = API_BASE ? `${API_BASE}/api/store${path}` : `/api/store${path}`
   const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
     ...opts,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(opts.headers || {}),
+    },
   })
   const data = await res.json().catch(() => null)
   if (!res.ok) {
