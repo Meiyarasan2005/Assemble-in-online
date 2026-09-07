@@ -18,6 +18,21 @@
       rel="stylesheet"
     />
     <title>Assemble-on-line</title>
+    <script>
+      /* Force one reload whenever a new version of the shell ships, so a
+         cached or state-restored tab can never keep running old code. */
+      ;(function () {
+        try {
+          var K = 'meispare-shell-v'
+          var cur = '9'
+          var prev = localStorage.getItem(K)
+          localStorage.setItem(K, cur)
+          if (prev && prev !== cur) location.reload()
+        } catch (e) {
+          /* storage unavailable */
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>
