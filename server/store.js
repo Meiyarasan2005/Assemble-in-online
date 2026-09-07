@@ -441,7 +441,12 @@ router.post('/checkout', async (req, res) => {
   if (name.length < 2) return res.status(400).json({ error: 'Full name is required' })
   if (phone.length !== 10) return res.status(400).json({ error: 'A valid 10-digit phone number is required' })
   if (!address.line1 || !address.city || !address.state || !/^\d{6}$/.test(address.pincode)) {
-    return res.status(400).json({ error: 'Complete delivery address with 6-digit PIN is required' })
+    return res.status(400).json({
+      error: 'Complete delivery address with 6-digit PIN is required',
+      received: { line1: address.line1, city: address.city, state: address.state, pincode: address.pincode },
+      client: String(body.build ?? ''),
+      queued: ['b8'],
+    })
   }
   if (cart.length === 0) return res.status(400).json({ error: 'Your cart is empty' })
 
