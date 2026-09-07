@@ -407,7 +407,7 @@ router.post('/checkout', async (req, res) => {
   }
 
   /* Fill any missing delivery fields from the customer's saved addresses,
-     then derive a state hint from the pincode as a last resort. */
+     then their most recent order, then derive a state hint from the pincode. */
   if (!address.line1 || !address.city || !address.state || !/^\d{6}$/.test(address.pincode)) {
     const saved = await customerAddresses(email)
     if (saved.length) {
@@ -419,6 +419,20 @@ router.post('/checkout', async (req, res) => {
         city: address.city || pick.city || '',
         state: address.state || pick.state || '',
         pincode: address.pincode || pinDigits(pick.pincode),
+      }
+    }
+  }
+  if (!address.line1 || !address.city || !address.state || !/^\d{6}$/.test(address.pincode)) {
+    const last = await db.orders.findOne({ email }, { sort: { created_at: -1 }, projection: { address: 1 } })
+    if (last?.address) {
+      const a = last.address
+      address = {
+        line1: address.line1 || a.line1 || '',
+        line2: address.line2 || a.line2 || '',
+        location: address.location || a.location || '',
+        city: address.city || a.city || '',
+        state: address.state || a.state || '',
+        pincode: address.pincode || pinDigits(a.pincode),
       }
     }
   }
