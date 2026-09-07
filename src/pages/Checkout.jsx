@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { formatINR } from '../data'
 import { useStore } from '../context/useStore'
-import { checkout } from '../lib/api'
+import { checkout, fetchAddresses, addAddress } from '../lib/api'
 import { getCategory } from '../data'
 import ProductArt from '../components/ProductArt'
 import {
@@ -66,6 +66,16 @@ export default function Checkout() {
   const [touched, setTouched] = useState({})
   const [stage, setStage] = useState('idle')
   const [error, setError] = useState('')
+  const [savedAddresses, setSavedAddresses] = useState([])
+  const [selectedAddressId, setSelectedAddressId] = useState('')
+
+  useEffect(() => {
+    if (isAuthed && token) {
+      fetchAddresses(token)
+        .then((list) => setSavedAddresses(Array.isArray(list) ? list : []))
+        .catch(() => {})
+    }
+  }, [isAuthed, token])
 
   const delivery = subtotal >= FREE_DELIVERY ? 0 : DELIVERY_FEE
   const total = subtotal + delivery
@@ -139,6 +149,7 @@ export default function Checkout() {
           email: v.email,
           name: v.name,
           phone: v.phone,
+          addressId: selectedAddressId || undefined,
           paymentMethod: 'cod',
           address: {
             line1: v.line1,
@@ -156,6 +167,9 @@ export default function Checkout() {
       rememberOrder(order.email, order.id, order.token)
       clearCart()
       showToast('Order placed successfully!')
+      if (!selectedAddressId && v.line1) {
+        addAddress({ label: 'Home', line1: v.line1, line2: v.line2, location: v.location, city: v.city, state: v.state, pincode: v.pincode }, token).catch(() => {})
+      }
       navigate(`/order/${order.id}?token=${order.token}`)
     } catch (err) {
       const d = err?.data || {}
@@ -239,6 +253,28 @@ export default function Checkout() {
           <div className="checkout-main">
             <section className="checkout-card card">
               <h2>1 · Delivery address</h2>
+              {savedAddresses.length > 0 && (
+                <div className="co-saved">
+                  <p className="co-saved-title">Deliver to a saved address (one tap):</p>
+                  {savedAddresses.map((a) => (
+                    <label key={a.id} className="co-saved-opt">
+                      <input
+                        type="radio"
+                        name="co-address-pick"
+                        value={a.id}
+                        checked={selectedAddressId === a.id}
+                        onChange={() => setSelectedAddressId(a.id)}
+                      />
+                      <span>
+                        <strong>{a.line1}</strong>
+                        {a.city ? `, ${a.city}` : ''}
+                        {a.state ? `, ${a.state}` : ''}
+                        {a.pincode ? ` — ${a.pincode}` : ''}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              )}
               <div className="co-grid">
                 <label className="co-field co-span2">
                   <span>Full name</span>
@@ -327,6 +363,18 @@ export default function Checkout() {
                   {touched.state && errors.state && <em className="co-err">{errors.state}</em>}
                 </label>
               </div>
+              {selectedAddressId && (() => {
+                const picked = savedAddresses.find((a) => a.id === selectedAddressId)
+                if (!picked) return null
+                return (
+                  <div className="co-saved-hint">
+                    Delivering to saved address: {picked.line1}{picked.city ? `, ${picked.city}` : ''}{picked.state ? `, ${picked.state}` : ''}{picked.pincode ? ` — ${picked.pincode}` : ''}
+                    <button type="button" className="co-saved-clear" onClick={() => setSelectedAddressId('')}>
+                      Clear and fill manually
+                    </button>
+                  </div>
+                )
+              })()}
               <div className="co-delivery-est">
                 <IconTruck width="16" height="16" />
                 <span>Delivery by {subtotal >= FREE_DELIVERY ? 'tomorrow' : '2–4 business days'} · {delivery === 0 ? 'FREE delivery' : `₹${DELIVERY_FEE} delivery charge`}</span>
