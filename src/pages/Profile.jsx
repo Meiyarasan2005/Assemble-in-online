@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useStore } from '../context/useStore'
 import {
   addAddress,
@@ -10,8 +10,8 @@ import {
   updateProfile,
 } from '../lib/api'
 import {
+  IconArrowLeft,
   IconArrowRight,
-  IconBox,
   IconCheck,
   IconLock,
   IconMapPin,
@@ -31,6 +31,7 @@ function normPhone(raw) {
 }
 
 export default function Profile() {
+  const navigate = useNavigate()
   const { customer, token, isAuthed, authReady, refreshCustomer } = useStore()
 
   const [saved, setSaved] = useState(false)
@@ -171,22 +172,15 @@ export default function Profile() {
 
   return (
     <div className="container">
-      <nav className="crumbs" aria-label="Breadcrumb">
-        <Link to="/">Home</Link>
-        <IconArrowRight width="13" height="13" />
-        <Link to="/account">My account</Link>
-        <IconArrowRight width="13" height="13" />
-        <span>Profile</span>
-      </nav>
+      <button className="pd-back" onClick={() => navigate(-1)}>
+        <IconArrowLeft width="18" height="18" /> Back
+      </button>
 
       <div className="profile-head">
         <div>
           <h1>Your profile</h1>
           <p>Manage your details, password and saved delivery addresses.</p>
         </div>
-        <Link to="/orders" className="btn btn-ghost">
-          <IconBox width="16" height="16" /> My orders
-        </Link>
       </div>
 
       <div className="profile-grid">
