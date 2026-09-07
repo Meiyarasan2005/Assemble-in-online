@@ -367,6 +367,17 @@ router.post('/checkout', async (req, res) => {
   }
 
   const body = req.body || {}
+  console.log('[checkout]', JSON.stringify({
+    email: account.email,
+    build: body.build || '',
+    addressId: body.addressId || '',
+    hasAddress: !!body.address,
+    addrKeys: body.address ? Object.keys(body.address) : [],
+    addrSample: body.address ? JSON.stringify(body.address) : null,
+    topLevelKeys: Object.keys(body),
+    bodyType: Array.isArray(req.body) ? 'array' : typeof req.body,
+    contentLength: req.get('content-length'),
+  }))
   const mode = body.mode === 'preowned' ? 'preowned' : 'retail'
   const email = account.email
   const name = String(body.name ?? '').trim() || String(account.name ?? '').trim()
@@ -441,6 +452,14 @@ router.post('/checkout', async (req, res) => {
   if (name.length < 2) return res.status(400).json({ error: 'Full name is required' })
   if (phone.length !== 10) return res.status(400).json({ error: 'A valid 10-digit phone number is required' })
   if (!address.line1 || !address.city || !address.state || !/^\d{6}$/.test(address.pincode)) {
+    console.log('[checkout-reject]', JSON.stringify({
+      email,
+      name,
+      phone,
+      address,
+      mode,
+      cartCount: cart.length,
+    }))
     return res.status(400).json({
       error: 'Complete delivery address with 6-digit PIN is required',
       received: { line1: address.line1, city: address.city, state: address.state, pincode: address.pincode },
