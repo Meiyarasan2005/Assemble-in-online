@@ -171,7 +171,9 @@ export default function Checkout() {
             `Your page is running old code (build ${d.client || 'unknown'}). Please reload the page (Ctrl+Shift+R) and place the order again.`,
           )
         } else {
-          setError('Please fill the highlighted delivery fields below and try again.')
+          setError(
+            `Please fill the highlighted delivery fields below and try again. The app read from your boxes: Address "${v.line1}", City "${v.city}", State "${v.state}", PIN "${v.pincode}". If those show text above but appear empty here, tap each box and type the value again — Chrome's saved-suggestion overlay does not count as typed text.`,
+          )
           setErrors(missing)
           setTouched({ name: true, phone: true, line1: true, city: true, state: true, pincode: true, location: true })
           const first = ['co-line1', 'co-city', 'co-state', 'co-pincode'].find((n) => missing[n])
