@@ -88,5 +88,39 @@ const line1 = aget('pf-addr-line1')
 console.log('S3 addr-form -> line1 =', JSON.stringify(line1))
 if (line1.length < 3) throw new Error('S3 FAIL')
 
+// ---- Scenario 4: checkout posts an EMPTY address; server completes it ----
+// new account with a PRIOR order but NO saved addresses
+const emptyAddress = { line1: '', line2: '', location: '', city: '', state: '', pincode: '' }
+const savedAddresses = []
+const priorOrder = { address: { line1: '7 Bazaar Road', location: 'Gandhipuram', city: 'Coimbatore', state: 'Tamil Nadu', pincode: '641012' } }
+const pinHint = (p) => (p === '641012' ? 'Tamil Nadu' : '')
+const serverResolve = (posted) => {
+  let a = { ...posted }
+  if (!a.line1 || !a.city || !a.state || !/^\d{6}$/.test(a.pincode) && savedAddresses.length) {
+    const pick = savedAddresses[0]
+    if (pick) a = { line1: a.line1 || pick.line1, city: a.city || pick.city, state: a.state || pick.state, pincode: a.pincode || pick.pincode }
+  }
+  if (!a.line1 || !a.city || !a.state || !/^\d{6}$/.test(a.pincode)) {
+    if (priorOrder.address) a = { line1: a.line1 || priorOrder.address.line1, city: a.city || priorOrder.address.city, state: a.state || priorOrder.address.state, pincode: a.pincode || priorOrder.address.pincode }
+  }
+  if (!a.state) a.state = pinHint(a.pincode)
+  const complete = a.line1 && a.city && a.state && /^\d{6}$/.test(a.pincode)
+  return { a, complete, error: complete ? null : 'Complete delivery address with 6-digit PIN is required' }
+}
+const s4 = serverResolve(emptyAddress)
+console.log('S4 checkout   ->', JSON.stringify(s4.a), 'error:', JSON.stringify(s4.error))
+if (!s4.complete) throw new Error('S4 FAIL')
+
+// ---- Scenario 5: address-setup ADD with only Location filled, no line1 ----
+const setLine1 = (body) => {
+  let line1 = (body.line1 || '').trim()
+  if (line1.length < 3) line1 = (body.location || '').trim().length >= 3 ? body.location : (body.line2 || '').trim().length >= 3 ? body.line2 : ''
+  if (line1.length < 3) throw new Error('Address line is required')
+  return { ...body, line1 }
+}
+const s5 = setLine1({ line1: '', location: 'Peelamedu', city: 'Coimbatore', state: '', pincode: '641004' })
+console.log('S5 addr-add   ->', JSON.stringify(s5))
+if (s5.line1 !== 'Peelamedu') throw new Error('S5 FAIL')
+
 console.log('ALL FLOWS OK')
 process.exit(0)

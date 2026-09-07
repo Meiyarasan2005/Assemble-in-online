@@ -213,7 +213,13 @@ function normalizeAddress(body, index) {
     state: clean(body.state),
     pincode: clean(body.pincode),
   }
-  if (address.line1.length < 3) throw Object.assign(new Error('Address line is required'), { status: 400 })
+  if (address.line1.length < 3) {
+    /* A filled-in area/location or landmark is a valid street-level line. */
+    address.line1 = address.location.length >= 3 ? address.location : address.line2.length >= 3 ? address.line2 : ''
+    if (address.line1.length < 3) {
+      throw Object.assign(new Error('Address line is required'), { status: 400 })
+    }
+  }
   if (address.city.length < 2) throw Object.assign(new Error('City is required'), { status: 400 })
   if (!address.state) address.state = pinToStateHint(address.pincode)
   if (address.state.length < 2) throw Object.assign(new Error('State is required'), { status: 400 })
