@@ -134,6 +134,7 @@ export default function Checkout() {
       const result = await checkout(
         {
           mode,
+          build: 'b8',
           email: v.email,
           name: v.name,
           phone: v.phone,
