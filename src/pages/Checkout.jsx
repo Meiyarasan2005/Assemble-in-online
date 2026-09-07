@@ -125,7 +125,8 @@ export default function Checkout() {
       setError('Your cart is empty')
       return
     }
-    const v = readValues(ev.currentTarget)
+    const formEl = ev.currentTarget
+    const v = readValues(formEl)
     setTouched({ name: true, phone: true, line1: true, city: true, state: true, pincode: true, location: true })
     validate(v)
     setError('')
@@ -159,17 +160,29 @@ export default function Checkout() {
     } catch (err) {
       const d = err?.data || {}
       if (d?.received) {
-        const missing = []
-        if (!d.received.line1) missing.push('Address line')
-        if (!d.received.city) missing.push('city')
-        if (!d.received.state) missing.push('state')
-        if (!/^\d{6}$/.test(String(d.received.pincode || ''))) missing.push('6-digit PIN')
+        const missing = {}
+        if (!d.received.line1) missing.line1 = 'Address line is required'
+        if (!d.received.city) missing.city = 'City is required'
+        if (!d.received.state) missing.state = 'State is required'
+        if (!/^\d{6}$/.test(String(d.received.pincode || ''))) missing.pincode = 'Enter the 6-digit PIN code'
         const stale = d.client && d.queued && !d.queued.includes(d.client)
-        setError(
-          stale
-            ? `Your page is running old code (build ${d.client || 'unknown'}). Please reload the page (Ctrl+Shift+R) and place the order again — your address is read directly from the page, so a reload fixes it.`
-            : `The server did not receive your ${missing.join(', ')}. Please check those fields and try again.`,
-        )
+        if (stale) {
+          setError(
+            `Your page is running old code (build ${d.client || 'unknown'}). Please reload the page (Ctrl+Shift+R) and place the order again.`,
+          )
+        } else {
+          setError('Please fill the highlighted delivery fields below and try again.')
+          setErrors(missing)
+          setTouched({ name: true, phone: true, line1: true, city: true, state: true, pincode: true, location: true })
+          const first = ['co-line1', 'co-city', 'co-state', 'co-pincode'].find((n) => missing[n])
+          if (first) {
+            const el = formEl.elements.namedItem(first)
+            if (el) {
+              el.focus()
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            }
+          }
+        }
       } else {
         setError(err.message || 'Something went wrong. Please try again.')
       }
