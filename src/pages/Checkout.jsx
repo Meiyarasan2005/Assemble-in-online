@@ -157,7 +157,22 @@ export default function Checkout() {
       showToast('Order placed successfully!')
       navigate(`/order/${order.id}?token=${order.token}`)
     } catch (err) {
-      setError(err.message || 'Something went wrong. Please try again.')
+      const d = err?.data || {}
+      if (d?.received) {
+        const missing = []
+        if (!d.received.line1) missing.push('Address line')
+        if (!d.received.city) missing.push('city')
+        if (!d.received.state) missing.push('state')
+        if (!/^\d{6}$/.test(String(d.received.pincode || ''))) missing.push('6-digit PIN')
+        const stale = d.client && d.queued && !d.queued.includes(d.client)
+        setError(
+          stale
+            ? `Your page is running old code (build ${d.client || 'unknown'}). Please reload the page (Ctrl+Shift+R) and place the order again — your address is read directly from the page, so a reload fixes it.`
+            : `The server did not receive your ${missing.join(', ')}. Please check those fields and try again.`,
+        )
+      } else {
+        setError(err.message || 'Something went wrong. Please try again.')
+      }
       setStage('idle')
     }
   }
