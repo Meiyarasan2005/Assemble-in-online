@@ -233,7 +233,7 @@ export default function Checkout() {
           </div>
         </div>
       ) : (
-        <form className="checkout" onSubmit={submit} noValidate>
+        <form className="checkout" onSubmit={submit} noValidate autoComplete="off">
           <div className="checkout-main">
             <section className="checkout-card card">
               <h2>1 · Delivery address</h2>
@@ -268,7 +268,6 @@ export default function Checkout() {
                   <span>PIN code</span>
                   <input
                     name="co-pincode"
-                    autoComplete="postal-code"
                     className={`input ${touched.pincode && errors.pincode ? 'input-err' : ''}`}
                     inputMode="numeric"
                     placeholder="6-digit PIN code"
@@ -281,7 +280,6 @@ export default function Checkout() {
                   <span>Address (Area and Street)</span>
                   <input
                     name="co-line1"
-                    autoComplete="address-line1"
                     className={`input ${touched.line1 && errors.line1 ? 'input-err' : ''}`}
                     placeholder="House no, building, street, area"
                     onBlur={markTouched('line1')}
@@ -310,7 +308,6 @@ export default function Checkout() {
                   <span>City</span>
                   <input
                     name="co-city"
-                    autoComplete="address-level2"
                     className={`input ${touched.city && errors.city ? 'input-err' : ''}`}
                     placeholder="City"
                     onBlur={markTouched('city')}
@@ -321,7 +318,6 @@ export default function Checkout() {
                   <span>State</span>
                   <input
                     name="co-state"
-                    autoComplete="address-level1"
                     className={`input ${touched.state && errors.state ? 'input-err' : ''}`}
                     placeholder="State"
                     onBlur={markTouched('state')}
