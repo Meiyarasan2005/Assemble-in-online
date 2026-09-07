@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { formatINR } from '../data'
 import { fetchOrder, cancelOrder } from '../lib/api'
 import { downloadInvoice, courierUrl } from '../lib/invoice'
 import { getCategory } from '../data'
 import ProductArt from '../components/ProductArt'
 import {
+  IconArrowLeft,
   IconArrowRight,
   IconCheck,
   IconClock,
@@ -81,6 +82,7 @@ const METHOD_LABEL = {
 }
 
 export default function OrderConfirm() {
+  const navigate = useNavigate()
   const { id } = useParams()
   const [params] = useSearchParams()
   const token = params.get('token') || ''
@@ -141,13 +143,9 @@ export default function OrderConfirm() {
 
   return (
     <div className="container">
-      <nav className="crumbs" aria-label="Breadcrumb">
-        <Link to="/">Home</Link>
-        <IconArrowRight width="13" height="13" />
-        <Link to="/orders">My orders</Link>
-        <IconArrowRight width="13" height="13" />
-        <span>{order.id}</span>
-      </nav>
+      <button className="pd-back" onClick={() => navigate(-1)}>
+        <IconArrowLeft width="18" height="18" /> Back
+      </button>
 
       <div className="co-confirm card">
         <div className={`co-confirm-badge ${cancelled ? 'co-confirm-bad' : ''}`}>
