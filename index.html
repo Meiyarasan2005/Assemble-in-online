@@ -19,15 +19,18 @@
     />
     <title>Assemble-on-line</title>
     <script>
-      /* Force one reload whenever a new version of the shell ships, so a
-         cached or state-restored tab can never keep running old code. */
+      /* Reload once when a new shell ships, so a cached tab picks up fresh
+         code. Guarded to a single reload per version so it can never loop. */
       ;(function () {
         try {
           var K = 'meispare-shell-v'
-          var cur = '18'
+          var cur = '19'
           var prev = localStorage.getItem(K)
           localStorage.setItem(K, cur)
-          if (prev && prev !== cur) location.reload()
+          if (prev && prev !== cur && !sessionStorage.getItem(K + 'reloaded-' + cur)) {
+            sessionStorage.setItem(K + 'reloaded-' + cur, '1')
+            location.reload()
+          }
         } catch (e) {
           /* storage unavailable */
         }
