@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useStore } from '../context/useStore'
 import { sendOtp, verifyOtp } from '../lib/api'
+import { sendOtpEmail } from '../lib/otp-mail'
 import {
   IconArrowLeft,
   IconArrowRight,
@@ -82,6 +83,7 @@ export default function Auth() {
     setOtpBusy(true)
     try {
       const res = await sendOtp(regForm.email.trim())
+      const sent = await sendOtpEmail({ to_email: regForm.email.trim(), otp: res.otp || '' })
       setOtpDevinfo(res.otp || '')
       setOtpStep(true)
       setOtpCountdown(60)
