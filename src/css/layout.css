@@ -36,10 +36,10 @@
 }
 
 .header-logo {
-  width: 136px;
-  height: 136px;
+  width: 56px;
+  height: 56px;
   object-fit: contain;
-  border-radius: 12px;
+  border-radius: 10px;
 }
 
 .header-brand-text {
