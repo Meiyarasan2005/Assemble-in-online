@@ -92,7 +92,13 @@ export default function Auth() {
         })
       }, 1000)
     } catch (err) {
-      setError('Could not send verification code to your email — please try again')
+      console.error('[startOtp]', err)
+      const detail = err?.text || err?.message || ''
+      setError(
+        detail
+          ? `Could not send verification code: ${detail}`
+          : 'Could not send verification code to your email — please try again',
+      )
     }
     setOtpBusy(false)
   }
