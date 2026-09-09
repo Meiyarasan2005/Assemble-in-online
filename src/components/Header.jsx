@@ -59,7 +59,7 @@ export default function Header() {
       <header className="header header-minimal">
         <div className="header-inner">
           <Link to="/" className="header-brand">
-            <img className="header-logo" src="/favicon.png" alt="Assemble-on-line" />
+            <img className="header-logo" src="/logo.jpeg" alt="Assemble-on-line" />
           </Link>
 
           <form className="header-search header-search-desktop" onSubmit={submit} onBlur={() => (blurTimer.current = setTimeout(() => setFocus(false), 150))}>

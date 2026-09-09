@@ -22,7 +22,7 @@ export default function Loader({ onDone }) {
   return (
     <div className={`loader ${hide ? 'loader--out' : ''}`} aria-hidden="true">
       <div className="loader-inner">
-        <img className="loader-logo" src="/logo.png" alt="" />
+        <img className="loader-logo" src="/logo.jpeg" alt="" />
         <div className="loader-bar">
           <div className="loader-bar-fill" />
         </div>
