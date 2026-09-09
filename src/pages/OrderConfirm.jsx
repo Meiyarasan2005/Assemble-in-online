@@ -156,7 +156,7 @@ export default function OrderConfirm() {
           <p>
             {cancelled
               ? `${order.id} was cancelled. Stock has been released and any payment refunded.`
-              : `Order ${order.id} is ${STATUS_TEXT[order.status] || order.status}. A GST invoice has been prepared on your registered mobile number +91 ${order.phone}.`}
+              : `Order ${order.id} is ${STATUS_TEXT[order.status] || order.status}. A GST invoice has been sent to ${order.email}.`}
           </p>
           <div className="co-confirm-meta">
             <span>Order <strong>{order.id}</strong></span>
@@ -273,7 +273,7 @@ export default function OrderConfirm() {
               <strong>{order.name}</strong>
               <span>{order.address.line1}{order.address.line2 ? `, ${order.address.line2}` : ''}</span>
               <span>{order.address.city}, {order.address.state} — {order.address.pincode}</span>
-              <span>{order.phone}</span>
+              <span>{order.phone} · {order.email}</span>
             </div>
           </div>
 

@@ -23,13 +23,12 @@ import {
   changeCustomerPassword,
   deleteCustomerAddress,
   destroyCustomerSession,
-  emailForPhone,
   loginCustomer,
   registerCustomer,
   updateCustomerAddress,
   updateCustomerProfile,
+  verifyEmailDomain,
 } from './customer-auth.js'
-import { sendSms } from './sms.js'
 import { userFromToken as adminUserFromToken, createSession as createAdminSession, destroySession as destroyAdminSession } from './auth.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -104,24 +103,32 @@ function generateOtp() {
 
 router.post('/auth/send-otp', async (req, res) => {
   try {
-    const phone = String(req.body?.phone ?? '').replace(/\D/g, '')
-    if (phone.length !== 10) {
-      return res.status(400).json({ error: 'Enter a valid 10-digit mobile number' })
+    const email = String(req.body?.email ?? '').trim().toLowerCase()
+    if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      return res.status(400).json({ error: 'Enter a valid email address' })
     }
 
-    const existing = await db.customers.findOne({ _id: emailForPhone(phone) })
+    const existing = await db.customers.findOne({ _id: email })
     if (existing) {
-      return res.status(409).json({ error: 'An account already exists for this mobile number — sign in instead' })
+      return res.status(409).json({ error: 'An account already exists with this email — sign in instead' })
+    }
+
+    const domainCheck = await verifyEmailDomain(email)
+    if (!domainCheck.ok) {
+      const msg =
+        domainCheck.reason === 'disposable'
+          ? 'Disposable email addresses are not allowed — use your real email'
+          : 'We could not verify this email domain — please use a real email address'
+      return res.status(400).json({ error: msg })
     }
 
     const otp = generateOtp()
     const expires_at = new Date(Date.now() + OTP_EXPIRY_MS)
 
-    await db.otp_codes.deleteMany({ _id: phone })
-    await db.otp_codes.insertOne({ _id: phone, otp, expires_at, created_at: new Date() })
+    await db.otp_codes.deleteMany({ _id: email })
+    await db.otp_codes.insertOne({ _id: email, otp, expires_at, created_at: new Date() })
 
-    const sms = await sendSms(phone, `Your Assemble-on-line verification code is ${otp}. It expires in 10 minutes.`)
-    res.json({ ok: true, otp: sms.reason === 'not-configured' ? otp : undefined })
+    res.json({ ok: true, otp })
   } catch (err) {
     console.error('[send-otp]', err)
     res.status(500).json({ error: 'Failed to generate verification code' })
@@ -130,20 +137,20 @@ router.post('/auth/send-otp', async (req, res) => {
 
 router.post('/auth/verify-otp', async (req, res) => {
   try {
-    const phone = String(req.body?.phone ?? '').replace(/\D/g, '')
+    const email = String(req.body?.email ?? '').trim().toLowerCase()
     const otp = String(req.body?.otp ?? '').trim()
 
-    if (!phone || !otp) {
-      return res.status(400).json({ error: 'Mobile number and OTP are required' })
+    if (!email || !otp) {
+      return res.status(400).json({ error: 'Email and OTP are required' })
     }
 
-    const record = await db.otp_codes.findOne({ _id: phone })
+    const record = await db.otp_codes.findOne({ _id: email })
     if (!record) {
       return res.status(400).json({ error: 'No verification code found. Please request a new one.' })
     }
 
     if (new Date() > new Date(record.expires_at)) {
-      await db.otp_codes.deleteOne({ _id: phone })
+      await db.otp_codes.deleteOne({ _id: email })
       return res.status(400).json({ error: 'Verification code expired. Please request a new one.' })
     }
 
@@ -151,13 +158,13 @@ router.post('/auth/verify-otp', async (req, res) => {
       return res.status(400).json({ error: 'Incorrect verification code' })
     }
 
-    await db.otp_codes.deleteOne({ _id: phone })
+    await db.otp_codes.deleteOne({ _id: email })
     await db.otp_verified.updateOne(
-      { _id: phone },
+      { _id: email },
       { $set: { verified_at: new Date() } },
       { upsert: true },
     )
-    res.json({ ok: true, message: 'Mobile number verified successfully' })
+    res.json({ ok: true, message: 'Email verified successfully' })
   } catch (err) {
     console.error('[verify-otp]', err)
     res.status(500).json({ error: 'Verification failed' })
@@ -728,10 +735,10 @@ router.post('/payments/:orderId/fail', async (req, res) => {
 
 router.get('/orders', async (req, res) => {
   const account = await authedCustomer(req)
-  const email = account ? account.email : emailForPhone(String(req.query.phone ?? '').replace(/\D/g, ''))
+  const email = account ? account.email : String(req.query.email ?? '').trim().toLowerCase()
   const limit = Math.min(Number(req.query.limit) || 50, 100)
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-    return res.status(400).json({ error: 'A valid mobile number is required' })
+    return res.status(400).json({ error: 'A valid email is required' })
   }
   const rows = await db.orders.find({ email }).sort({ created_at: -1 }).limit(limit).toArray()
   const out = []

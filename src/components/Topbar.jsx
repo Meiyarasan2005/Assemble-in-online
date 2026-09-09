@@ -190,7 +190,7 @@ export default function Topbar({ onMenu }) {
         <button
           className="fit-btn account-btn"
           onClick={() => navigate('/account')}
-          title={isAuthed ? `Signed in as +91 ${customer.phone}` : 'Log in or create an account'}
+          title={isAuthed ? `Signed in as ${customer.email}` : 'Log in or create an account'}
         >
           <IconUser width="18" height="18" />
           <span>{isAuthed ? (customer.name.split(' ')[0] || 'Account') : t('login', lang)}</span>
