@@ -52,7 +52,7 @@ export default function Sidebar({ open, onClose }) {
               aria-label="Assemble-on-line home"
             >
               <span className="brand-mark">
-                <img className="brand-logo" src="/logo.png" alt="Assemble-on-line" />
+                <img className="brand-logo" src="/logo.jpeg" alt="Assemble-on-line" />
               </span>
               <span className="brand-name">
                 ASSEMBLE<span className="brand-accent">-ON-LINE</span>

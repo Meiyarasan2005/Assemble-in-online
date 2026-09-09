@@ -1,5 +1,5 @@
-const CACHE = 'assembleonline-shell-v5'
-const STATIC_ASSETS = ['/', '/index.html', '/manifest.webmanifest', '/favicon.png', '/favicon.svg', '/logo.png']
+const CACHE = 'assembleonline-shell-v6'
+const STATIC_ASSETS = ['/', '/index.html', '/manifest.webmanifest', '/logo.jpeg']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

@@ -8,7 +8,7 @@ export default function Footer() {
         <div className="footer-grid">
           <div className="footer-brand-col">
             <Link to="/" className="footer-brand">
-              <img className="footer-logo" src="/logo.png" alt="Assemble-on-line logo" />
+              <img className="footer-logo" src="/logo.jpeg" alt="Assemble-on-line logo" />
               <span className="footer-brand-text">
                 ASSEMBLE<span className="footer-brand-accent">-ON-LINE</span>
               </span>
