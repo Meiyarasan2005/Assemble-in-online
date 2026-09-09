@@ -40,7 +40,6 @@ export default function Auth() {
   const [otpStep, setOtpStep] = useState(false)
   const [otp, setOtp] = useState('')
   const [otpBusy, setOtpBusy] = useState(false)
-  const [otpDevinfo, setOtpDevinfo] = useState('')
   const [otpVerified, setOtpVerified] = useState(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('meispare-otp-verified') || 'null')
@@ -83,7 +82,7 @@ export default function Auth() {
     setOtpBusy(true)
     try {
       const res = await sendOtp(regForm.email.trim())
-      setOtpDevinfo(res.otp || '')
+      await sendOtpEmail({ to_email: regForm.email.trim(), otp: res.otp || '' })
       setOtpStep(true)
       setOtpCountdown(60)
       const interval = setInterval(() => {
@@ -92,13 +91,8 @@ export default function Auth() {
           return c - 1
         })
       }, 1000)
-      try {
-        await sendOtpEmail({ to_email: regForm.email.trim(), otp: res.otp || '' })
-      } catch (emailErr) {
-        console.warn('EmailJS delivery failed', emailErr)
-      }
     } catch (err) {
-      setError(err.message || 'Failed to send verification code')
+      setError('Could not send verification code to your email — please try again')
     }
     setOtpBusy(false)
   }
@@ -250,11 +244,6 @@ export default function Auth() {
                 <p className="auth-lead">
                   We sent a 6-digit code to <strong>{regForm.email}</strong>. Enter it below to continue.
                 </p>
-                {otpDevinfo && (
-                  <div className="otp-dev-hint">
-                    Dev mode — your code is <strong>{otpDevinfo}</strong>
-                  </div>
-                )}
                 <label className="co-field">
                   <span>Verification code</span>
                   <input
