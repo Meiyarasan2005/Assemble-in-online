@@ -95,7 +95,7 @@ async function authedCustomer(req) {
   return customerFromToken(String(req.headers['x-auth-token'] || ''))
 }
 
-const OTP_EXPIRY_MS = 10 * 60 * 1000
+const OTP_EXPIRY_MS = 15 * 60 * 1000
 
 function generateOtp() {
   return String(Math.floor(100000 + Math.random() * 900000))
