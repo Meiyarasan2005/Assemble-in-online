@@ -47,7 +47,7 @@ function wrapInvoiceOrder(o) {
     delivery: o.delivery || 0,
     total: o.total || items.reduce((n, i) => n + i.total, 0),
     items,
-    name: o.name || o.email || 'Customer',
+    name: o.name || `+91 ${o.phone || ''}`.trim() || 'Customer',
     phone: o.phone || '—',
     email: o.email || '',
     gstin: o.gstin || '',
@@ -67,7 +67,7 @@ export default function Returns() {
     notes: '',
   })
 
-  const [invEmail, setInvEmail] = useState('')
+  const [invPhone, setInvPhone] = useState('')
   const [orders, setOrders] = useState(null)
   const [invState, setInvState] = useState('idle')
   const [invError, setInvError] = useState('')
@@ -91,11 +91,11 @@ export default function Returns() {
     setForm({ ...form, orderId: '', product: '', notes: '' })
   }
 
-  const loadOrders = useCallback(async (email) => {
+  const loadOrders = useCallback(async (phone) => {
     setInvState('loading')
     setInvError('')
     try {
-      const list = await fetchOrders(email)
+      const list = await fetchOrders(phone)
       setOrders(list)
       setInvState('ready')
     } catch (err) {
@@ -107,12 +107,12 @@ export default function Returns() {
 
   const onInvoice = (e) => {
     e.preventDefault()
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(invEmail.trim())) {
-      setInvError('Enter a valid email')
+    if (invPhone.replace(/\D/g, '').length !== 10) {
+      setInvError('Enter a valid 10-digit mobile number')
       setInvState('error')
       return
     }
-    loadOrders(invEmail.trim())
+    loadOrders(invPhone.replace(/\D/g, ''))
   }
 
   const doDownload = (o) => {
@@ -266,17 +266,19 @@ export default function Returns() {
       <section className="card returns-invoice-card">
         <h2>Download GST invoice</h2>
         <p className="returns-form-sub">
-          Enter the email used at checkout to list your orders and download a tax invoice for each.
+          Enter the mobile number used at checkout to list your orders and download a tax invoice for each.
         </p>
         <form className="orders-search" onSubmit={onInvoice}>
           <IconSearch width="18" height="18" />
           <input
             className="orders-input"
-            type="email"
-            placeholder="you@example.com"
-            value={invEmail}
-            onChange={(e) => setInvEmail(e.target.value)}
-            aria-label="Invoice email"
+            type="tel"
+            inputMode="numeric"
+            maxLength={10}
+            placeholder="10-digit mobile number"
+            value={invPhone}
+            onChange={(e) => setInvPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+            aria-label="Invoice mobile number"
           />
           <button className="btn btn-primary" type="submit">
             Find invoices
@@ -293,7 +295,7 @@ export default function Returns() {
         {invState === 'error' && <p className="returns-invoice-error">{invError}</p>}
 
         {invState === 'ready' && orders.length === 0 && (
-          <p className="returns-empty">No orders found for that email.</p>
+          <p className="returns-empty">No orders found for that mobile number.</p>
         )}
 
         {invState === 'ready' && orders.length > 0 && (

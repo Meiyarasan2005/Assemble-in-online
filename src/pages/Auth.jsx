@@ -13,8 +13,6 @@ import {
   IconUser,
 } from '../components/icons'
 
-const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
-
 function normPhone(raw) {
   let d = String(raw ?? '').replace(/\D/g, '')
   if (d.length === 12 && d.startsWith('91')) d = d.slice(2)
@@ -33,8 +31,8 @@ export default function Auth() {
   const [tab, setTab] = useState(initialTab)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  const [loginForm, setLoginForm] = useState({ email: '', password: '' })
-  const [regForm, setRegForm] = useState({ name: '', email: '', phone: '', password: '', confirm: '' })
+  const [loginForm, setLoginForm] = useState({ phone: '', password: '' })
+  const [regForm, setRegForm] = useState({ name: '', phone: '', password: '', confirm: '' })
 
   const [otpStep, setOtpStep] = useState(false)
   const [otp, setOtp] = useState('')
@@ -43,15 +41,15 @@ export default function Auth() {
   const [otpVerified, setOtpVerified] = useState(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('meispare-otp-verified') || 'null')
-      if (saved?.email && saved?.at && Date.now() - saved.at < 10 * 60 * 1000) return true
+      if (saved?.phone && saved?.at && Date.now() - saved.at < 10 * 60 * 1000) return true
     } catch (e) {}
     return false
   })
   const [otpCountdown, setOtpCountdown] = useState(0)
-  const verifiedEmailRef = useRef((() => {
+  const verifiedPhoneRef = useRef((() => {
     try {
       const saved = JSON.parse(localStorage.getItem('meispare-otp-verified') || 'null')
-      return saved?.email || ''
+      return saved?.phone || ''
     } catch (e) { return '' }
   })())
 
@@ -63,11 +61,12 @@ export default function Auth() {
   const submitLogin = async (e) => {
     e.preventDefault()
     setError('')
-    if (!EMAIL_RE.test(loginForm.email.trim())) return setError('Enter a valid email')
+    const loginPhone = normPhone(loginForm.phone)
+    if (loginPhone.length !== 10) return setError('Enter a valid 10-digit mobile number')
     if (loginForm.password.length < 6) return setError('Password must be at least 6 characters')
     setBusy(true)
     try {
-      await signIn({ email: loginForm.email.trim(), password: loginForm.password })
+      await signIn({ phone: loginPhone, password: loginForm.password })
       showToast('Welcome back')
       goNext()
     } catch (err) {
@@ -78,10 +77,11 @@ export default function Auth() {
 
   const startOtp = async () => {
     setError('')
-    if (!EMAIL_RE.test(regForm.email.trim())) return setError('Enter a valid email')
+    const regPhone = normPhone(regForm.phone)
+    if (regPhone.length !== 10) return setError('Enter a valid 10-digit mobile number')
     setOtpBusy(true)
     try {
-      const res = await sendOtp(regForm.email.trim())
+      const res = await sendOtp(regPhone)
       setOtpDevinfo(res.otp || '')
       setOtpStep(true)
       setOtpCountdown(60)
@@ -100,14 +100,15 @@ export default function Auth() {
   const submitOtp = async () => {
     setError('')
     if (!otp.trim() || otp.trim().length !== 6) return setError('Enter the 6-digit code')
+    const regPhone = normPhone(regForm.phone)
     setOtpBusy(true)
     try {
-      await verifyOtp(regForm.email.trim(), otp.trim())
-      verifiedEmailRef.current = regForm.email.trim().toLowerCase()
-      try { localStorage.setItem('meispare-otp-verified', JSON.stringify({ email: verifiedEmailRef.current, at: Date.now() })) } catch {}
+      await verifyOtp(regPhone, otp.trim())
+      verifiedPhoneRef.current = regPhone
+      try { localStorage.setItem('meispare-otp-verified', JSON.stringify({ phone: verifiedPhoneRef.current, at: Date.now() })) } catch {}
       setOtpVerified(true)
       setOtpStep(false)
-      showToast('Email verified!')
+      showToast('Mobile number verified!')
     } catch (err) {
       setError(err.message || 'Verification failed')
     }
@@ -118,16 +119,17 @@ export default function Auth() {
     e.preventDefault()
     setError('')
     if (regForm.name.trim().length < 2) return setError('Full name is required')
-    if (!EMAIL_RE.test(regForm.email.trim())) return setError('Enter a valid email')
     const regPhone = normPhone(regForm.phone)
     if (regPhone.length !== 10) return setError('Enter a valid 10-digit mobile number')
     if (regForm.password.length < 6) return setError('Password must be at least 6 characters')
     if (regForm.password !== regForm.confirm) return setError('Passwords do not match')
+    if (!otpVerified || verifiedPhoneRef.current !== regPhone) {
+      return setError('Please verify your mobile number first')
+    }
     setBusy(true)
     try {
       await signUp({
         name: regForm.name.trim(),
-        email: regForm.email.trim(),
         phone: regPhone,
         password: regForm.password,
       })
@@ -161,8 +163,7 @@ export default function Auth() {
             <IconUser width="30" height="30" />
           </div>
           <h1>Hi, {customer.name.split(' ')[0]}</h1>
-          <p className="account-email">{customer.email}</p>
-          <p className="account-phone">+91 {customer.phone}</p>
+          <p className="account-phone">Mobile +91 {customer.phone}</p>
           <div className="account-actions">
             <Link to="/orders" className="btn btn-primary">
               <IconBox width="16" height="16" /> My orders
@@ -205,14 +206,16 @@ export default function Auth() {
                   You'll need an account to place an order. Browse the catalogue freely until checkout.
                 </p>
                 <label className="co-field">
-                  <span>Email address</span>
+                  <span>Mobile number</span>
                   <input
                     className="input"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={loginForm.email}
-                    onChange={setLogin('email')}
-                    autoComplete="email"
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={10}
+                    placeholder="10-digit mobile number"
+                    value={loginForm.phone}
+                    onChange={(e) => setLogin('phone')({ target: { value: e.target.value.replace(/\D/g, '').slice(0, 10) } })}
+                    autoComplete="tel"
                   />
                 </label>
                 <label className="co-field">
@@ -240,9 +243,9 @@ export default function Auth() {
               </form>
             ) : otpStep ? (
               <div className="auth-form">
-                <h2>Verify your email</h2>
+                <h2>Verify your mobile number</h2>
                 <p className="auth-lead">
-                  We sent a 6-digit code to <strong>{regForm.email}</strong>. Enter it below to continue.
+                  We sent a 6-digit code via SMS to <strong>+91 {normPhone(regForm.phone)}</strong>. Enter it below to continue.
                 </p>
                 {otpDevinfo && (
                   <div className="otp-dev-hint">
@@ -264,7 +267,7 @@ export default function Auth() {
                 </label>
                 {error && <p className="co-error">{error}</p>}
                 <button className="btn btn-primary btn-block" onClick={submitOtp} disabled={otpBusy}>
-                  {otpBusy ? 'Verifying…' : 'Verify email'}
+                  {otpBusy ? 'Verifying…' : 'Verify mobile'}
                   {!otpBusy && <IconCheck width="16" height="16" />}
                 </button>
                 <p className="auth-switch">
@@ -276,7 +279,7 @@ export default function Auth() {
                 </p>
                 <p className="auth-switch">
                   <button type="button" onClick={() => { setOtpStep(false); setOtp(''); setError('') }}>
-                    ← Change email
+                    ← Change mobile number
                   </button>
                 </p>
               </div>
@@ -287,22 +290,24 @@ export default function Auth() {
                   Register once and check out faster — your orders and invoices stay in one place.
                 </p>
                 <label className="co-field">
-                  <span>Email address</span>
+                  <span>Mobile number*</span>
                   <div className="otp-email-row">
                     <input
                       className="input"
-                      type="email"
-                      placeholder="you@example.com"
-                      value={regForm.email}
-                      onChange={(e) => { setReg('email')(e); setOtpVerified(false); verifiedEmailRef.current = ''; try { localStorage.removeItem('meispare-otp-verified') } catch {} }}
-                      autoComplete="email"
+                      type="tel"
+                      inputMode="numeric"
+                      maxLength={10}
+                      placeholder="10-digit mobile number"
+                      value={regForm.phone}
+                      onChange={(e) => { setReg('phone')({ target: { value: e.target.value.replace(/\D/g, '').slice(0, 10) } }); setOtpVerified(false); verifiedPhoneRef.current = ''; try { localStorage.removeItem('meispare-otp-verified') } catch {} }}
+                      autoComplete="tel"
                     />
                     {!otpVerified && (
                       <button
                         type="button"
                         className="btn btn-sm btn-primary"
                         onClick={startOtp}
-                        disabled={otpBusy || !EMAIL_RE.test(regForm.email.trim())}
+                        disabled={otpBusy || normPhone(regForm.phone).length !== 10}
                       >
                         {otpBusy ? 'Sending…' : 'Verify'}
                       </button>
@@ -313,24 +318,20 @@ export default function Auth() {
                   </div>
                 </label>
                 <label className="co-field">
-                  <span>Full name</span>
+                  <span>Full name*</span>
                   <input className="input" placeholder="Your name" value={regForm.name} onChange={setReg('name')} autoComplete="name" />
                 </label>
                 <label className="co-field">
-                  <span>Mobile number</span>
-                  <input className="input" inputMode="tel" placeholder="10-digit mobile" value={regForm.phone} onChange={setReg('phone')} autoComplete="tel" />
-                </label>
-                <label className="co-field">
-                  <span>Password</span>
+                  <span>Password*</span>
                   <input className="input" type="password" placeholder="At least 6 characters" value={regForm.password} onChange={setReg('password')} autoComplete="new-password" />
                 </label>
                 <label className="co-field">
-                  <span>Confirm password</span>
+                  <span>Confirm password*</span>
                   <input className="input" type="password" placeholder="Repeat password" value={regForm.confirm} onChange={setReg('confirm')} autoComplete="new-password" />
                 </label>
-                {otpVerified && regForm.email.trim() && (
+                {otpVerified && normPhone(regForm.phone).length === 10 && (
                   <p className="auth-verif-note">
-                    <IconCheck width="14" height="14" /> Email verified — account can be created.
+                    <IconCheck width="14" height="14" /> Mobile verified — account can be created.
                   </p>
                 )}
                 {error && <p className="co-error">{error}</p>}
@@ -351,7 +352,7 @@ export default function Auth() {
               <span><IconShield width="14" height="14" /> Orders secured to your account</span>
               <span><IconTruck width="14" height="14" /> Track every purchase</span>
               <span><IconLock width="14" height="14" /> Passwords encrypted, never stored in plain text</span>
-              <span><IconCheck width="14" height="14" /> No spam — we only email about your orders</span>
+              <span><IconCheck width="14" height="14" /> No spam — we only SMS about your orders</span>
             </div>
           </div>
         </div>
