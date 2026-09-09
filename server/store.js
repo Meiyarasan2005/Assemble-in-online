@@ -121,7 +121,7 @@ router.post('/auth/send-otp', async (req, res) => {
     await db.otp_codes.insertOne({ _id: phone, otp, expires_at, created_at: new Date() })
 
     const sms = await sendSms(phone, `Your Assemble-on-line verification code is ${otp}. It expires in 10 minutes.`)
-    res.json({ ok: true, otp: sms.delivered ? undefined : otp })
+    res.json({ ok: true, otp: sms.reason === 'not-configured' ? otp : undefined })
   } catch (err) {
     console.error('[send-otp]', err)
     res.status(500).json({ error: 'Failed to generate verification code' })

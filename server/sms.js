@@ -1,30 +1,33 @@
-/* Env-gated SMS delivery for OTP codes.
-   Configure SMS_API_URL, SMS_API_KEY and SMS_SENDER_ID to go live.
-   When they are missing, sendSms() reports not-configured so the
-   auth endpoints fall back to returning the OTP in the API response. */
+/* Twilio SMS delivery for OTP codes.
+   Configure TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN and TWILIO_FROM to go live.
+   When those env vars are missing, sendSms() reports not-configured so the
+   auth endpoints fall back to returning the OTP in the API response (dev). */
 
 export async function sendSms(phone, message) {
-  const url = process.env.SMS_API_URL
-  const key = process.env.SMS_API_KEY
-  if (!url || !key) {
+  const sid = process.env.TWILIO_ACCOUNT_SID
+  const token = process.env.TWILIO_AUTH_TOKEN
+  const from = process.env.TWILIO_FROM
+  if (!sid || !token || !from) {
     return { delivered: false, reason: 'not-configured' }
   }
+  const countryCode = process.env.SMS_COUNTRY_CODE || '91'
   try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(key ? { 'x-api-key': key, Authorization: `Bearer ${key}` } : {}),
+    const res = await fetch(
+      `https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Authorization: 'Basic ' + Buffer.from(`${sid}:${token}`).toString('base64'),
+        },
+        body: new URLSearchParams({
+          To: `+${countryCode}${phone}`,
+          From: from,
+          Body: message,
+        }),
       },
-      body: JSON.stringify({
-        mobile: phone,
-        message,
-        sender: process.env.SMS_SENDER_ID || '',
-      }),
-    })
-    if (!res.ok) {
-      return { delivered: false, reason: `http-${res.status}` }
-    }
+    )
+    if (!res.ok) return { delivered: false, reason: `http-${res.status}` }
     return { delivered: true }
   } catch {
     return { delivered: false, reason: 'network' }
