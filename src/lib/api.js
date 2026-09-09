@@ -136,8 +136,8 @@ export async function failPayment(orderId, token) {
   })
 }
 
-export async function fetchOrders(email, token) {
-  return api(`/orders?email=${encodeURIComponent(email)}`, {
+export async function fetchOrders(phone, token) {
+  return api(`/orders?phone=${encodeURIComponent(phone)}`, {
     headers: token ? { 'x-auth-token': token } : {},
   })
 }
@@ -244,10 +244,10 @@ export async function updateBanner(payload, token) {
   })
 }
 
-export async function sendOtp(email) {
-  return api('/auth/send-otp', { method: 'POST', body: JSON.stringify({ email }) })
+export async function sendOtp(phone) {
+  return api('/auth/send-otp', { method: 'POST', body: JSON.stringify({ phone }) })
 }
 
-export async function verifyOtp(email, otp) {
-  return api('/auth/verify-otp', { method: 'POST', body: JSON.stringify({ email, otp }) })
+export async function verifyOtp(phone, otp) {
+  return api('/auth/verify-otp', { method: 'POST', body: JSON.stringify({ phone, otp }) })
 }

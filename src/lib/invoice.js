@@ -18,7 +18,7 @@ function invoiceLines(order) {
       <p>${esc(order.name)}</p>
       <p>${esc(order.address.line1)}${order.address.line2 ? esc(', ' + order.address.line2) : ''}</p>
       <p>${esc(order.address.city)}, ${esc(order.address.state)} — ${esc(order.address.pincode)}</p>
-      <p>${esc(order.phone)} · ${esc(order.email)}</p>
+      <p>${esc(order.phone)}</p>
       ${isB2B ? `<p>GSTIN: ${esc(order.gstin)}</p>` : ''}
     </div>
     <div class="card">
