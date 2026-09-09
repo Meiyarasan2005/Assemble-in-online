@@ -337,15 +337,6 @@ export default function ProductDetail() {
             <p className="pd-inclusive">Inclusive of all taxes</p>
           </div>
 
-          <div className="pd-offers-row">
-            <span className="pd-offer-tag">Bank Offer</span>
-            <span>10% off on HDFC Credit Card EMI</span>
-          </div>
-          <div className="pd-offers-row">
-            <span className="pd-offer-tag">Partner</span>
-            <span>Extra ₹500 off on Exchange</span>
-          </div>
-
           <div className="pd-delivery-section">
             <h3>Delivery</h3>
             <div className="pd-del-row">
