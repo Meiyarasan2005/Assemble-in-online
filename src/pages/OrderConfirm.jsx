@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { formatINR } from '../data'
 import { fetchOrder, cancelOrder } from '../lib/api'
-import { downloadInvoice, courierUrl } from '../lib/invoice'
+import { courierUrl } from '../lib/invoice'
 import { getCategory } from '../data'
 import ProductArt from '../components/ProductArt'
 import {
@@ -10,7 +10,6 @@ import {
   IconArrowRight,
   IconCheck,
   IconClock,
-  IconDownload,
   IconMapPin,
   IconShield,
   IconTruck,
@@ -156,7 +155,7 @@ export default function OrderConfirm() {
           <p>
             {cancelled
               ? `${order.id} was cancelled. Stock has been released and any payment refunded.`
-              : `Order ${order.id} is ${STATUS_TEXT[order.status] || order.status}. A GST invoice has been sent to ${order.email}.`}
+              : `Order ${order.id} is ${STATUS_TEXT[order.status] || order.status}.`}
           </p>
           <div className="co-confirm-meta">
             <span>Order <strong>{order.id}</strong></span>
@@ -170,9 +169,6 @@ export default function OrderConfirm() {
               {cancelling ? 'Cancelling…' : 'Cancel order'}
             </button>
           )}
-          <button className="btn co-invoice-btn" onClick={() => downloadInvoice(order)}>
-            <IconDownload width="15" height="15" /> GST invoice
-          </button>
         </div>
       </div>
 
