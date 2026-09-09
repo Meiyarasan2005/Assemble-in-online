@@ -1,4 +1,4 @@
-const CACHE = 'assembleonline-shell-v7'
+const CACHE = 'assembleonline-shell-v8'
 const STATIC_ASSETS = ['/', '/index.html', '/manifest.webmanifest', '/logo.jpeg']
 
 self.addEventListener('install', (event) => {

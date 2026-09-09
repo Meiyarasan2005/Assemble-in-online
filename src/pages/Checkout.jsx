@@ -164,7 +164,7 @@ export default function Checkout() {
         token,
       )
       const order = result.order
-      rememberOrder(order.phone, order.id, order.token)
+      rememberOrder(order.email, order.id, order.token)
       clearCart()
       showToast('Order placed successfully!')
       if (!selectedAddressId && v.line1) {

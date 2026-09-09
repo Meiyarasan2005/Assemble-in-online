@@ -35,10 +35,10 @@ function statusBadge(status) {
   }
 }
 
-function rememberedPhones() {
+function rememberedEmails() {
   try {
     const map = JSON.parse(localStorage.getItem('meispare-orders') || '{}')
-    return Object.keys(map).filter((k) => /^\d{10}$/.test(k.replace(/\D/g, '').slice(0, 10)))
+    return Object.keys(map)
   } catch {
     return []
   }
@@ -47,7 +47,7 @@ function rememberedPhones() {
 export default function Orders() {
   const navigate = useNavigate()
   const { token, customer } = useStore()
-  const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState('')
   const [orders, setOrders] = useState(null)
   const [state, setState] = useState('idle') // idle | loading | ready | error
   const [error, setError] = useState('')
@@ -70,21 +70,21 @@ export default function Orders() {
   )
 
   useEffect(() => {
-    const remembered = rememberedPhones()
-    const initial = customer?.phone || (remembered.length ? remembered[0] : '')
+    const remembered = rememberedEmails()
+    const initial = customer?.email || (remembered.length ? remembered[0] : '')
     if (initial) {
-      setPhone(initial)
+      setEmail(initial)
       load(initial)
     }
   }, [customer, load])
 
   const submit = (e) => {
     e.preventDefault()
-    if (phone.replace(/\D/g, '').length !== 10) {
-      setError('Enter a valid 10-digit mobile number')
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) {
+      setError('Enter a valid email')
       return
     }
-    load(phone.replace(/\D/g, ''))
+    load(email.trim())
   }
 
   return (
@@ -95,7 +95,7 @@ export default function Orders() {
 
       <div className="orders-head">
         <h1>My orders</h1>
-        <p>{customer ? `Showing orders for +91 ${customer.phone}.` : 'Track every order placed with this mobile number.'}</p>
+        <p>{customer ? `Showing orders for ${customer.email}.` : 'Track every order placed on this email address.'}</p>
       </div>
 
       {!customer && (
@@ -103,13 +103,11 @@ export default function Orders() {
           <IconSearch width="18" height="18" />
           <input
             className="orders-input"
-            type="tel"
-            inputMode="numeric"
-            maxLength={10}
-            placeholder="Enter the mobile number used at checkout — e.g. 9876543210"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-            aria-label="Order mobile number"
+            type="email"
+            placeholder="Enter the email used at checkout — e.g. you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            aria-label="Order email"
           />
           <button className="btn btn-primary" type="submit">
             Find orders
@@ -135,7 +133,7 @@ export default function Orders() {
         <div className="empty-state card" style={{ marginTop: 24 }}>
           <IconSearch width="40" height="40" />
           <h3>No orders found</h3>
-          <p>We couldn't find any orders for that mobile number.</p>
+          <p>We couldn't find any orders for that email address.</p>
           <Link to="/shop" className="btn btn-primary">
             Start shopping
           </Link>

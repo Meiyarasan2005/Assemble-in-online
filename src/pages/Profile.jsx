@@ -188,10 +188,10 @@ export default function Profile() {
           <form key={`${customer?.name ?? ''}|${customer?.phone ?? ''}`} className="card profile-card" onSubmit={saveProfile}>
             <h2>Account details</h2>
             <label className="co-field">
-              <span>Mobile number</span>
+              <span>Email address</span>
               <div className="co-email-readonly">
                 <IconCheck width="15" height="15" />
-                <span>+91 {customer?.phone}</span>
+                <span>{customer?.email}</span>
               </div>
             </label>
             <label className="co-field">
