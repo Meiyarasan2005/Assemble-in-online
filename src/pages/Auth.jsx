@@ -83,7 +83,6 @@ export default function Auth() {
     setOtpBusy(true)
     try {
       const res = await sendOtp(regForm.email.trim())
-      const sent = await sendOtpEmail({ to_email: regForm.email.trim(), otp: res.otp || '' })
       setOtpDevinfo(res.otp || '')
       setOtpStep(true)
       setOtpCountdown(60)
@@ -93,6 +92,11 @@ export default function Auth() {
           return c - 1
         })
       }, 1000)
+      try {
+        await sendOtpEmail({ to_email: regForm.email.trim(), otp: res.otp || '' })
+      } catch (emailErr) {
+        console.warn('EmailJS delivery failed', emailErr)
+      }
     } catch (err) {
       setError(err.message || 'Failed to send verification code')
     }
