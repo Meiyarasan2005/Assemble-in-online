@@ -243,35 +243,6 @@ function OffersSection({ offers }) {
   )
 }
 
-function BrandGrid() {
-  const navigate = useNavigate()
-  const { brands } = useCatalog()
-  const list = Array.isArray(brands) && brands.length ? brands : []
-  if (!list.length) return null
-  return (
-    <section className="sec">
-      <div className="container">
-        <div className="sec-head">
-          <h2>Shop by Brand</h2>
-          <Link to="/shop" className="sec-link">View all <IconArrowRight width="14" height="14" /></Link>
-        </div>
-        <div className="brand-grid">
-          {list.map((b) => (
-            <button
-              key={b}
-              className="brand-tile card"
-              onClick={() => navigate(`/shop?brands=${encodeURIComponent(b)}`)}
-            >
-              <span className="brand-tile-initial">{String(b).charAt(0).toUpperCase()}</span>
-              <span className="brand-tile-name">{b}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
 function Perks() {  const perks = [
     { icon: <IconShield width="22" height="22" />, t: '100% Genuine', s: 'OE & OES sourced' },
     { icon: <IconTruck width="22" height="22" />, t: 'Fast Delivery', s: '12-hr metro delivery' },
@@ -313,7 +284,6 @@ export default function Home() {
       <CategoryMarquee />
       <CategoryShowcase />
       <OfferZone offers={offers} />
-      <BrandGrid />
       <FeaturedParts />
       <PromoStrip />
       <NewArrivals />
