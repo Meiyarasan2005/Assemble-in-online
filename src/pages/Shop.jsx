@@ -13,9 +13,27 @@ import { IconCar, IconFilter, IconX, IconCheck, IconPlus } from '../components/i
 
 const SORTS = [
   { id: 'featured', label: 'Featured' },
-  { id: 'rating', label: 'Top Rated' },
-  { id: 'reviews', label: 'Most Reviewed' },
+  { id: 'alpha', label: 'Name A–Z' },
+  { id: 'price', label: 'Price: Low to High' },
+  { id: 'discount', label: 'Biggest Saving' },
 ]
+
+function productName(p) { return (p.name || '').toLowerCase() }
+
+function applySort(list, sort) {
+  switch (sort) {
+    case 'alpha':
+      return [...list].sort((a, b) => productName(a).localeCompare(productName(b)))
+    case 'price':
+      return [...list].sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0))
+    case 'discount':
+      return [...list].sort(
+        (a, b) => (Number(b.mrp) - Number(b.price)) - (Number(a.mrp) - Number(a.price)),
+      )
+    default:
+      return [...list].sort((a, b) => Number(b.popular) - Number(a.popular))
+  }
+}
 
 export default function Shop() {
   const [params, setParams] = useSearchParams()
@@ -97,12 +115,7 @@ export default function Shop() {
     if (selectedBrands.length) list = list.filter((p) => selectedBrands.includes(p.brand))
     if (inStock) list = list.filter((p) => p.stock > 0)
 
-    switch (sort) {
-      case 'rating': list.sort((a, b) => b.rating - a.rating); break
-      case 'reviews': list.sort((a, b) => b.reviews - a.reviews); break
-      default: list.sort((a, b) => Number(b.popular) - Number(a.popular))
-    }
-    return list
+    return applySort(list, sort)
   }, [cat, q, vehicleId, selectedBrands, inStock, sort, products, allVehicles])
 
   const activeCat = categories.find((c) => c.id === cat)

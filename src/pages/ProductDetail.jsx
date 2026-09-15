@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { formatINR, getCategory, getProduct, interchangesFor, products as allProducts, preownedProducts } from '../data'
 import { useStore } from '../context/useStore'
@@ -17,7 +17,6 @@ import {
   IconHeart,
   IconPhone,
   IconShield,
-  IconStar,
   IconTruck,
   IconTag,
   IconWhatsApp,
@@ -35,7 +34,6 @@ export default function ProductDetail() {
   const [editImage, setEditImage] = useState(false)
   const [imageUrl, setImageUrl] = useState('')
   const [imgBusy, setImgBusy] = useState(false)
-  const [imgIdx, setImgIdx] = useState(0)
   const [zoomImg, setZoomImg] = useState(null)
   const fileRef = useRef(null)
 
@@ -48,21 +46,7 @@ export default function ProductDetail() {
         ? [product.image]
         : [])
 
-  const placeholder = (i) => `https://picsum.photos/seed/${encodeURIComponent(product.id)}-${i}/640/640`
-  const gallery =
-    product && rawImages.length
-      ? rawImages.length >= 3
-        ? rawImages
-        : [...rawImages, ...Array.from({ length: 3 - rawImages.length }, (_, i) => placeholder(rawImages.length + i))]
-      : product
-        ? [placeholder(0), placeholder(1), placeholder(2)]
-        : []
-  const active =
-    product && gallery.length ? gallery[Math.min(imgIdx, gallery.length - 1)] || null : null
-
-  useEffect(() => {
-    if (gallery.length && imgIdx >= gallery.length) setImgIdx(0)
-  }, [gallery.length, imgIdx])
+  const active = product && rawImages.length ? rawImages[0] : null
 
   if (!product) {
     return (
@@ -112,11 +96,11 @@ export default function ProductDetail() {
     setImgBusy(true)
     setSellerMsg('')
     try {
-      const updated = await uploadImages(product.id, list)
-      product.images = Array.isArray(updated.images) ? updated.images : product.images
+      const updated = await uploadImages(product.id, list.slice(0, 1))
+      product.images = Array.isArray(updated.images) ? updated.images.slice(0, 1) : product.images
       product.image = updated.image ?? product.image
       bumpCatalog()
-      setSellerMsg('Images added!')
+      setSellerMsg('Image updated!')
       setTimeout(() => setSellerMsg(''), 2000)
     } catch (err) {
       setSellerMsg(err.message || 'Upload failed')
@@ -152,13 +136,13 @@ export default function ProductDetail() {
     setImgBusy(true)
     setSellerMsg('')
     try {
-      const list = [...rawImages, url]
+      const list = [...rawImages, url].slice(-1)
       const updated = await updateProduct(product.id, { images: list, image: list[0] })
-      product.images = Array.isArray(updated.images) ? updated.images : list
+      product.images = Array.isArray(updated.images) ? updated.images.slice(0, 1) : list
       product.image = updated.image ?? list[0]
       setImageUrl('')
       bumpCatalog()
-      setSellerMsg('Image added!')
+      setSellerMsg('Image updated!')
       setTimeout(() => setSellerMsg(''), 2000)
     } catch (err) {
       setSellerMsg(err.message || 'Save failed')
@@ -217,7 +201,7 @@ export default function ProductDetail() {
           </div>
           {editImage && (
             <div className="seller-image-editor">
-              <div className="seller-img-caption">{rawImages.length}/12 images · first one shows on cards · customers see 3</div>
+              <div className="seller-img-caption">{rawImages.length}/1 image · first one is the main image shown to customers</div>
               <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={(e) => { if (e.target.files?.length) addImageFiles(e.target.files); e.target.value = '' }} />
               <div className="seller-img-grid">
                 {rawImages.length === 0 && <div className="seller-img-empty">No images yet — add from device or URL below.</div>}
@@ -255,21 +239,6 @@ export default function ProductDetail() {
             )}
             {active && <span className="pd-zoom-hint">Tap to zoom</span>}
           </div>
-          {gallery.length > 1 && (
-            <div className="pd-img-thumbs">
-              {gallery.map((src, i) => (
-                <button
-                  key={src + i}
-                  type="button"
-                  className={`pd-img-thumb ${i === imgIdx ? 'active' : ''}`}
-                  onClick={() => setImgIdx(i)}
-                  aria-label={`View image ${i + 1} of ${gallery.length}`}
-                >
-                  <img src={src} alt="" />
-                </button>
-              ))}
-            </div>
-          )}
           <div className="pd-img-desc">
             <h4>Description</h4>
             <p>{product.desc}</p>
@@ -304,17 +273,13 @@ export default function ProductDetail() {
 
           <h1 className="pd-title">{product.name}</h1>
 
-          <div className="pd-rating-row">
-            <span className="pd-rating-badge">
-              {product.rating} <IconStar width="12" height="12" />
-            </span>
-            <span className="pd-rating-text">{product.reviews} ratings</span>
-            {pre && (
+          {pre && (
+            <div className="pd-rating-row">
               <span className="pd-condition-badge">
                 <IconTag width="12" height="12" /> Certified pre-owned
               </span>
-            )}
-          </div>
+            </div>
+          )}
 
           {isSeller && (
           <div className="pd-price-section">

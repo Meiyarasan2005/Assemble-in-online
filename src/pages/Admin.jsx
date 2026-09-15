@@ -253,13 +253,12 @@ function Dashboard() {
                 <th>Price</th>
                 <th>MRP</th>
                 <th>Stock</th>
-                <th>Rating</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan="6" className="admin-empty">
+                  <td colSpan="5" className="admin-empty">
                     No products match.
                   </td>
                 </tr>
@@ -313,12 +312,6 @@ function Dashboard() {
                     />
                     <span className={`admin-stock-tag ${statusOf(p)}`}>
                       {statusOf(p) === 'out' ? 'Out of stock' : statusOf(p) === 'low' ? 'Low' : 'Ok'}
-                    </span>
-                  </td>
-                  <td>
-                    <span className="admin-rating">{p.rating ?? '—'}</span>
-                    <span className="admin-reviews">
-                      {p.reviews ?? 0} <span className="admin-reviews-label">reviews</span>
                     </span>
                   </td>
                 </tr>
