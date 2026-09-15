@@ -251,3 +251,11 @@ export async function sendOtp(email) {
 export async function verifyOtp(email, otp) {
   return api('/auth/verify-otp', { method: 'POST', body: JSON.stringify({ email, otp }) })
 }
+
+export async function forgotOtp(email) {
+  return api('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) })
+}
+
+export async function resetPassword({ email, otp, password }) {
+  return api('/auth/reset-password', { method: 'PUT', body: JSON.stringify({ email, otp, password }) })
+}
