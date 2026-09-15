@@ -95,33 +95,6 @@
   color: var(--accent);
 }
 
-.pcard-rating {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.pcard-rating-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  background: var(--green);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 1px 6px;
-  border-radius: 3px;
-}
-
-.pcard-rating-badge svg {
-  fill: #fff;
-}
-
-.pcard-reviews {
-  font-size: 12px;
-  color: var(--faint);
-}
-
 .pcard-price-row {
   display: flex;
   align-items: baseline;
