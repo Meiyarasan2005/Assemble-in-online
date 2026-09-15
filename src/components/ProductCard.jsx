@@ -5,7 +5,6 @@ import { useStore } from '../context/useStore'
 import { useSeller } from '../context/useSeller'
 import { t } from '../lib/i18n'
 import ProductArt from './ProductArt'
-import { IconStar } from './icons'
 
 const vehicleById = new Map(vehicles.map((v) => [v.id, v]))
 
@@ -111,12 +110,6 @@ export default function ProductCard({ product, compact = false }) {
         <Link to={`/product/${product.id}`} className="pcard-name">
           {product.name}
         </Link>
-        <div className="pcard-rating">
-          <span className="pcard-rating-badge">
-            {product.rating} <IconStar width="11" height="11" />
-          </span>
-          <span className="pcard-reviews">({product.reviews})</span>
-        </div>
         <div className="pcard-price-row">
           {isSeller ? (
             <InlineEdit value={price} prefix="&#8377;" onSave={(v) => handleSave('price', v)} className="pcard-price" />
