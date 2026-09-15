@@ -21,7 +21,6 @@ import Profile from './pages/Profile'
 import Wishlist from './pages/Wishlist'
 import Returns from './pages/Returns'
 import Garage from './pages/Garage'
-import PriceWatcher from './components/PriceWatcher'
 import SearchPage from './pages/SearchPage'
 import Contact from './pages/Contact'
 import WhatsAppChat from './components/WhatsAppChat'
@@ -65,7 +64,6 @@ function Shell() {
       </div>
       <CartDrawer />
       <BottomNav />
-      <PriceWatcher />
       <WhatsAppChat />
       <Toast />
     </div>

@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { formatINR, getCategory, vehicles } from '../data'
+import { getCategory, vehicles } from '../data'
 import { useStore } from '../context/useStore'
 import { useSeller } from '../context/useSeller'
 import { t } from '../lib/i18n'
@@ -72,7 +72,6 @@ export default function ProductCard({ product, compact = false }) {
   const thumb = productThumb(product)
   const pre = Boolean(product.condition)
   const save = mrp - price
-  const savePct = mrp > 0 ? Math.round((save / mrp) * 100) : 0
   const fitsActive = activeVehicle && product.fits?.includes(activeVehicle)
   const activeV = vehicleById.get(activeVehicle)
 
@@ -121,18 +120,9 @@ export default function ProductCard({ product, compact = false }) {
         <div className="pcard-price-row">
           {isSeller ? (
             <InlineEdit value={price} prefix="&#8377;" onSave={(v) => handleSave('price', v)} className="pcard-price" />
-          ) : (
-            <span className="pcard-price">{formatINR(price)}</span>
-          )}
-          {save > 0 && (
-            <>
-              {isSeller ? (
-                <InlineEdit value={mrp} prefix="MRP &#8377;" onSave={(v) => handleSave('mrp', v)} className="pcard-mrp" />
-              ) : (
-                <span className="pcard-mrp">{formatINR(mrp)}</span>
-              )}
-              <span className="pcard-discount">{savePct}% off</span>
-            </>
+          ) : null}
+          {isSeller && save > 0 && (
+            <InlineEdit value={mrp} prefix="MRP &#8377;" onSave={(v) => handleSave('mrp', v)} className="pcard-mrp" />
           )}
         </div>
         {isSeller && (

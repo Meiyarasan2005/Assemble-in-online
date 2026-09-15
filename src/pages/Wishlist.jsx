@@ -23,7 +23,7 @@ export default function Wishlist() {
           <div className="sec-kicker">Saved parts</div>
           <h1>Wishlist {items.length > 0 && <span className="wishlist-count">({items.length})</span>}</h1>
           <p className="wishlist-sub">
-            Parts you save are tracked for price drops — we'll alert you here and in the shop.
+            Parts you save are kept here for quick access.
           </p>
         </div>
       </div>
@@ -34,7 +34,7 @@ export default function Wishlist() {
             <IconHeart width="34" height="34" />
           </span>
           <h3>Your wishlist is empty</h3>
-          <p>Tap the heart on any part to save it here and start tracking price drops.</p>
+          <p>Tap the heart on any part to save it here for later.</p>
           <Link to="/shop" className="btn btn-primary">
             Browse parts <IconArrowRight width="15" height="15" />
           </Link>
@@ -51,8 +51,7 @@ export default function Wishlist() {
         <div className="wishlist-note card">
           <ProductArt category="care" />
           <p>
-            Prices can move daily. Save more parts and check back — items with a lower price than
-            your last visit get a <strong>Price drop</strong> tag automatically.
+            Save more parts and check back — your shortlist is always one tap away.
           </p>
         </div>
       )}

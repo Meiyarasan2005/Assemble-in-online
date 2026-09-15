@@ -13,8 +13,6 @@ import { IconCar, IconFilter, IconX, IconCheck, IconPlus } from '../components/i
 
 const SORTS = [
   { id: 'featured', label: 'Featured' },
-  { id: 'price-asc', label: 'Price · Low to High' },
-  { id: 'price-desc', label: 'Price · High to Low' },
   { id: 'rating', label: 'Top Rated' },
   { id: 'reviews', label: 'Most Reviewed' },
 ]
@@ -43,7 +41,6 @@ export default function Shop() {
     () => (brandsParam ? brandsParam.split(',') : []),
     [brandsParam],
   )
-  const maxPrice = params.get('max') || ''
   const inStock = params.get('inStock') === '1'
 
   useEffect(() => {
@@ -98,19 +95,15 @@ export default function Shop() {
       )
     }
     if (selectedBrands.length) list = list.filter((p) => selectedBrands.includes(p.brand))
-    if (maxPrice) list = list.filter((p) => p.price <= Number(maxPrice))
     if (inStock) list = list.filter((p) => p.stock > 0)
 
-    const price = (p) => p.price
     switch (sort) {
-      case 'price-asc': list.sort((a, b) => price(a) - price(b)); break
-      case 'price-desc': list.sort((a, b) => price(b) - price(a)); break
       case 'rating': list.sort((a, b) => b.rating - a.rating); break
       case 'reviews': list.sort((a, b) => b.reviews - a.reviews); break
       default: list.sort((a, b) => Number(b.popular) - Number(a.popular))
     }
     return list
-  }, [cat, q, vehicleId, selectedBrands, maxPrice, inStock, sort, products, allVehicles])
+  }, [cat, q, vehicleId, selectedBrands, inStock, sort, products, allVehicles])
 
   const activeCat = categories.find((c) => c.id === cat)
 
@@ -119,11 +112,10 @@ export default function Shop() {
     q && { label: `"${q}"`, clear: () => setParam('q', '') },
     vehicle && { label: `${vehicle.make} ${vehicle.model}`, clear: () => { setParam('vehicle', ''); setParam('fitment', '') } },
     ...selectedBrands.map((b) => ({ label: b, clear: () => toggleBrand(b) })),
-    maxPrice && { label: `Under ₹${Number(maxPrice).toLocaleString('en-IN')}`, clear: () => setParam('max', '') },
     inStock && { label: 'In stock only', clear: () => setParam('inStock', '') },
   ].filter(Boolean)
 
-  const hasFilters = cat || q || vehicleId || selectedBrands.length || maxPrice || inStock
+  const hasFilters = cat || q || vehicleId || selectedBrands.length || inStock
 
   return (
     <div className="shop container">
@@ -223,16 +215,6 @@ export default function Shop() {
                 </button>
               ))}
             </div>
-          </div>
-
-          <div className="fgroup">
-            <span className="fgroup-title">Max Price</span>
-            <select className="select" value={maxPrice} onChange={(e) => setParam('max', e.target.value)} aria-label="Max price">
-              <option value="">Any</option>
-              {[1000, 2000, 3000, 5000, 8000, 12000].map((n) => (
-                <option key={n} value={n}>Up to ₹{n.toLocaleString('en-IN')}</option>
-              ))}
-            </select>
           </div>
 
           <label className="frow frow-check">

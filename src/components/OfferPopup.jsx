@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { formatINR } from '../data'
 import { IconArrowRight, IconBolt, IconClock, IconX } from './icons'
 
 const SEEN_KEY = 'meispare-offers-seen'
@@ -44,10 +43,6 @@ export default function OfferPopup({ offers }) {
   if (!open || !active.length) return null
 
   const offer = active[index % active.length]
-  const savings =
-    offer.product && offer.product.mrp > offer.product.price
-      ? offer.product.mrp - offer.product.price
-      : 0
 
   const go = () => {
     setOpen(false)
@@ -83,7 +78,7 @@ export default function OfferPopup({ offers }) {
             </div>
           )}
           <span className="offer-popup-badge">
-            {offer.discount_pct > 0 ? `UP TO ${offer.discount_pct}% OFF` : offer.badge || 'SPECIAL OFFER'}
+            {offer.badge || 'SPECIAL OFFER'}
           </span>
         </div>
 
@@ -98,13 +93,6 @@ export default function OfferPopup({ offers }) {
             <div className="offer-popup-product">
               <span className="offer-popup-brand">{offer.product.brand}</span>
               <span className="offer-popup-pname">{offer.product.name}</span>
-              <span className="offer-popup-prices">
-                {savings > 0 && <del>{formatINR(offer.product.mrp)}</del>}
-                <strong>{formatINR(offer.product.price)}</strong>
-                {savings > 0 && (
-                  <em>Save {formatINR(savings)}</em>
-                )}
-              </span>
             </div>
           )}
 

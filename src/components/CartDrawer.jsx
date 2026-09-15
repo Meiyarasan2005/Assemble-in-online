@@ -1,19 +1,17 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { formatINR, getCategory } from '../data'
+import { getCategory } from '../data'
 import { useStore } from '../context/useStore'
 import ProductArt from './ProductArt'
 import { IconX, IconMinus, IconPlus, IconTrash, IconTruck, IconShield, IconCart, IconArrowRight } from './icons'
 
 export default function CartDrawer() {
   const navigate = useNavigate()
-  const { cartOpen, setCartOpen, lines, subtotal, setQty, removeFromCart, clearCart, mode } = useStore()
+  const { cartOpen, setCartOpen, lines, setQty, removeFromCart, clearCart, mode } = useStore()
 
   const goCheckout = () => {
     setCartOpen(false)
     navigate('/checkout')
   }
-
-  const savings = lines.reduce((n, l) => n + (l.product.mrp - l.price) * l.qty, 0)
 
   return (
     <>
@@ -41,9 +39,8 @@ export default function CartDrawer() {
             </div>
           ) : (
             <ul className="cart-lines">
-              {lines.map(({ product, qty, price }) => {
+              {lines.map(({ product, qty }) => {
                 const cat = getCategory(product.category)
-                const save = product.mrp - price
                 return (
                   <li key={product.id} className="cart-line">
                     <Link to={`/product/${product.id}`} className={`cart-art cart-art-${cat.id}`} onClick={() => setCartOpen(false)}>
@@ -54,8 +51,6 @@ export default function CartDrawer() {
                         {product.name}
                       </Link>
                       <span className="cart-line-no">Part: {product.partNo}</span>
-                      <div className="cart-line-price">{formatINR(price)}</div>
-                      {save > 0 && <div className="cart-line-save">You save {formatINR(save)}</div>}
                       <div className="qty-row">
                         <button className="qty-btn" onClick={() => setQty(product.id, qty - 1)} aria-label="Decrease quantity">
                           <IconMinus width="14" height="14" />
@@ -79,10 +74,8 @@ export default function CartDrawer() {
         {lines.length > 0 && (
           <div className="drawer-foot">
             <div className="drawer-rows">
-              <div className="dr"><span>Subtotal</span><span>{formatINR(subtotal)}</span></div>
-              {savings > 0 && <div className="dr dr-good"><span>You save</span><span>{formatINR(savings)}</span></div>}
+              <div className="dr"><span>Items</span><span>{lines.reduce((n, l) => n + l.qty, 0)}</span></div>
               <div className="dr"><span>Delivery</span><span>At checkout</span></div>
-              <div className="dr dr-total"><span>Total</span><span>{formatINR(subtotal)}</span></div>
             </div>
             <button className="btn btn-primary btn-block" onClick={goCheckout}>
               Place Order <IconArrowRight width="16" height="16" />

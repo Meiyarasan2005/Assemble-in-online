@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { formatINR } from '../data'
 import { useStore } from '../context/useStore'
 import useCatalog from '../hooks/useCatalog'
 import CarArt from '../components/CarArt'
@@ -311,7 +310,6 @@ export default function Garage() {
                       <div key={k.key} className="garage-kit-item">
                         <span className="garage-kit-label">{k.label}</span>
                         <span className="garage-kit-product">{k.product.name}</span>
-                        <span className="garage-kit-price">{formatINR(k.product.price)}</span>
                         <button
                           className="btn btn-primary btn-xs"
                           onClick={() => addKitItem(k)}

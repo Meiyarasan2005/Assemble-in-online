@@ -1,15 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { formatINR } from '../data'
 import { trackOrder } from '../lib/api'
-import { downloadInvoice } from '../lib/invoice'
 import { getCategory } from '../data'
 import ProductArt from '../components/ProductArt'
 import {
   IconArrowRight,
   IconCheck,
   IconClock,
-  IconDownload,
   IconMapPin,
   IconSearch,
   IconTruck,
@@ -152,7 +149,7 @@ export default function Track() {
             </div>
             <div className="co-confirm-copy">
               <h1>{order.status === 'cancelled' ? 'Order cancelled' : STATUS_TEXT[order.status] || order.status}</h1>
-              <p>Order {order.id} placed on {fmtDate(order.createdAt)} · {order.itemCount} item(s) · {formatINR(order.total)}</p>
+              <p>Order {order.id} placed on {fmtDate(order.createdAt)} · {order.itemCount} item(s)</p>
               <div className="co-confirm-meta">
                 <span>Order <strong>{order.id}</strong></span>
                 <span>Tracking <strong className="co-track-no">{order.trackingNumber || '—'}</strong></span>
@@ -160,9 +157,6 @@ export default function Track() {
               </div>
             </div>
             <div className="co-confirm-actions">
-              <button className="btn co-invoice-btn" onClick={() => downloadInvoice(order)}>
-                <IconDownload width="15" height="15" /> GST invoice
-              </button>
               <button className="btn btn-primary" onClick={() => navigate(`/order/${order.id}?token=${order.token}`)}>
                 Full details <IconArrowRight width="14" height="14" />
               </button>
@@ -239,13 +233,12 @@ export default function Track() {
                           <strong>{i.name}</strong>
                           <span>{i.partNo} · Qty {i.qty}</span>
                         </div>
-                        <em>{formatINR(i.total)}</em>
                       </li>
                     )
                   })}
                 </ul>
                 <div className="co-rows">
-                  <div className="co-row"><span>Total payable on delivery</span><span>{formatINR(order.total)}</span></div>
+                  <div className="co-row"><span>Items</span><span>{(order.items || []).reduce((n, i) => n + (i.qty || 0), 0)}</span></div>
                 </div>
               </div>
             </div>

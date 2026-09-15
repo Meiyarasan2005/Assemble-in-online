@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import useCatalog from '../hooks/useCatalog'
 import { findInterchanges } from '../data'
-import { formatINR } from '../data'
 import { IconSearch, IconCheck } from './icons'
 
 export default function PartLookup() {
@@ -59,7 +58,6 @@ export default function PartLookup() {
                   <span className="part-lookup-no">{entry.partNo}</span>
                   <span className="part-lookup-name">{product.name}</span>
                   <span className="part-lookup-brand">{entry.brand}</span>
-                  <span className="part-lookup-price">{formatINR(product.price)}</span>
                   <span className="part-lookup-go">View →</span>
                 </Link>
               ) : (

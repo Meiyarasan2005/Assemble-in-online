@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
-  formatINR,
   categories,
 } from '../data'
 import { fetchOffers } from '../lib/api'
@@ -106,26 +105,12 @@ function OfferZone({ offers }) {
               )}
               <div className="offer-zone-body">
                 {o.badge && <span className="offer-zone-badge">{o.badge}</span>}
-                {o.discount_pct > 0 && (
-                  <span className="offer-zone-badge offer-zone-badge--pct">
-                    {o.discount_pct}% OFF
-                  </span>
-                )}
                 <h3>{o.title}</h3>
                 {o.description && <p>{o.description}</p>}
                 {o.product && (
                   <div className="offer-zone-product">
                     <span className="offer-zone-brand">{o.product.brand}</span>
                     <span className="offer-zone-pname">{o.product.name}</span>
-                    <div className="offer-zone-prices">
-                      {o.product.mrp > o.product.price && (
-                        <del>{formatINR(o.product.mrp)}</del>
-                      )}
-                      <strong>{formatINR(o.product.price)}</strong>
-                      {o.product.mrp > o.product.price && (
-                        <em>Save {formatINR(o.product.mrp - o.product.price)}</em>
-                      )}
-                    </div>
                   </div>
                 )}
                 <button className="btn btn-primary btn-sm">
@@ -180,17 +165,17 @@ function PromoStrip() {
           <div className="promo-strip-col" onClick={() => navigate('/shop?cat=filters')}>
             <span className="promo-strip-tag">Trending</span>
             <strong>Oil & Air Filters</strong>
-            <span>From ₹299</span>
+            <span>Shop now</span>
           </div>
           <div className="promo-strip-col" onClick={() => navigate('/shop?cat=electrical')}>
             <span className="promo-strip-tag">Popular</span>
             <strong>Battery & Electrical</strong>
-            <span>Starting ₹499</span>
+            <span>Shop now</span>
           </div>
           <div className="promo-strip-col" onClick={() => navigate('/shop?cat=braking')}>
             <span className="promo-strip-tag">Top Rated</span>
             <strong>Brake Pads & Discs</strong>
-            <span>From ₹599</span>
+            <span>Shop now</span>
           </div>
         </div>
       </div>
@@ -258,8 +243,36 @@ function OffersSection({ offers }) {
   )
 }
 
-function Perks() {
-  const perks = [
+function BrandGrid() {
+  const navigate = useNavigate()
+  const { brands } = useCatalog()
+  const list = Array.isArray(brands) && brands.length ? brands : []
+  if (!list.length) return null
+  return (
+    <section className="sec">
+      <div className="container">
+        <div className="sec-head">
+          <h2>Shop by Brand</h2>
+          <Link to="/shop" className="sec-link">View all <IconArrowRight width="14" height="14" /></Link>
+        </div>
+        <div className="brand-grid">
+          {list.map((b) => (
+            <button
+              key={b}
+              className="brand-tile card"
+              onClick={() => navigate(`/shop?brands=${encodeURIComponent(b)}`)}
+            >
+              <span className="brand-tile-initial">{String(b).charAt(0).toUpperCase()}</span>
+              <span className="brand-tile-name">{b}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function Perks() {  const perks = [
     { icon: <IconShield width="22" height="22" />, t: '100% Genuine', s: 'OE & OES sourced' },
     { icon: <IconTruck width="22" height="22" />, t: 'Fast Delivery', s: '12-hr metro delivery' },
     { icon: <IconClock width="22" height="22" />, t: 'Easy Returns', s: 'Wrong or faulty, no drama' },
@@ -300,6 +313,7 @@ export default function Home() {
       <CategoryMarquee />
       <CategoryShowcase />
       <OfferZone offers={offers} />
+      <BrandGrid />
       <FeaturedParts />
       <PromoStrip />
       <NewArrivals />
