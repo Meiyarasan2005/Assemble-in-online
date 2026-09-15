@@ -40,7 +40,7 @@ export default function Shop() {
   const { products, categories, brands, vehicles, ready } = useCatalog()
   const { activeVehicle } = useStore()
   const { isSeller } = useSeller()
-  const [showFilters, setShowFilters] = useState(false)
+  const [showFilters, setShowFilters] = useState(() => typeof window !== 'undefined' && window.matchMedia('(min-width: 981px)').matches)
   const [showAddProduct, setShowAddProduct] = useState(false)
 
   const allVehicles = useMemo(() => {

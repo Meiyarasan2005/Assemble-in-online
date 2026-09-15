@@ -8,7 +8,6 @@ import {
   IconSearch,
   IconUser,
   IconHeart,
-  IconBox,
   IconMenu,
   IconX,
 } from './icons'
@@ -104,11 +103,6 @@ export default function Header() {
               <span className="mode-pill-label">{mode === 'preowned' ? 'Pre-Owned' : 'New Parts'}</span>
             </button>
 
-            <button className="header-btn" onClick={() => navigate('/orders')}>
-              <IconBox width="18" height="18" />
-              <span className="header-btn-text">Orders</span>
-            </button>
-
             <button className="header-btn" onClick={() => navigate('/wishlist')}>
               <IconHeart width="18" height="18" />
               {wishlist.length > 0 && <span className="header-badge">{wishlist.length}</span>}
@@ -146,8 +140,6 @@ export default function Header() {
               <Link to="/" onClick={() => setMobileMenuOpen(false)}>Home</Link>
               <Link to="/shop" onClick={() => setMobileMenuOpen(false)}>All Parts</Link>
               <Link to="/garage" onClick={() => setMobileMenuOpen(false)}>My Garage</Link>
-              <Link to="/orders" onClick={() => setMobileMenuOpen(false)}>My Orders</Link>
-              <Link to="/track" onClick={() => setMobileMenuOpen(false)}>Track a Package</Link>
               <Link to="/wishlist" onClick={() => setMobileMenuOpen(false)}>Wishlist</Link>
               <Link to="/returns" onClick={() => setMobileMenuOpen(false)}>Returns & Warranty</Link>
               <Link to="/contact" onClick={() => setMobileMenuOpen(false)}>Contact Us</Link>
