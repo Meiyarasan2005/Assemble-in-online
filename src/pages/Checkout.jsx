@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { formatINR } from '../data'
 import { useStore } from '../context/useStore'
 import { checkout, fetchAddresses, addAddress } from '../lib/api'
 import { getCategory } from '../data'
@@ -60,7 +59,7 @@ function rememberOrder(email, orderId, token) {
 
 export default function Checkout() {
   const navigate = useNavigate()
-  const { mode, lines, subtotal, savings, clearCart, showToast, isAuthed, authReady, customer, token } = useStore()
+  const { mode, lines, subtotal, clearCart, showToast, isAuthed, authReady, customer, token } = useStore()
 
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
@@ -78,7 +77,6 @@ export default function Checkout() {
   }, [isAuthed, token])
 
   const delivery = subtotal >= FREE_DELIVERY ? 0 : DELIVERY_FEE
-  const total = subtotal + delivery
 
   const markTouched = (key) => () => setTouched((t) => ({ ...t, [key]: true }))
 
@@ -377,7 +375,7 @@ export default function Checkout() {
               })()}
               <div className="co-delivery-est">
                 <IconTruck width="16" height="16" />
-                <span>Delivery by {subtotal >= FREE_DELIVERY ? 'tomorrow' : '2–4 business days'} · {delivery === 0 ? 'FREE delivery' : `₹${DELIVERY_FEE} delivery charge`}</span>
+                <span>Delivery by {subtotal >= FREE_DELIVERY ? 'tomorrow' : '2–4 business days'} · {delivery === 0 ? 'FREE delivery' : 'Delivery charge applies'}</span>
               </div>
             </section>
 
@@ -387,7 +385,7 @@ export default function Checkout() {
                 <div className="cod-row">
                   <IconPackage width="18" height="18" />
                   <div>
-                    <strong>Pay ₹{formatINR(total).replace('₹', '')} when delivered</strong>
+                    <strong>Pay when delivered</strong>
                     <span>No advance payment needed — cash at your doorstep</span>
                   </div>
                 </div>
@@ -413,7 +411,7 @@ export default function Checkout() {
             <div className="co-summary card">
               <h2>Order summary ({lines.length} {lines.length === 1 ? 'item' : 'items'})</h2>
               <ul className="co-items">
-                {lines.map(({ product, qty, price }) => {
+                {lines.map(({ product, qty }) => {
                   const cat = getCategory(product.category)
                   return (
                     <li key={product.id} className="co-item">
@@ -424,42 +422,26 @@ export default function Checkout() {
                         <strong>{product.name}</strong>
                         <span>{product.partNo} · Qty: {qty}</span>
                       </div>
-                      <em>{formatINR(price * qty)}</em>
                     </li>
                   )
                 })}
               </ul>
               <div className="co-rows">
                 <div className="co-row">
-                  <span>Subtotal</span>
-                  <span>{formatINR(subtotal)}</span>
+                  <span>Items</span>
+                  <span>{lines.reduce((n, l) => n + l.qty, 0)}</span>
                 </div>
-                {savings > 0 && (
-                  <div className="co-row co-row-good">
-                    <span>Total savings</span>
-                    <span>- {formatINR(savings)}</span>
-                  </div>
-                )}
                 <div className="co-row">
                   <span>Delivery charge</span>
                   <span>
                     {delivery === 0 ? (
                       <em className="co-free">FREE</em>
                     ) : (
-                      formatINR(delivery)
+                      'At delivery'
                     )}
                   </span>
                 </div>
-                <div className="co-row co-row-total">
-                  <span>Total payable on delivery</span>
-                  <span>{formatINR(total)}</span>
-                </div>
               </div>
-              {savings > 0 && (
-                <div className="co-savings-badge">
-                  You are saving {formatINR(savings)} on this order!
-                </div>
-              )}
               <button className="btn btn-primary btn-block co-cta" type="submit" disabled={busy}>
                 {stage === 'placing' ? (
                   'Placing your order…'

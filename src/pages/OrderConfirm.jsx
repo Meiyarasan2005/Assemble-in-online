@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { formatINR } from '../data'
 import { fetchOrder, cancelOrder } from '../lib/api'
 import { courierUrl } from '../lib/invoice'
 import { getCategory } from '../data'
@@ -160,7 +159,6 @@ export default function OrderConfirm() {
           <div className="co-confirm-meta">
             <span>Order <strong>{order.id}</strong></span>
             <span>{new Date(order.createdAt).toLocaleString('en-IN')}</span>
-            <span>Total <strong>{formatINR(order.total)}</strong></span>
           </div>
         </div>
         <div className="co-confirm-actions">
@@ -249,15 +247,13 @@ export default function OrderConfirm() {
                     </Link>
                     <span>{i.partNo} · Qty {i.qty}</span>
                   </div>
-                  <em>{formatINR(i.total)}</em>
                 </li>
               )
             })}
           </ul>
           <div className="co-rows">
-            <div className="co-row"><span>Subtotal</span><span>{formatINR(order.subtotal)}</span></div>
-            <div className="co-row"><span>Delivery</span><span>{order.delivery === 0 ? 'FREE' : formatINR(order.delivery)}</span></div>
-            <div className="co-row co-row-total"><span>Total</span><span>{formatINR(order.total)}</span></div>
+            <div className="co-row"><span>Items</span><span>{(order.items || []).reduce((n, i) => n + (i.qty || 0), 0)}</span></div>
+            <div className="co-row"><span>Delivery</span><span>{order.delivery === 0 ? 'FREE' : 'At delivery'}</span></div>
           </div>
         </div>
 

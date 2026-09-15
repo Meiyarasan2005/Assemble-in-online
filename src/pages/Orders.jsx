@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { formatINR } from '../data'
 import { fetchOrders } from '../lib/api'
 import { useStore } from '../context/useStore'
 import {
@@ -170,8 +169,8 @@ export default function Orders() {
                 </div>
 
                 <div className="order-card-total">
-                  <span>Total</span>
-                  <strong>{formatINR(o.total)}</strong>
+                  <span>Items</span>
+                  <strong>{(o.items || []).reduce((n, i) => n + (i.qty || 0), 0)}</strong>
                 </div>
 
                 <div className="order-card-cta">

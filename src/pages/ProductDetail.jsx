@@ -80,9 +80,6 @@ export default function ProductDetail() {
 
   const cat = getCategory(product.category)
   const pre = Boolean(product.condition)
-  const shown = product.price
-  const save = product.mrp - shown
-  const savePct = product.mrp > 0 ? Math.round((save / product.mrp) * 100) : 0
   const out = product.stock === 0
   const wished = wishlist.includes(product.id)
   const xrefs = interchangesFor(product.partNo)
@@ -326,16 +323,13 @@ export default function ProductDetail() {
             )}
           </div>
 
+          {isSeller && (
           <div className="pd-price-section">
             <div className="pd-price-row">
-              {save > 0 && <span className="pd-discount">{savePct}% off</span>}
-              <span className="pd-price">{formatINR(shown)}</span>
+              <span className="pd-price">{formatINR(sellerField('price'))}</span>
             </div>
-            <div className="pd-mrp-row">
-              {save > 0 && <span className="pd-mrp">M.R.P.: <del>{formatINR(product.mrp)}</del></span>}
-            </div>
-            <p className="pd-inclusive">Inclusive of all taxes</p>
           </div>
+          )}
 
           <div className="pd-delivery-section">
             <h3>Delivery</h3>
@@ -453,7 +447,7 @@ export default function ProductDetail() {
             </div>
             <div className="pd-trust-item">
               <IconTruck width="18" height="18" />
-              <span>Free delivery above ₹1,999</span>
+              <span>Free delivery available</span>
             </div>
             <div className="pd-trust-item">
               <IconClock width="18" height="18" />

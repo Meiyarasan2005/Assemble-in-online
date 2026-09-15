@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import useCatalog from '../hooks/useCatalog'
 import { findInterchanges, interchangesFor } from '../data'
-import { formatINR } from '../data'
 import { IconSearch, IconArrowLeft } from '../components/icons'
 import ProductCard from '../components/ProductCard'
 

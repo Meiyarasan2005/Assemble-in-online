@@ -1,10 +1,7 @@
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useStore } from '../context/useStore'
-import { fetchOrders } from '../lib/api'
-import { downloadInvoice } from '../lib/invoice'
-import { inr } from '../lib/i18n'
-import { IconArrowRight, IconCheck, IconClock, IconDownload, IconSearch, IconShield, IconTruck } from '../components/icons'
+import { IconArrowRight, IconCheck, IconClock, IconShield, IconTruck } from '../components/icons'
 
 const RSTEPS = ['Requested', 'Approved', 'Pickup scheduled', 'Refunded']
 
@@ -32,29 +29,6 @@ function writeReturns(list) {
   }
 }
 
-function wrapInvoiceOrder(o) {
-  const items = (o.items || []).map((i) => ({
-    name: i.name,
-    partNo: i.part_no || i.partNo || '',
-    price: i.price || 0,
-    qty: i.qty || 1,
-    total: i.total || (i.price || 0) * (i.qty || 1),
-  }))
-  return {
-    id: o.id,
-    createdAt: o.createdAt,
-    subtotal: items.reduce((n, i) => n + i.total, 0),
-    delivery: o.delivery || 0,
-    total: o.total || items.reduce((n, i) => n + i.total, 0),
-    items,
-    name: o.name || o.email || 'Customer',
-    phone: o.phone || '—',
-    email: o.email || '',
-    gstin: o.gstin || '',
-    address: o.address || { line1: '—', line2: '', city: '—', state: '—', pincode: '—' },
-  }
-}
-
 export default function Returns() {
   const { notify } = useStore()
   const [returns, setReturns] = useState(readReturns)
@@ -66,11 +40,6 @@ export default function Returns() {
     reason: REASONS[0],
     notes: '',
   })
-
-  const [invEmail, setInvEmail] = useState('')
-  const [orders, setOrders] = useState(null)
-  const [invState, setInvState] = useState('idle')
-  const [invError, setInvError] = useState('')
 
   const submitReturn = (e) => {
     e.preventDefault()
@@ -91,39 +60,6 @@ export default function Returns() {
     setForm({ ...form, orderId: '', product: '', notes: '' })
   }
 
-  const loadOrders = useCallback(async (email) => {
-    setInvState('loading')
-    setInvError('')
-    try {
-      const list = await fetchOrders(email)
-      setOrders(list)
-      setInvState('ready')
-    } catch (err) {
-      setOrders(null)
-      setInvError(err.message || 'Orders service unavailable')
-      setInvState('error')
-    }
-  }, [])
-
-  const onInvoice = (e) => {
-    e.preventDefault()
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(invEmail.trim())) {
-      setInvError('Enter a valid email')
-      setInvState('error')
-      return
-    }
-    loadOrders(invEmail.trim())
-  }
-
-  const doDownload = (o) => {
-    try {
-      downloadInvoice(wrapInvoiceOrder(o))
-      notify('Invoice downloaded')
-    } catch {
-      notify('Could not generate invoice')
-    }
-  }
-
   return (
     <div className="container">
       <nav className="crumbs" aria-label="Breadcrumb">
@@ -136,7 +72,7 @@ export default function Returns() {
         <div>
           <div className="sec-kicker">7-day easy returns · warranty claims</div>
           <h1>Returns &amp; warranty centre</h1>
-          <p>Raise a return or warranty claim, track its status, and download your GST invoice.</p>
+          <p>Raise a return or warranty claim and track its status.</p>
         </div>
       </div>
 
@@ -262,55 +198,6 @@ export default function Returns() {
           )}
         </section>
       </div>
-
-      <section className="card returns-invoice-card">
-        <h2>Download GST invoice</h2>
-        <p className="returns-form-sub">
-          Enter the email used at checkout to list your orders and download a tax invoice for each.
-        </p>
-        <form className="orders-search" onSubmit={onInvoice}>
-          <IconSearch width="18" height="18" />
-          <input
-            className="orders-input"
-            type="email"
-            placeholder="you@example.com"
-            value={invEmail}
-            onChange={(e) => setInvEmail(e.target.value)}
-            aria-label="Invoice email"
-          />
-          <button className="btn btn-primary" type="submit">
-            Find invoices
-          </button>
-        </form>
-
-        {invState === 'loading' && (
-          <div className="co-loading" style={{ padding: '24px 0' }}>
-            <span className="spinner" />
-            <p>Loading orders…</p>
-          </div>
-        )}
-
-        {invState === 'error' && <p className="returns-invoice-error">{invError}</p>}
-
-        {invState === 'ready' && orders.length === 0 && (
-          <p className="returns-empty">No orders found for that email.</p>
-        )}
-
-        {invState === 'ready' && orders.length > 0 && (
-          <ul className="invoice-list">
-            {orders.map((o) => (
-              <li key={o.id} className="invoice-row">
-                <span className="invoice-id">{o.id}</span>
-                <span className="invoice-date">{new Date(o.createdAt).toLocaleString('en-IN')}</span>
-                <span className="invoice-total">{inr((o.items || []).reduce((n, i) => n + (i.total || i.price * i.qty || 0), 0) || o.total)}</span>
-                <button className="btn btn-sm btn-primary" onClick={() => doDownload(o)}>
-                  <IconDownload width="14" height="14" /> Download
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
     </div>
   )
 }
