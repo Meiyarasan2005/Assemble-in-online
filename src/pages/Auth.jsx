@@ -2,7 +2,6 @@ import { useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useStore } from '../context/useStore'
 import { sendOtp, verifyOtp } from '../lib/api'
-import { sendOtpEmail } from '../lib/otp-mail'
 import {
   IconArrowLeft,
   IconArrowRight,
@@ -39,6 +38,7 @@ export default function Auth() {
 
   const [otpStep, setOtpStep] = useState(false)
   const [otp, setOtp] = useState('')
+  const [ devOtp, setDevOtp ] = useState('')
   const [otpBusy, setOtpBusy] = useState(false)
   const [otpVerified, setOtpVerified] = useState(() => {
     try {
@@ -82,7 +82,7 @@ export default function Auth() {
     setOtpBusy(true)
     try {
       const res = await sendOtp(regForm.email.trim())
-      await sendOtpEmail({ to_email: regForm.email.trim(), otp: res.otp || '' })
+      setDevOtp(res.otp && res.dev ? res.otp : '')
       setOtpStep(true)
       setOtpCountdown(60)
       const interval = setInterval(() => {
@@ -250,6 +250,11 @@ export default function Auth() {
                 <p className="auth-lead">
                   We sent a 6-digit code to <strong>{regForm.email}</strong>. Enter it below to continue.
                 </p>
+                {import.meta.env.DEV && devOtp && (
+                  <p className="co-error dev-otp-note">
+                    Dev preview — your code is <strong>{devOtp}</strong>
+                  </p>
+                )}
                 <label className="co-field">
                   <span>Verification code</span>
                   <input
