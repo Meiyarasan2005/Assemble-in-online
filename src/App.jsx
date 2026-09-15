@@ -23,6 +23,7 @@ import Returns from './pages/Returns'
 import Garage from './pages/Garage'
 import SearchPage from './pages/SearchPage'
 import Contact from './pages/Contact'
+import Admin from './pages/Admin'
 import WhatsAppChat from './components/WhatsAppChat'
 
 function ScrollToTop() {
@@ -56,6 +57,7 @@ function Shell() {
               <Route path="/returns" element={<Returns />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/search" element={<SearchPage />} />
+              <Route path="/admin" element={<Admin />} />
               <Route path="*" element={<Home />} />
             </Routes>
           </PageTransition>

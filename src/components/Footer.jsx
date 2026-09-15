@@ -62,7 +62,10 @@ export default function Footer() {
       <div className="footer-bottom">
         <div className="footer-bottom-inner container">
           <span>© 2026 Assemble-on-line Retail & Trade Pvt. Ltd.</span>
-          <span className="footer-trust">GST invoices · Secure payments · Verified fitment</span>
+          <span className="footer-trust">Genuine parts · Secure checkout · Verified fitment</span>
+          <span className="footer-admin-link">
+            <Link to="/admin">Seller admin</Link>
+          </span>
         </div>
       </div>
     </footer>
