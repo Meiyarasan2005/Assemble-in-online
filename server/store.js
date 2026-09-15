@@ -29,7 +29,7 @@ import {
   updateCustomerProfile,
   verifyEmailDomain,
 } from './customer-auth.js'
-import { userFromToken as adminUserFromToken, createSession as createAdminSession, destroySession as destroyAdminSession } from './auth.js'
+import { userFromToken as adminUserFromToken, createSession as createAdminSession, destroySession as destroyAdminSession, hashPassword } from './auth.js'
 import { sendOtpMail, smtpConfigured } from './mail.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -238,6 +238,89 @@ router.post('/auth/password', async (req, res) => {
     res.json({ ok: true })
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message })
+  }
+})
+
+router.post('/auth/forgot-password', async (req, res) => {
+  try {
+    const email = String(req.body?.email ?? '').trim().toLowerCase()
+    if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      return res.status(400).json({ error: 'Enter a valid email address' })
+    }
+
+    const row = await db.customers.findOne({ _id: email })
+    if (!row || !row.password_hash) {
+      return res.status(404).json({ error: 'No account found for this email' })
+    }
+
+    const otp = generateOtp()
+    const expires_at = new Date(Date.now() + OTP_EXPIRY_MS)
+
+    await db.otp_codes.deleteMany({ _id: email })
+    await db.otp_codes.insertOne({ _id: email, otp, expires_at, created_at: new Date() })
+
+    if (smtpConfigured()) {
+      try {
+        await sendOtpMail({ to: email, otp, expiresMinutes: OTP_EXPIRY_MS / 60000 })
+      } catch (err) {
+        await db.otp_codes.deleteOne({ _id: email })
+        console.error('[forgot-password][mail]', err)
+        return res.status(502).json({
+          error: 'We could not email the reset code — please try again or contact support',
+        })
+      }
+      return res.json({ ok: true })
+    }
+
+    const dev = process.env.NODE_ENV !== 'production'
+    if (dev) console.log(`[forgot-password][dev] ${email} -> ${otp}`)
+    res.json({ ok: true, dev, otp })
+  } catch (err) {
+    console.error('[forgot-password]', err)
+    res.status(500).json({ error: 'Failed to send reset code' })
+  }
+})
+
+router.put('/auth/reset-password', async (req, res) => {
+  try {
+    const email = String(req.body?.email ?? '').trim().toLowerCase()
+    const otp = String(req.body?.otp ?? '').trim()
+    const password = String(req.body?.password ?? '')
+
+    if (!email || !otp) {
+      return res.status(400).json({ error: 'Email and reset code are required' })
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' })
+    }
+
+    const record = await db.otp_codes.findOne({ _id: email })
+    if (!record) {
+      return res.status(400).json({ error: 'No reset code found. Please request a new one.' })
+    }
+    if (new Date() > new Date(record.expires_at)) {
+      await db.otp_codes.deleteOne({ _id: email })
+      return res.status(400).json({ error: 'Reset code expired. Please request a new one.' })
+    }
+    if (record.otp !== otp) {
+      return res.status(400).json({ error: 'Incorrect reset code' })
+    }
+
+    const row = await db.customers.findOne({ _id: email })
+    if (!row || !row.password_hash) {
+      return res.status(404).json({ error: 'No account found for this email' })
+    }
+
+    const { salt, hash } = hashPassword(password)
+    await db.customers.updateOne(
+      { _id: email },
+      { $set: { salt, password_hash: hash, updated_at: now() } },
+    )
+    await db.otp_codes.deleteOne({ _id: email })
+    res.json({ ok: true })
+  } catch (err) {
+    console.error('[reset-password]', err)
+    res.status(500).json({ error: 'Could not reset password' })
   }
 })
 

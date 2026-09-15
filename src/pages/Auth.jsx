@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useStore } from '../context/useStore'
-import { sendOtp, verifyOtp } from '../lib/api'
+import { sendOtp, verifyOtp, forgotOtp, resetPassword } from '../lib/api'
 import { sendOtpEmail } from '../lib/otp-mail'
 import {
   IconArrowLeft,
@@ -49,6 +49,11 @@ export default function Auth() {
     return false
   })
   const [otpCountdown, setOtpCountdown] = useState(0)
+  const [forgot, setForgot] = useState({ step: '', email: '', otp: '', password: '', confirm: '' })
+  const [forgotBusy, setForgotBusy] = useState(false)
+  const [forgotError, setForgotError] = useState('')
+  const [forgotDevOtp, setForgotDevOtp] = useState('')
+  const [forgotCountdown, setForgotCountdown] = useState(0)
   const verifiedEmailRef = useRef((() => {
     try {
       const saved = JSON.parse(localStorage.getItem('meispare-otp-verified') || 'null')
@@ -105,6 +110,61 @@ export default function Auth() {
       )
     }
     setOtpBusy(false)
+  }
+
+  const startForgot = async (e) => {
+    e.preventDefault()
+    setForgotError('')
+    if (!EMAIL_RE.test(forgot.email.trim())) return setForgotError('Enter a valid email')
+    setForgotBusy(true)
+    try {
+      const res = await forgotOtp(forgot.email.trim())
+      if (res.otp) {
+        await sendOtpEmail({ to_email: forgot.email.trim(), otp: res.otp })
+      }
+      setForgotDevOtp(res.otp && res.dev ? res.otp : '')
+      setForgot((f) => ({ ...f, step: 'reset' }))
+      setForgotCountdown(60)
+      const interval = setInterval(() => {
+        setForgotCountdown((c) => {
+          if (c <= 1) { clearInterval(interval); return 0 }
+          return c - 1
+        })
+      }, 1000)
+    } catch (err) {
+      console.error('[startForgot]', err)
+      const detail = err?.text || err?.message || ''
+      setForgotError(
+        detail
+          ? `Could not send reset code: ${detail}`
+          : 'Could not send the reset code to your email — please try again',
+      )
+    }
+    setForgotBusy(false)
+  }
+
+  const submitReset = async (e) => {
+    e.preventDefault()
+    setForgotError('')
+    if (!forgot.otp.trim() || forgot.otp.trim().length !== 6) return setForgotError('Enter the 6-digit code')
+    if (forgot.password.length < 6) return setForgotError('New password must be at least 6 characters')
+    if (forgot.password !== forgot.confirm) return setForgotError('Passwords do not match')
+    setForgotBusy(true)
+    try {
+      await resetPassword({
+        email: forgot.email.trim(),
+        otp: forgot.otp.trim(),
+        password: forgot.password,
+      })
+      showToast('Password updated — please log in')
+      setLoginForm((f) => ({ ...f, email: forgot.email.trim() }))
+      setForgot({ step: '', email: '', otp: '', password: '', confirm: '' })
+      setForgotDevOtp('')
+      setTab('login')
+    } catch (err) {
+      setForgotError(err.message || 'Could not reset password')
+    }
+    setForgotBusy(false)
   }
 
   const submitOtp = async () => {
@@ -209,7 +269,100 @@ export default function Auth() {
 
           <div className="auth-body">
             {tab === 'login' ? (
-              <form className="auth-form" onSubmit={submitLogin}>
+              forgot.step === 'send' ? (
+                <form className="auth-form" onSubmit={startForgot}>
+                  <h2>Reset your password</h2>
+                  <p className="auth-lead">
+                    Enter the email you signed up with and we'll send a 6-digit reset code.
+                  </p>
+                  <label className="co-field">
+                    <span>Email address</span>
+                    <input
+                      className="input"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={forgot.email}
+                      onChange={(e) => setForgot((f) => ({ ...f, email: e.target.value }))}
+                      autoComplete="email"
+                    />
+                  </label>
+                  {forgotError && <p className="co-error">{forgotError}</p>}
+                  <button className="btn btn-primary btn-block" type="submit" disabled={forgotBusy}>
+                    {forgotBusy ? 'Sending…' : 'Send reset code'}
+                    {!forgotBusy && <IconArrowRight width="16" height="16" />}
+                  </button>
+                  <p className="auth-switch">
+                    <button type="button" onClick={() => { setForgot((f) => ({ ...f, step: '' })); setForgotError('') }}>
+                      ← Back to log in
+                    </button>
+                  </p>
+                </form>
+              ) : forgot.step === 'reset' ? (
+                <form className="auth-form" onSubmit={submitReset}>
+                  <h2>Set a new password</h2>
+                  <p className="auth-lead">
+                    We sent a 6-digit code to <strong>{forgot.email}</strong>. Enter it with your new password below.
+                  </p>
+                  {import.meta.env.DEV && forgotDevOtp && (
+                    <p className="co-error dev-otp-note">
+                      Dev preview — your code is <strong>{forgotDevOtp}</strong>
+                    </p>
+                  )}
+                  <label className="co-field">
+                    <span>Reset code</span>
+                    <input
+                      className="input"
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      placeholder="000000"
+                      value={forgot.otp}
+                      onChange={(e) => setForgot((f) => ({ ...f, otp: e.target.value.replace(/\D/g, '').slice(0, 6) }))}
+                      autoFocus
+                    />
+                  </label>
+                  <label className="co-field">
+                    <span>New password</span>
+                    <input
+                      className="input"
+                      type="password"
+                      placeholder="At least 6 characters"
+                      value={forgot.password}
+                      onChange={(e) => setForgot((f) => ({ ...f, password: e.target.value }))}
+                      autoComplete="new-password"
+                    />
+                  </label>
+                  <label className="co-field">
+                    <span>Confirm new password</span>
+                    <input
+                      className="input"
+                      type="password"
+                      placeholder="Repeat new password"
+                      value={forgot.confirm}
+                      onChange={(e) => setForgot((f) => ({ ...f, confirm: e.target.value }))}
+                      autoComplete="new-password"
+                    />
+                  </label>
+                  {forgotError && <p className="co-error">{forgotError}</p>}
+                  <button className="btn btn-primary btn-block" type="submit" disabled={forgotBusy}>
+                    {forgotBusy ? 'Resetting…' : 'Reset password'}
+                    {!forgotBusy && <IconCheck width="16" height="16" />}
+                  </button>
+                  <p className="auth-switch">
+                    {forgotCountdown > 0 ? (
+                      <span>Resend code in {forgotCountdown}s</span>
+                    ) : (
+                      <button type="button" onClick={startForgot}>Resend code</button>
+                    )}
+                  </p>
+                  <p className="auth-switch">
+                    <button type="button" onClick={() => { setForgot((f) => ({ ...f, step: '' })); setForgotError(''); setForgotDevOtp('') }}>
+                      ← Back to log in
+                    </button>
+                  </p>
+                </form>
+              ) : (
+                <form className="auth-form" onSubmit={submitLogin}>
                 <h2>Log in to your account</h2>
                 <p className="auth-lead">
                   You'll need an account to place an order. Browse the catalogue freely until checkout.
@@ -242,12 +395,18 @@ export default function Auth() {
                   {!busy && <IconArrowRight width="16" height="16" />}
                 </button>
                 <p className="auth-switch">
+                  <button type="button" onClick={() => { setForgot((f) => ({ ...f, step: 'send' })); setError('') }}>
+                    Forgot password?
+                  </button>
+                </p>
+                <p className="auth-switch">
                   New here?{' '}
                   <button type="button" onClick={() => { setTab('register'); setError('') }}>
                     Create an account
                   </button>
                 </p>
               </form>
+              )
             ) : otpStep ? (
               <div className="auth-form">
                 <h2>Verify your email</h2>

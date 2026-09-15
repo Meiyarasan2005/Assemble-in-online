@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { formatINR, getCategory, getProduct, interchangesFor, products as allProducts, preownedProducts, reviews as allReviews } from '../data'
+import { formatINR, getCategory, getProduct, interchangesFor, products as allProducts, preownedProducts } from '../data'
 import { useStore } from '../context/useStore'
 import { useSeller } from '../context/useSeller'
 import useCatalog from '../hooks/useCatalog'
@@ -9,7 +9,6 @@ import ProductCard from '../components/ProductCard'
 import ImageZoom from '../components/ImageZoom'
 import FitmentWizard from '../components/FitmentWizard'
 import PartLookup from '../components/PartLookup'
-import ReviewSection from '../components/ReviewSection'
 import {
   IconArrowLeft,
   IconArrowRight,
@@ -86,8 +85,6 @@ export default function ProductDetail() {
   const related = [...allProducts, ...preownedProducts]
     .filter((p) => p.category === product.category && p.id !== product.id)
     .slice(0, 4)
-
-  const productReviews = allReviews[product.id] || []
 
   const sellerField = (field) => sellerDraft[field] ?? product[field]
 
@@ -480,8 +477,6 @@ export default function ProductDetail() {
           <PartLookup />
         </div>
       </div>
-
-      <ReviewSection reviews={productReviews} rating={product.rating} />
 
       {related.length > 0 && (
         <section className="sec">
