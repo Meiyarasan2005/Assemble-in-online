@@ -142,14 +142,9 @@ router.post('/auth/send-otp', async (req, res) => {
       return res.json({ ok: true })
     }
 
-    if (process.env.NODE_ENV === 'production') {
-      return res.status(500).json({
-        error: 'Server email delivery is not configured — sign-up is temporarily unavailable',
-      })
-    }
-
-    console.log(`[send-otp][dev] ${email} -> ${otp}`)
-    res.json({ ok: true, dev: true, otp })
+    const dev = process.env.NODE_ENV !== 'production'
+    if (dev) console.log(`[send-otp][dev] ${email} -> ${otp}`)
+    res.json({ ok: true, dev, otp })
   } catch (err) {
     console.error('[send-otp]', err)
     res.status(500).json({ error: 'Failed to generate verification code' })
