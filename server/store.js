@@ -30,6 +30,7 @@ import {
   verifyEmailDomain,
 } from './customer-auth.js'
 import { userFromToken as adminUserFromToken, createSession as createAdminSession, destroySession as destroyAdminSession } from './auth.js'
+import { sendOtpMail, smtpConfigured } from './mail.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const uploadsDir = join(__dirname, 'public', 'uploads')
@@ -128,7 +129,27 @@ router.post('/auth/send-otp', async (req, res) => {
     await db.otp_codes.deleteMany({ _id: email })
     await db.otp_codes.insertOne({ _id: email, otp, expires_at, created_at: new Date() })
 
-    res.json({ ok: true, otp })
+    if (smtpConfigured()) {
+      try {
+        await sendOtpMail({ to: email, otp, expiresMinutes: OTP_EXPIRY_MS / 60000 })
+      } catch (err) {
+        await db.otp_codes.deleteOne({ _id: email })
+        console.error('[send-otp][mail]', err)
+        return res.status(502).json({
+          error: 'We could not email the verification code — please try again or contact support',
+        })
+      }
+      return res.json({ ok: true })
+    }
+
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(500).json({
+        error: 'Server email delivery is not configured — sign-up is temporarily unavailable',
+      })
+    }
+
+    console.log(`[send-otp][dev] ${email} -> ${otp}`)
+    res.json({ ok: true, dev: true, otp })
   } catch (err) {
     console.error('[send-otp]', err)
     res.status(500).json({ error: 'Failed to generate verification code' })

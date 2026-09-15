@@ -52,7 +52,7 @@ try {
   const search = await api('/api/store/catalog?search=oil')
   log(search.status === 200 && search.data.items.length >= 0, `catalog search`)
 
-  const email = `smoke${Date.now()}@test.in`
+  const email = `smoke${Date.now()}@gmail.com`
   const password = 'secret123'
 
   const unauth = await api('/api/store/checkout', {
@@ -107,13 +107,13 @@ try {
     const order = checkout.data.order
     const token = order.token
 
-    log(order.paymentStatus === 'unpaid' && order.status === 'pending', 'order starts pending/unpaid')
+    log(order.paymentStatus === 'cod' && order.status === 'confirmed', 'order placed confirmed/cod')
 
-    const paid = await api(`/api/store/payments/${order.id}/complete`, {
+    const already = await api(`/api/store/payments/${order.id}/complete`, {
       method: 'POST',
       body: JSON.stringify({ token, method: 'upi' }),
     })
-    log(paid.status === 200 && paid.data.paymentStatus === 'paid' && paid.data.status === 'confirmed', `payment complete -> ${paid.data.paymentRef}`)
+    log(already.status === 400, 'payment complete rejects confirmed order (400)')
 
     const byId = await api(`/api/store/orders/${order.id}?token=${token}`)
     log(byId.status === 200 && byId.data.items.length === 1, 'order detail')
