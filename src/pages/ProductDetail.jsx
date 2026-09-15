@@ -15,9 +15,7 @@ import {
   IconCheck,
   IconClock,
   IconHeart,
-  IconMinus,
   IconPhone,
-  IconPlus,
   IconShield,
   IconStar,
   IconTruck,
@@ -28,10 +26,9 @@ import {
 export default function ProductDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { addToCart, wishlist, toggleWishlist } = useStore()
+  const { wishlist, toggleWishlist } = useStore()
   const { isSeller, updateProduct, uploadImages, bumpCatalog } = useSeller()
   const { products, catalog } = useCatalog()
-  const [qty, setQty] = useState(1)
   const [sellerDraft, setSellerDraft] = useState({})
   const [sellerSaving, setSellerSaving] = useState(false)
   const [sellerMsg, setSellerMsg] = useState('')
@@ -79,7 +76,6 @@ export default function ProductDetail() {
 
   const cat = getCategory(product.category)
   const pre = Boolean(product.condition)
-  const out = product.stock === 0
   const wished = wishlist.includes(product.id)
   const xrefs = interchangesFor(product.partNo)
   const related = [...allProducts, ...preownedProducts]
@@ -387,54 +383,17 @@ export default function ProductDetail() {
           )}
 
           <div className="pd-buy-box">
-            {pre ? (
-              <>
-                <a className="btn pd-btn-call" href="tel:+919003344069">
-                  <IconPhone width="16" height="16" /> Call us
-                </a>
-                <a
-                  className="btn pd-btn-wa"
-                  href={`https://wa.me/9003344069?text=${encodeURIComponent(`Hi, I'm interested in this pre-owned part: ${product.name} (${product.partNo})`)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <IconWhatsApp width="16" height="16" /> WhatsApp
-                </a>
-              </>
-            ) : (
-              <>
-                <div className="pd-buy-qty">
-                  <button
-                    className="pd-qty-btn"
-                    onClick={() => setQty((n) => Math.max(1, n - 1))}
-                    disabled={qty <= 1}
-                  >
-                    <IconMinus width="14" height="14" />
-                  </button>
-                  <span className="pd-qty-val">{qty}</span>
-                  <button
-                    className="pd-qty-btn"
-                    onClick={() => setQty((n) => n + 1)}
-                  >
-                    <IconPlus width="14" height="14" />
-                  </button>
-                </div>
-                <button
-                  className="btn btn-primary pd-btn-cart"
-                  disabled={out}
-                  onClick={() => addToCart(product.id, qty, product)}
-                >
-                  {out ? 'Out of stock' : 'ADD TO CART'}
-                </button>
-                <button
-                  className="btn pd-btn-buy"
-                  disabled={out}
-                  onClick={() => { addToCart(product.id, qty, product); navigate('/checkout') }}
-                >
-                  BUY NOW
-                </button>
-              </>
-            )}
+            <a className="btn pd-btn-call" href="tel:+919003344069">
+              <IconPhone width="16" height="16" /> Call us
+            </a>
+            <a
+              className="btn pd-btn-wa"
+              href={`https://wa.me/9003344069?text=${encodeURIComponent(`Hi, I'm interested in this part: ${product.name} (${product.partNo})`)}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <IconWhatsApp width="16" height="16" /> WhatsApp
+            </a>
           </div>
 
           <div className="pd-trust-row">
