@@ -81,6 +81,16 @@ export default function Shop() {
     if (window.innerWidth <= 980) setShowFilters(false)
   }
 
+  const applyVehicle = (value) => {
+    const next = new URLSearchParams(params)
+    if (value === '' || value == null) next.delete('vehicle')
+    else next.set('vehicle', value)
+    if (value === '' || value == null) next.delete('fitment')
+    else next.set('fitment', '1')
+    setParams(next, { replace: true })
+    if (window.innerWidth <= 980) setShowFilters(false)
+  }
+
   const toggleBrand = (b) => {
     const list = selectedBrands.includes(b)
       ? selectedBrands.filter((x) => x !== b)
@@ -172,7 +182,7 @@ export default function Shop() {
             <strong>{vehicle ? 'Fitment applied' : 'Find parts for your car'}</strong>
             <span>{vehicle ? `Showing parts for ${vehicle.make} ${vehicle.model}` : 'Pick your car to see compatible parts.'}</span>
           </div>
-          <select className="select fitment-select" value={vehicleId} onChange={(e) => { setParam('vehicle', e.target.value); setParam('fitment', '1') }} aria-label="Select vehicle">
+          <select className="select fitment-select" value={vehicleId} onChange={(e) => applyVehicle(e.target.value)} aria-label="Select vehicle">
             <option value="">Select vehicle…</option>
             {allVehicles.map((v) => (
               <option key={v.id} value={v.id}>{v.make} {v.model} · {v.years}</option>
@@ -223,7 +233,7 @@ export default function Shop() {
 
           <div className="fgroup">
             <span className="fgroup-title">Vehicle</span>
-            <select className="select" value={vehicleId} onChange={(e) => { setParam('vehicle', e.target.value); setParam('fitment', e.target.value ? '1' : '') }} aria-label="Filter by vehicle">
+            <select className="select" value={vehicleId} onChange={(e) => applyVehicle(e.target.value)} aria-label="Filter by vehicle">
               <option value="">All vehicles</option>
               {allVehicles.map((v) => (
                 <option key={v.id} value={v.id}>{v.make} {v.model}</option>
