@@ -6,7 +6,6 @@ import { sendOtpEmail } from '../lib/otp-mail'
 import {
   IconArrowLeft,
   IconArrowRight,
-  IconBox,
   IconCheck,
   IconLock,
   IconShield,
@@ -234,9 +233,6 @@ export default function Auth() {
           <p className="account-email">{customer.email}</p>
           <p className="account-phone">+91 {customer.phone}</p>
           <div className="account-actions">
-            <Link to="/orders" className="btn btn-primary">
-              <IconBox width="16" height="16" /> My orders
-            </Link>
             <Link to="/profile" className="btn btn-ghost">
               <IconUser width="16" height="16" /> Edit profile
             </Link>
@@ -365,7 +361,7 @@ export default function Auth() {
                 <form className="auth-form" onSubmit={submitLogin}>
                 <h2>Log in to your account</h2>
                 <p className="auth-lead">
-                  You'll need an account to place an order. Browse the catalogue freely until checkout.
+                  You'll need an account to place an order. Browse the catalogue freely until then.
                 </p>
                 <label className="co-field">
                   <span>Email address</span>

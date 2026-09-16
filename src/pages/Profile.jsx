@@ -15,7 +15,6 @@ import {
   IconCheck,
   IconLock,
   IconMapPin,
-  IconPackage,
   IconPlus,
   IconTrash,
   IconUser,
@@ -313,7 +312,6 @@ export default function Profile() {
           </div>
 
           <div className="card profile-card profile-links">
-            <Link to="/orders"><IconPackage width="16" height="16" /> Track my orders <IconArrowRight width="14" height="14" /></Link>
             <Link to="/account"><IconUser width="16" height="16" /> My account <IconArrowRight width="14" height="14" /></Link>
           </div>
         </div>

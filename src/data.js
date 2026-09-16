@@ -138,6 +138,27 @@ export const brands = [
   'Valeo',
 ]
 
+export const carBrandLogos = {
+  'Maruti Suzuki': 'maruti-suzuki',
+  Hyundai: 'hyundai',
+  Tata: 'tata',
+  Mahindra: 'mahindra',
+  Toyota: 'toyota',
+  Honda: 'honda',
+  Kia: 'kia',
+  Volkswagen: 'volkswagen',
+  Skoda: 'skoda',
+  Renault: 'renault',
+  Nissan: 'nissan',
+  MG: 'mg',
+  Ford: 'ford',
+  Jeep: 'jeep',
+  'Mercedes-Benz': 'mercedes-benz',
+  BMW: 'bmw',
+  Audi: 'audi',
+  Citroën: 'citroen',
+}
+
 const fitsAll = () => vehicles.map((v) => v.id)
 const idsByMake = (...makes) => vehicles.filter((v) => makes.includes(v.make)).map((v) => v.id)
 

@@ -6,16 +6,11 @@ import Header from './components/Header'
 import BottomNav from './components/BottomNav'
 
 import Footer from './components/Footer'
-import CartDrawer from './components/CartDrawer'
 import Toast from './components/Toast'
 import PageTransition from './components/PageTransition'
 import Home from './pages/Home'
 import Shop from './pages/Shop'
 import ProductDetail from './pages/ProductDetail'
-import Checkout from './pages/Checkout'
-import OrderConfirm from './pages/OrderConfirm'
-import Orders from './pages/Orders'
-import Track from './pages/Track'
 import Auth from './pages/Auth'
 import Profile from './pages/Profile'
 import Wishlist from './pages/Wishlist'
@@ -46,12 +41,8 @@ function Shell() {
               <Route path="/" element={<Home />} />
               <Route path="/shop" element={<Shop />} />
               <Route path="/product/:id" element={<ProductDetail />} />
-              <Route path="/checkout" element={<Checkout />} />
               <Route path="/account" element={<Auth />} />
               <Route path="/profile" element={<Profile />} />
-              <Route path="/order/:id" element={<OrderConfirm />} />
-              <Route path="/orders" element={<Orders />} />
-              <Route path="/track" element={<Track />} />
               <Route path="/wishlist" element={<Wishlist />} />
               <Route path="/garage" element={<Garage />} />
               <Route path="/returns" element={<Returns />} />
@@ -64,7 +55,6 @@ function Shell() {
         </main>
         <Footer />
       </div>
-      <CartDrawer />
       <BottomNav />
       <WhatsAppChat />
       <Toast />

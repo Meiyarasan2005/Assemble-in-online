@@ -51,7 +51,6 @@ export default function Footer() {
 
           <div className="footer-col">
             <strong>Support</strong>
-            <Link to="/track">Track your order</Link>
             <Link to="/returns">Returns &amp; warranty</Link>
             <Link to="/wishlist">Wishlist</Link>
             <a href="#help">Help centre</a>
@@ -62,7 +61,7 @@ export default function Footer() {
       <div className="footer-bottom">
         <div className="footer-bottom-inner container">
           <span>© 2026 Assemble-on-line Retail & Trade Pvt. Ltd.</span>
-          <span className="footer-trust">Genuine parts · Secure checkout · Verified fitment</span>
+          <span className="footer-trust">Genuine parts · Order on WhatsApp · Verified fitment</span>
           <span className="footer-admin-link">
             <Link to="/admin">Seller admin</Link>
           </span>
