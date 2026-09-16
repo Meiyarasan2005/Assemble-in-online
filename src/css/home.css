@@ -450,8 +450,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 18px 8px 14px;
+  justify-content: center;
+  gap: 10px;
+  min-height: 96px;
+  padding: 16px 10px 12px;
   cursor: pointer;
   transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
@@ -460,6 +462,21 @@
   border-color: var(--accent);
   box-shadow: 0 2px 8px rgba(255, 106, 0, 0.12);
   transform: translateY(-2px);
+}
+
+.brand-tile-logo {
+  width: 100%;
+  max-width: 110px;
+  height: 40px;
+  object-fit: contain;
+  filter: grayscale(1);
+  opacity: 0.85;
+  transition: filter 0.2s ease, opacity 0.2s ease;
+}
+
+.brand-tile:hover .brand-tile-logo {
+  filter: grayscale(0);
+  opacity: 1;
 }
 
 .brand-tile-initial {

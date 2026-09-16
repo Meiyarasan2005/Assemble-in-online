@@ -18,6 +18,8 @@ const SORTS = [
   { id: 'discount', label: 'Biggest Saving' },
 ]
 
+export const BRAND_MAKES = [...new Set(dataVehicles.map((v) => v.make))]
+
 function productName(p) { return (p.name || '').toLowerCase() }
 
 function applySort(list, sort) {
@@ -52,6 +54,7 @@ export default function Shop() {
   const cat = params.get('cat') || ''
   const q = params.get('q') || ''
   const vehicleId = params.get('vehicle') || ''
+  const makeParam = params.get('make') || ''
   const fitmentOpen = params.get('fitment') === '1'
   const sort = params.get('sort') || 'featured'
   const brandsParam = params.get('brands') || ''
@@ -62,7 +65,7 @@ export default function Shop() {
   const inStock = params.get('inStock') === '1'
 
   useEffect(() => {
-    if (!params.get('vehicle') && !params.get('cat') && activeVehicle) {
+    if (!params.get('vehicle') && !params.get('cat') && !params.get('make') && activeVehicle) {
       const next = new URLSearchParams(params)
       next.set('vehicle', activeVehicle)
       next.set('fitment', '1')
@@ -113,30 +116,39 @@ export default function Shop() {
       )
     }
     if (selectedBrands.length) list = list.filter((p) => selectedBrands.includes(p.brand))
+    if (makeParam) {
+      const makes = new Set(BRAND_MAKES)
+      if (makes.has(makeParam)) {
+        const makeVehicles = new Set(dataVehicles.filter((v) => v.make === makeParam).map((v) => v.id))
+        list = list.filter((p) => p.fits.some((f) => makeVehicles.has(f)))
+      }
+    }
     if (inStock) list = list.filter((p) => p.stock > 0)
 
     return applySort(list, sort)
-  }, [cat, q, vehicleId, selectedBrands, inStock, sort, products, allVehicles])
+  }, [cat, q, vehicleId, makeParam, selectedBrands, inStock, sort, products, allVehicles])
 
   const activeCat = categories.find((c) => c.id === cat)
 
   const chips = [
     activeCat && { label: activeCat.name, clear: () => setParam('cat', '') },
     q && { label: `"${q}"`, clear: () => setParam('q', '') },
+    makeParam && { label: makeParam, clear: () => setParam('make', '') },
     vehicle && { label: `${vehicle.make} ${vehicle.model}`, clear: () => { setParam('vehicle', ''); setParam('fitment', '') } },
     ...selectedBrands.map((b) => ({ label: b, clear: () => toggleBrand(b) })),
     inStock && { label: 'In stock only', clear: () => setParam('inStock', '') },
   ].filter(Boolean)
 
-  const hasFilters = cat || q || vehicleId || selectedBrands.length || inStock
+  const hasFilters = cat || q || makeParam || vehicleId || selectedBrands.length || inStock
 
   return (
     <div className="shop container">
       <div className="shop-head">
         <div>
-          <h1 className="shop-title">{activeCat ? activeCat.name : q ? `Results for "${q}"` : 'All Parts'}</h1>
+          <h1 className="shop-title">{activeCat ? activeCat.name : q ? `Results for "${q}"` : makeParam ? `${makeParam} parts` : 'All Parts'}</h1>
           <p className="shop-count">
             <CountUp value={filtered.length} /> {filtered.length === 1 ? 'part' : 'parts'}
+            {makeParam && !vehicle && <> for <strong>{makeParam}</strong></>}
             {vehicle && <> for <strong>{vehicle.make} {vehicle.model}</strong></>}
           </p>
         </div>

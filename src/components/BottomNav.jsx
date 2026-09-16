@@ -1,11 +1,10 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useStore } from '../context/useStore'
-import { IconCart, IconHeart, IconUser, IconSearch, IconHome } from './icons'
+import { IconHeart, IconUser, IconSearch, IconHome } from './icons'
 
 const NAV_ITEMS = [
   { path: '/', label: 'Home', icon: IconHome },
   { path: '/shop', label: 'Shop', icon: IconSearch },
-  { path: '/cart', label: 'Cart', icon: IconCart, isCart: true },
   { path: '/wishlist', label: 'Wishlist', icon: IconHeart, isWish: true },
   { path: '/account', label: 'Account', icon: IconUser },
 ]
@@ -13,14 +12,10 @@ const NAV_ITEMS = [
 export default function BottomNav() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { cartCount, wishlist, setCartOpen, mode, toggleMode } = useStore()
+  const { wishlist, mode, toggleMode } = useStore()
 
   const handleTap = (item) => {
-    if (item.isCart) {
-      setCartOpen(true)
-    } else {
-      navigate(item.path)
-    }
+    navigate(item.path)
   }
 
   return (
@@ -41,7 +36,6 @@ export default function BottomNav() {
             (item.path === '/account' && ['/account', '/profile'].includes(location.pathname))
 
           let count = 0
-          if (item.isCart) count = cartCount
           if (item.isWish) count = wishlist.length
 
           return (

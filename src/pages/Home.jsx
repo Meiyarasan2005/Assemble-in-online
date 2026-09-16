@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   categories,
+  carBrandLogos,
 } from '../data'
 import { fetchOffers } from '../lib/api'
 import { useSeller } from '../context/useSeller'
@@ -156,6 +157,40 @@ function FeaturedParts() {
   )
 }
 
+function BrandSection() {
+  const navigate = useNavigate()
+  return (
+    <section className="sec">
+      <div className="container">
+        <div className="sec-head">
+          <h2>Shop by Brand</h2>
+          <Link to="/shop" className="sec-link">All brands <IconArrowRight width="14" height="14" /></Link>
+        </div>
+        <div className="brand-grid">
+          {Object.entries(carBrandLogos).map(([name, slug]) => (
+            <button
+              key={name}
+              className="brand-tile card"
+              onClick={() => navigate(`/shop?make=${encodeURIComponent(name)}`)}
+            >
+              <img
+                className="brand-tile-logo"
+                src={`/images/brands/${slug}.svg`}
+                alt={`${name} logo`}
+                loading="lazy"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none'
+                }}
+              />
+              <span className="brand-tile-name">{name}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function PromoStrip() {
   const navigate = useNavigate()
   return (
@@ -283,6 +318,7 @@ export default function Home() {
       <HeroCarousel />
       <CategoryMarquee />
       <CategoryShowcase />
+      <BrandSection />
       <OfferZone offers={offers} />
       <FeaturedParts />
       <PromoStrip />

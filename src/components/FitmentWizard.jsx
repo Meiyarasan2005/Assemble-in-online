@@ -101,7 +101,7 @@ export default function FitmentWizard({ product }) {
               <IconTool width="17" height="17" />
               <span>
                 <strong>Same family · verify</strong>
-                Fits {picked.make} vehicles, but {picked.model} isn't on the confirmed list — verify the OEM number at checkout.
+                Fits {picked.make} vehicles, but {picked.model} isn't on the confirmed list — verify the OEM number with our team before ordering.
               </span>
             </>
           )}

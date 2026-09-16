@@ -4,7 +4,6 @@ import { useStore } from '../context/useStore'
 import useCatalog from '../hooks/useCatalog'
 import { findInterchanges, interchangesFor } from '../data'
 import {
-  IconCart,
   IconSearch,
   IconUser,
   IconHeart,
@@ -14,7 +13,7 @@ import {
 
 export default function Header() {
   const navigate = useNavigate()
-  const { cartCount, setCartOpen, isAuthed, customer, wishlist, mode, toggleMode } = useStore()
+  const { isAuthed, customer, wishlist, mode, toggleMode } = useStore()
   const { products } = useCatalog()
   const [query, setQuery] = useState('')
   const [focus, setFocus] = useState(false)
@@ -112,12 +111,6 @@ export default function Header() {
             <button className="header-btn" onClick={() => navigate('/account')}>
               <IconUser width="16" height="16" />
               <span className="header-btn-text">{isAuthed ? (customer?.name?.split(' ')[0] || 'Account') : 'Login'}</span>
-            </button>
-
-            <button className="header-btn header-cart-btn" onClick={() => setCartOpen(true)}>
-              <IconCart width="20" height="20" />
-              {cartCount > 0 && <span className="header-badge header-badge-cart">{cartCount}</span>}
-              <span className="header-btn-text">Cart</span>
             </button>
           </div>
 

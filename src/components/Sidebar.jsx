@@ -7,7 +7,6 @@ import {
   IconCar,
   IconGauge,
   IconHeart,
-  IconPackage,
   IconWrench,
   IconPhone,
   IconFilterFlat,
@@ -16,7 +15,6 @@ import {
   IconGear,
   IconBattery,
   IconUser,
-  IconBox,
   IconRefreshCw,
 } from './icons'
 
@@ -111,9 +109,6 @@ export default function Sidebar({ open, onClose }) {
             <span className="nav-label nav-label-gap">Account</span>
             <NavLink to="/account" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
               <IconUser /> My account
-            </NavLink>
-            <NavLink to="/orders" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-              <IconBox /> My orders
             </NavLink>
             <NavLink to="/wishlist" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
               <IconHeart /> Wishlist
