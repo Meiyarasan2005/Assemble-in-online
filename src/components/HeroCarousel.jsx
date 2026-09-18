@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { IconArrowRight, IconChevronLeft, IconChevronRight } from './icons'
+import { fetchHeroSlides } from '../lib/api'
 
 const slides = [
   {
@@ -47,12 +48,31 @@ const slides = [
 
 export default function HeroCarousel() {
   const navigate = useNavigate()
+  const [custom, setCustom] = useState(null)
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
 
-  const go = useCallback((dir) => {
-    setIndex((i) => (i + dir + slides.length) % slides.length)
+  // Admin-uploaded banner slides go live here; fall back to built-ins when none.
+  useEffect(() => {
+    let cancelled = false
+    fetchHeroSlides()
+      .then((data) => {
+        if (cancelled) return
+        const list = Array.isArray(data?.slides) ? data.slides.filter((s) => s?.image && s.active !== false) : []
+        if (list.length) {
+          setCustom(list.map((s, i) => ({ id: `custom-${i}`, image: s.image })))
+          setIndex(0)
+        }
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
   }, [])
+
+  const active = custom ?? slides
+
+  const go = useCallback((dir) => {
+    setIndex((i) => (i + dir + active.length) % active.length)
+  }, [active.length])
 
   useEffect(() => {
     if (paused) return
@@ -67,14 +87,14 @@ export default function HeroCarousel() {
       onMouseLeave={() => setPaused(false)}
     >
       <div className="hero-carousel-track" style={{ transform: `translateX(-${index * 100}%)` }}>
-        {slides.map((s, i) => (
+        {active.map((s, i) => (
           <div
             key={s.id}
             className="hero-carousel-slide"
-            onClick={() => navigate(`/shop?cat=${s.cat}`)}
+            onClick={() => navigate(custom ? '/shop' : `/shop?cat=${s.cat}`)}
           >
-            {i === index ? <SlideContent s={s} navigate={navigate} /> : null}
-            <img className="hero-carousel-img" src={s.image} alt={s.kicker} />
+            {custom ? null : (i === index ? <SlideContent s={s} navigate={navigate} /> : null)}
+            <img className="hero-carousel-img" src={s.image} alt={custom ? `Banner slide ${i + 1}` : s.kicker} />
           </div>
         ))}
       </div>
@@ -95,7 +115,7 @@ export default function HeroCarousel() {
       </button>
 
       <div className="hero-carousel-dots">
-        {slides.map((s, i) => (
+        {active.map((s, i) => (
           <button
             key={s.id}
             className={`hero-dot ${i === index ? 'is-active' : ''}`}

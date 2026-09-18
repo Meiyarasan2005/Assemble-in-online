@@ -921,6 +921,46 @@ router.put('/banner', async (req, res) => {
   res.json(data)
 })
 
+/* ---------- hero slides (homepage banner carousel) ---------- */
+
+const DEFAULT_HERO_SLIDES = []
+
+router.get('/hero-slides', async (_req, res) => {
+  try {
+    const doc = await db.site_settings.findOne({ _id: 'hero-slides' })
+    const slides = Array.isArray(doc?.data?.slides) ? doc.data.slides : DEFAULT_HERO_SLIDES
+    // Return all (including paused) — the storefront shows active ones, the admin manages the rest.
+    res.json({ slides: slides.filter((s) => s && s.image) })
+  } catch {
+    res.json({ slides: DEFAULT_HERO_SLIDES })
+  }
+})
+
+router.put('/hero-slides', async (req, res) => {
+  // Accept either the storefront seller token or the standalone admin token —
+  // both are sessions over the same admin users table.
+  const token = String(req.headers['x-seller-token'] || req.headers['x-admin-token'] || '')
+  const seller = token ? await adminUserFromToken(token) : null
+  if (!seller) return res.status(401).json({ error: 'Seller login required' })
+
+  const raw = Array.isArray(req.body?.slides) ? req.body.slides : []
+  const slides = raw
+    .filter((s) => s && typeof s.image === 'string' && s.image)
+    .slice(0, 10)
+    .map((s, i) => ({
+      image: String(s.image).slice(0, 1500000),
+      active: s.active !== false,
+      sort_order: Number.isFinite(Number(s.sort_order)) ? Number(s.sort_order) : i,
+    }))
+    .sort((a, b) => a.sort_order - b.sort_order)
+  await db.site_settings.updateOne(
+    { _id: 'hero-slides' },
+    { $set: { data: { slides }, updated_at: now(), updated_by: seller.username } },
+    { upsert: true },
+  )
+  res.json({ slides })
+})
+
 /* ---------- seller ---------- */
 
 async function sellerFromToken(req) {

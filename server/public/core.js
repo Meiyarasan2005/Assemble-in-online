@@ -241,6 +241,7 @@
     dashboard: ['Dashboard', 'Store health & recent activity'],
     products: ['Products', 'Catalogue, pricing and stock'],
     offers: ['Offers', 'Storefront promotions, pop-ups and banners'],
+    banners: ['Banners', 'Homepage hero slides — upload an image and it goes live'],
     movements: ['Stock log', 'Every inbound / outbound movement'],
     orders: ['Orders', 'Customer orders, payments and fulfilment'],
     customers: ['Customers', 'Storefront accounts and spending'],
@@ -273,6 +274,7 @@
       if (v === 'dashboard') await window.MS.renderDashboard()
       if (v === 'products') await window.MS.renderProducts()
       if (v === 'offers') await window.MS.renderOffers()
+      if (v === 'banners') await window.MS.renderBanners()
       if (v === 'movements') await window.MS.renderMovements()
       if (v === 'orders') await window.MS.renderOrders()
       if (v === 'customers') await window.MS.renderCustomers()

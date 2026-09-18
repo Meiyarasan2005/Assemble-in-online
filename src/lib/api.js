@@ -244,6 +244,18 @@ export async function updateBanner(payload, token) {
   })
 }
 
+export async function fetchHeroSlides() {
+  return api('/hero-slides')
+}
+
+export async function saveHeroSlides(slides, token) {
+  return api('/hero-slides', {
+    method: 'PUT',
+    body: JSON.stringify({ slides }),
+    headers: token ? { 'x-seller-token': token } : {},
+  })
+}
+
 export async function sendOtp(email) {
   return api('/auth/send-otp', { method: 'POST', body: JSON.stringify({ email }) })
 }
