@@ -214,6 +214,8 @@
       } else {
         await api('/products', { method: 'POST', body: JSON.stringify(body) })
         toast('Product created')
+        // Newest first, so the just-added product lands on top instead of under the list
+        window.MS.state.productFilter.sort = 'updated'
       }
       closeModal()
       window.MS.renderProducts()
