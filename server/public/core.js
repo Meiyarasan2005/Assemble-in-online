@@ -14,16 +14,41 @@
       '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 7v10l9 5 9-5V7l-9-5Z"/><path d="M3 7l9 5 9-5M12 22V12"/></svg>',
   }
 
+  const LIVE_BASE = 'https://assembleonline.in/api'
+
+  // One admin tool, two databases: local test data vs the live website.
+  // Uploads/edits go to whichever target is selected.
+  function tokenKey(t) {
+    return (t || state.apiTarget) === 'live' ? 'ms_admin_token_live' : 'ms_admin_token_local'
+  }
+  function userKey(t) {
+    return (t || state.apiTarget) === 'live' ? 'ms_admin_user_live' : 'ms_admin_user_local'
+  }
+
   const state = {
     view: 'dashboard',
-    token: localStorage.getItem('ms_admin_token') || '',
-    username: localStorage.getItem('ms_admin_user') || '',
+    apiTarget: localStorage.getItem('ms_api_target') || 'local',
+    token: '',
+    username: '',
     products: [],
     categories: [],
     brands: [],
     vehicles: [],
     productFilter: { q: '', cat: '', brand: '', status: '', sort: 'name' },
     moveFilter: { q: '' },
+  }
+  // Migrate the old single token (it belonged to the local server).
+  if (localStorage.getItem('ms_admin_token') && !localStorage.getItem(tokenKey('local'))) {
+    localStorage.setItem(tokenKey('local'), localStorage.getItem('ms_admin_token'))
+    localStorage.setItem(userKey('local'), localStorage.getItem('ms_admin_user') || '')
+    localStorage.removeItem('ms_admin_token')
+    localStorage.removeItem('ms_admin_user')
+  }
+  state.token = localStorage.getItem(tokenKey()) || ''
+  state.username = localStorage.getItem(userKey()) || ''
+
+  function apiBase() {
+    return state.apiTarget === 'live' ? LIVE_BASE : '/api'
   }
 
   /* ---------- api ---------- */
@@ -33,13 +58,15 @@
     if (state.token) headers['x-admin-token'] = state.token
     let res
     try {
-      res = await fetch('/api' + path, { ...opts, headers })
+      res = await fetch(apiBase() + path, { ...opts, headers })
     } catch {
-      throw new Error('Cannot reach API server (is it running on port 4000?)')
+      throw new Error(
+        state.apiTarget === 'live' ? 'Cannot reach the live website API — check your connection.' : 'Cannot reach API server (is it running on port 4000?)',
+      )
     }
     if (res.status === 401 && path !== '/auth/login') {
       state.token = ''
-      localStorage.removeItem('ms_admin_token')
+      localStorage.removeItem(tokenKey())
       openLogin()
       throw new Error('AUTH_REQUIRED')
     }
@@ -200,8 +227,8 @@
     }
     state.token = data.token
     state.username = data.username
-    localStorage.setItem('ms_admin_token', data.token)
-    localStorage.setItem('ms_admin_user', data.username)
+    localStorage.setItem(tokenKey(), data.token)
+    localStorage.setItem(userKey(), data.username)
     $('#login-user').value = ''
     $('#login-pass').value = ''
     $('#login-pass2').value = ''
@@ -221,9 +248,40 @@
     }
     state.token = ''
     state.username = ''
-    localStorage.removeItem('ms_admin_token')
-    localStorage.removeItem('ms_admin_user')
+    localStorage.removeItem(tokenKey())
+    localStorage.removeItem(userKey())
     openLogin()
+  }
+
+  async function setApiTarget(t) {
+    if (t !== 'live' && t !== 'local') return
+    if (state.apiTarget === t) return
+    state.apiTarget = t
+    localStorage.setItem('ms_api_target', t)
+    state.token = localStorage.getItem(tokenKey()) || ''
+    state.username = localStorage.getItem(userKey()) || ''
+    paintApiTarget()
+    try {
+      await boot()
+    } catch (e) {
+      if (e.message !== 'AUTH_REQUIRED') toast(e.message, 'err')
+    }
+    render()
+    toast(t === 'live' ? 'Connected to the LIVE website database' : 'Connected to the LOCAL test database')
+  }
+
+  function paintApiTarget() {
+    document.querySelectorAll('[data-apitarget]').forEach((b) =>
+      b.classList.toggle('on', b.dataset.apitarget === state.apiTarget),
+    )
+    const badge = $('#api-target-badge')
+    if (badge) {
+      const live = state.apiTarget === 'live'
+      badge.textContent = live ? '● LIVE website' : '● Local test'
+      badge.classList.toggle('live', live)
+    }
+    const who = $('#who')
+    if (who) who.textContent = state.username ? `${state.username} · ${state.apiTarget === 'live' ? 'live site' : 'local'}` : ''
   }
 
   $('#login-go').addEventListener('click', submitLogin)
@@ -290,8 +348,7 @@
 
   async function boot() {
     await loadAll()
-    const who = $('#who')
-    if (who) who.textContent = state.username ? `Logged in as ${state.username}` : ''
+    paintApiTarget()
     setView(state.view)
     const conn = $('#conn')
     conn.innerHTML = '<span class="dot ok"></span>API connected'
@@ -310,5 +367,9 @@
 
   $('#logout').addEventListener('click', logout)
 
-  window.MS = { $, $$, ICON, state, api, loadAll, esc, money, fmtDate, catColor, stockTag, badgeTag, toast, openModal, closeModal, bindModalClose, setView, render, start, openLogin }
+  window.MS = { $, $$, ICON, state, api, apiBase, setApiTarget, paintApiTarget, loadAll, esc, money, fmtDate, catColor, stockTag, badgeTag, toast, openModal, closeModal, bindModalClose, setView, render, start, openLogin }
+
+  document.querySelectorAll('[data-apitarget]').forEach((b) =>
+    b.addEventListener('click', () => setApiTarget(b.dataset.apitarget)),
+  )
 })()
