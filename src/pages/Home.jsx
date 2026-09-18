@@ -159,6 +159,33 @@ function FeaturedParts() {
 
 function BrandSection() {
   const navigate = useNavigate()
+  const [paused, setPaused] = useState(false)
+  const items = Object.entries(carBrandLogos)
+  const go = (name) => navigate(`/shop?make=${encodeURIComponent(name)}`)
+  const renderRow = (keyPrefix) => (
+    <div className="brand-marquee-row" aria-hidden={keyPrefix !== 'a'}>
+      {items.map(([name, slug]) => (
+        <button
+          key={`${keyPrefix}-${name}`}
+          className="brand-marquee-item card"
+          onClick={() => go(name)}
+          tabIndex={keyPrefix !== 'a' ? -1 : undefined}
+        >
+          <img
+            className="brand-marquee-logo"
+            src={`/images/brands/${slug}.png`}
+            alt={`${name} logo`}
+            loading="lazy"
+            draggable={false}
+            onError={(e) => {
+              e.currentTarget.style.display = 'none'
+            }}
+          />
+          <span className="brand-marquee-name">{name}</span>
+        </button>
+      ))}
+    </div>
+  )
   return (
     <section className="sec">
       <div className="container">
@@ -166,25 +193,18 @@ function BrandSection() {
           <h2>Shop by Brand</h2>
           <Link to="/shop" className="sec-link">All brands <IconArrowRight width="14" height="14" /></Link>
         </div>
-        <div className="brand-grid">
-          {Object.entries(carBrandLogos).map(([name, slug]) => (
-            <button
-              key={name}
-              className="brand-tile card"
-              onClick={() => navigate(`/shop?make=${encodeURIComponent(name)}`)}
-            >
-              <img
-                className="brand-tile-logo"
-                src={`/images/brands/${slug}.svg`}
-                alt={`${name} logo`}
-                loading="lazy"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none'
-                }}
-              />
-              <span className="brand-tile-name">{name}</span>
-            </button>
-          ))}
+      </div>
+      <div
+        className={`brand-marquee ${paused ? 'paused' : ''}`}
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+        onTouchStart={() => setPaused(true)}
+        onTouchEnd={() => setPaused(false)}
+      >
+        <div className="brand-marquee-track">
+          {renderRow('a')}
+          {renderRow('b')}
+          {renderRow('c')}
         </div>
       </div>
     </section>
