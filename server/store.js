@@ -30,7 +30,7 @@ import {
   verifyEmailDomain,
 } from './customer-auth.js'
 import { userFromToken as adminUserFromToken, createSession as createAdminSession, destroySession as destroyAdminSession, hashPassword } from './auth.js'
-import { sendOtpMail, smtpConfigured } from './mail.js'
+import { sendOtpMail, sendContactMail, smtpConfigured } from './mail.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const uploadsDir = join(__dirname, 'public', 'uploads')
@@ -889,6 +889,43 @@ router.post('/orders/:id/cancel', async (req, res) => {
   await restockOrder(row._id)
 
   res.json(await orderDetail(req.params.id, token))
+})
+
+/* ---------- contact ---------- */
+
+const CONTACT_TO = String(process.env.CONTACT_TO || 'meiyarasanaarumani@gmail.com').trim()
+
+router.post('/contact', async (req, res) => {
+  try {
+    const name = String(req.body?.name ?? '').trim().slice(0, 80)
+    const email = String(req.body?.email ?? '').trim().toLowerCase().slice(0, 120)
+    const subject = String(req.body?.subject ?? 'Enquiry').trim().slice(0, 120) || 'Enquiry'
+    const message = String(req.body?.message ?? '').trim().slice(0, 5000)
+    if (!name) return res.status(400).json({ error: 'Please enter your name' })
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: 'Please enter a valid email address' })
+    }
+    if (!message) return res.status(400).json({ error: 'Please write a message' })
+
+    // Safety net: always stored, so no enquiry is ever lost.
+    const doc = { name, email, subject, message, emailed: false, created_at: now() }
+    const r = await db.contact_messages.insertOne({ _id: `cm-${Date.now().toString(36)}`, ...doc })
+
+    if (smtpConfigured()) {
+      try {
+        await sendContactMail({ to: CONTACT_TO, name, from: email, subject, message })
+        await db.contact_messages.updateOne({ _id: r.insertedId }, { $set: { emailed: true } })
+        return res.json({ ok: true, emailed: true })
+      } catch (err) {
+        console.error('[contact][mail]', err?.message || err)
+        return res.json({ ok: true, emailed: false })
+      }
+    }
+    return res.json({ ok: true, emailed: false })
+  } catch (err) {
+    console.error('[contact]', err?.message || err)
+    res.status(500).json({ error: 'Could not send your message — please try again or WhatsApp us' })
+  }
 })
 
 /* ---------- banner ---------- */
