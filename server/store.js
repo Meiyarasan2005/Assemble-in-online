@@ -947,11 +947,17 @@ router.put('/hero-slides', async (req, res) => {
   const slides = raw
     .filter((s) => s && typeof s.image === 'string' && s.image)
     .slice(0, 10)
-    .map((s, i) => ({
-      image: String(s.image).slice(0, 1500000),
-      active: s.active !== false,
-      sort_order: Number.isFinite(Number(s.sort_order)) ? Number(s.sort_order) : i,
-    }))
+    .map((s, i) => {
+      let link = typeof s.link === 'string' ? s.link.trim().slice(0, 200) : ''
+      // Only allow internal shop links — tap target for the banner.
+      if (!/^\/[a-z0-9\-_/?=&%#]*$/i.test(link)) link = '/shop'
+      return {
+        image: String(s.image).slice(0, 1500000),
+        link,
+        active: s.active !== false,
+        sort_order: Number.isFinite(Number(s.sort_order)) ? Number(s.sort_order) : i,
+      }
+    })
     .sort((a, b) => a.sort_order - b.sort_order)
   await db.site_settings.updateOne(
     { _id: 'hero-slides' },

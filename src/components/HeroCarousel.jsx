@@ -60,7 +60,7 @@ export default function HeroCarousel() {
         if (cancelled) return
         const list = Array.isArray(data?.slides) ? data.slides.filter((s) => s?.image && s.active !== false) : []
         if (list.length) {
-          setCustom(list.map((s, i) => ({ id: `custom-${i}`, image: s.image })))
+          setCustom(list.map((s, i) => ({ id: `custom-${i}`, image: s.image, link: s.link || '/shop' })))
           setIndex(0)
         }
       })
@@ -91,7 +91,7 @@ export default function HeroCarousel() {
           <div
             key={s.id}
             className="hero-carousel-slide"
-            onClick={() => navigate(custom ? '/shop' : `/shop?cat=${s.cat}`)}
+            onClick={() => navigate(custom ? (s.link || '/shop') : `/shop?cat=${s.cat}`)}
           >
             {custom ? null : (i === index ? <SlideContent s={s} navigate={navigate} /> : null)}
             <img className="hero-carousel-img" src={s.image} alt={custom ? `Banner slide ${i + 1}` : s.kicker} />
