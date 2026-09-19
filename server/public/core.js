@@ -282,6 +282,8 @@
     }
     const who = $('#who')
     if (who) who.textContent = state.username ? `${state.username} · ${state.apiTarget === 'live' ? 'live site' : 'local'}` : ''
+    const avatar = $('#top-user')
+    if (avatar) avatar.textContent = (state.username || 'A').slice(0, 1).toUpperCase()
   }
 
   $('#login-go').addEventListener('click', submitLogin)
@@ -296,7 +298,7 @@
   /* ---------- nav ---------- */
 
   const TITLES = {
-    dashboard: ['Dashboard', 'Store health & recent activity'],
+    dashboard: ['Home', 'Store health & recent activity'],
     products: ['Products', 'Catalogue, pricing and stock'],
     offers: ['Offers', 'Storefront promotions, pop-ups and banners'],
     banners: ['Banners', 'Homepage hero slides — upload an image and it goes live'],
@@ -366,6 +368,14 @@
   }
 
   $('#logout').addEventListener('click', logout)
+
+  // Shopify-style top search: jump to the product list filtered by the query.
+  $('#top-search')?.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return
+    e.preventDefault()
+    state.productFilter.q = e.target.value.trim()
+    setView('products')
+  })
 
   window.MS = { $, $$, ICON, state, api, apiBase, setApiTarget, paintApiTarget, loadAll, esc, money, fmtDate, catColor, stockTag, badgeTag, toast, openModal, closeModal, bindModalClose, setView, render, start, openLogin }
 
