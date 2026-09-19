@@ -532,6 +532,26 @@
   gap: 14px;
 }
 
+.contact-success,
+.contact-error {
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.contact-success {
+  background: #e3f1df;
+  color: #104e2c;
+  border: 1px solid #bfe3c8;
+}
+
+.contact-error {
+  background: #fdecea;
+  color: #a0330b;
+  border: 1px solid #f5c6bb;
+}
+
 .field {
   display: flex;
   flex-direction: column;

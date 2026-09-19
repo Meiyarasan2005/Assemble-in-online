@@ -42,6 +42,25 @@ export async function sendMail({ to, subject, text, html }) {
   })
 }
 
+export async function sendContactMail({ to, name, from, subject, message }) {
+  const safe = String(message ?? '').slice(0, 5000)
+  const subj = `[Website Contact] ${String(subject || 'Enquiry').slice(0, 120)} — ${String(name || '').slice(0, 80)}`
+  const text =
+    `New contact message from assembleonline.in\n\n` +
+    `Name: ${name}\nEmail: ${from}\nSubject: ${subject}\n\n${safe}\n\n` +
+    `Reply directly to ${from}.`
+  const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br />')
+  const html =
+    `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;padding:24px;border:1px solid #e5e7eb;border-radius:12px">` +
+    `<h2 style="margin:0 0 4px;color:#0c1016">New website enquiry</h2>` +
+    `<p style="margin:0 0 16px;color:#6b7280;font-size:13px">assembleonline.in contact form</p>` +
+    `<p style="font-size:14px;color:#111"><strong>Name:</strong> ${esc(name)}<br />` +
+    `<strong>Email:</strong> ${esc(from)}<br /><strong>Subject:</strong> ${esc(subject)}</p>` +
+    `<div style="background:#f3f4f6;border-radius:10px;padding:14px 16px;font-size:14px;color:#111">${esc(safe)}</div>` +
+    `<p style="color:#6b7280;font-size:12px">Reply directly to ${esc(from)}.</p></div>`
+  await sendMail({ to, subject: subj, text, html })
+}
+
 export async function sendOtpMail({ to, otp, expiresMinutes = 15 }) {
   const subject = 'OTP for your Assemble-on-line authentication'
   const text =

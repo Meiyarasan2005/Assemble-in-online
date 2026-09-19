@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { IconPhone, IconWhatsApp, IconMail } from '../components/icons'
+import { submitContact } from '../lib/api'
 
 const SUPPORT_EMAIL = 'support@assembleonline.in'
 const PHONE_DISPLAY = '+91 90033 44069'
@@ -18,19 +19,20 @@ function ContactCard({ icon, title, children }) {
 
 export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', subject: 'Enquiry', message: '' })
+  const [status, setStatus] = useState({ state: 'idle', msg: '' })
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    const body = [
-      `Name: ${form.name}`,
-      `Email: ${form.email}`,
-      '',
-      form.message,
-    ].join('\n')
-    const subject = encodeURIComponent(form.subject || 'Enquiry')
-    const mailBody = encodeURIComponent(body)
-    window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${mailBody}`
+    if (status.state === 'sending') return
+    setStatus({ state: 'sending', msg: '' })
+    try {
+      await submitContact(form)
+      setStatus({ state: 'sent', msg: 'Message received! We usually reply within a day.' })
+      setForm({ name: '', email: '', subject: 'Enquiry', message: '' })
+    } catch (err) {
+      setStatus({ state: 'error', msg: err.message || 'Could not send — please try again or reach us on WhatsApp.' })
+    }
   }
 
   return (
@@ -70,9 +72,8 @@ export default function Contact() {
             <div className="contact-info">
               <h2>Send us a message</h2>
               <p>
-                Fill in the form and we&rsquo;ll open your email app with the
-                message ready to send to {SUPPORT_EMAIL}. You can also reach us
-                instantly on WhatsApp.
+                Fill in the form and send — your message reaches us directly.
+                You can also reach us instantly on WhatsApp.
               </p>
               <ul className="contact-info-list">
                 <li><IconPhone width="16" height="16" /> {PHONE_DISPLAY}</li>
@@ -144,8 +145,18 @@ export default function Contact() {
                 />
               </div>
 
-              <button type="submit" className="btn btn-primary btn-block">
-                Send message
+              {status.state === 'sent' && (
+                <div className="contact-success" role="status">
+                  ✓ {status.msg}
+                </div>
+              )}
+              {status.state === 'error' && (
+                <div className="contact-error" role="alert">
+                  {status.msg}
+                </div>
+              )}
+              <button type="submit" className="btn btn-primary btn-block" disabled={status.state === 'sending'}>
+                {status.state === 'sending' ? 'Sending…' : 'Send message'}
               </button>
             </form>
           </div>

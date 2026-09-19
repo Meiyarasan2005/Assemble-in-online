@@ -244,6 +244,10 @@ export async function updateBanner(payload, token) {
   })
 }
 
+export async function submitContact(payload) {
+  return api('/contact', { method: 'POST', body: JSON.stringify(payload) })
+}
+
 export async function fetchHeroSlides() {
   return api('/hero-slides')
 }
