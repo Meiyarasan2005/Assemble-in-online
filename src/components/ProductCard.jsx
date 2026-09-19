@@ -111,11 +111,23 @@ export default function ProductCard({ product, compact = false }) {
           {product.name}
         </Link>
         <div className="pcard-price-row">
-          {isSeller ? (
-            <InlineEdit value={price} prefix="&#8377;" onSave={(v) => handleSave('price', v)} className="pcard-price" />
-          ) : null}
-          {isSeller && save > 0 && (
-            <InlineEdit value={mrp} prefix="MRP &#8377;" onSave={(v) => handleSave('mrp', v)} className="pcard-mrp" />
+          {Number(price) > 0 ? (
+            <>
+              {isSeller ? (
+                <InlineEdit value={price} prefix="&#8377;" onSave={(v) => handleSave('price', v)} className="pcard-price" />
+              ) : (
+                <span className="pcard-price">₹{Number(price).toLocaleString('en-IN')}</span>
+              )}
+              {save > 0 && (
+                isSeller ? (
+                  <InlineEdit value={mrp} prefix="MRP &#8377;" onSave={(v) => handleSave('mrp', v)} className="pcard-mrp" />
+                ) : (
+                  <span className="pcard-mrp">MRP ₹{Number(mrp).toLocaleString('en-IN')}</span>
+                )
+              )}
+            </>
+          ) : (
+            <span className="pcard-price">Price on request</span>
           )}
         </div>
         {isSeller && (

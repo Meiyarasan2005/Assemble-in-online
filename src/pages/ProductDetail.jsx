@@ -281,13 +281,20 @@ export default function ProductDetail() {
             </div>
           )}
 
-          {isSeller && (
           <div className="pd-price-section">
             <div className="pd-price-row">
-              <span className="pd-price">{formatINR(sellerField('price'))}</span>
+              {Number(sellerField('price')) > 0 ? (
+                <>
+                  <span className="pd-price">{formatINR(sellerField('price'))}</span>
+                  {Number(sellerField('mrp')) - Number(sellerField('price')) > 0 && (
+                    <span className="pd-mrp">MRP <del>{formatINR(sellerField('mrp'))}</del></span>
+                  )}
+                </>
+              ) : (
+                <span className="pd-price">Price on request</span>
+              )}
             </div>
           </div>
-          )}
 
           <div className="pd-delivery-section">
             <h3>Delivery</h3>
