@@ -54,7 +54,8 @@ export async function nextId(seq) {
     { $inc: { value: 1 } },
     { upsert: true, returnDocument: 'after' },
   )
-  return r.value.value
+  // mongodb driver v5 returns { value: <doc> }; v6+ returns the doc itself.
+  return r?.value?.value ?? r?.value
 }
 
 /** Normalize a Mongo doc to the API shape: `_id` -> `id`. */

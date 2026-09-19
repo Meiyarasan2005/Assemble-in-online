@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { ObjectId } from 'mongodb'
 import { randomUUID } from 'node:crypto'
 import { db, now, nextId, docOut, docsOut, escapeRegExp, reseed, withTx } from './db.js'
 import { createUser, verifyPassword, createSession, destroySession, userFromToken } from './auth.js'
@@ -123,15 +124,18 @@ router.post('/users', async (req, res) => {
 })
 
 router.delete('/users/:id', async (req, res) => {
-  const id = Number(req.params.id)
-  const target = await db.users.findOne({ _id: id })
+  const raw = String(req.params.id ?? '')
+  // Legacy numeric ids, or ObjectId-string ids (created while nextId misread the driver response).
+  let target = null
+  if (/^\d+$/.test(raw)) target = await db.users.findOne({ _id: Number(raw) })
+  if (!target && ObjectId.isValid(raw)) target = await db.users.findOne({ _id: new ObjectId(raw) })
   if (!target) return res.status(404).json({ error: 'User not found' })
   const current = await userFromToken(adminToken(req))
-  if (current && current.id === id) {
+  if (current && String(current.id) === String(target._id)) {
     return res.status(400).json({ error: 'You cannot delete the account you are logged in with' })
   }
-  await db.users.deleteOne({ _id: id })
-  await db.sessions.deleteMany({ user_id: id })
+  await db.users.deleteOne({ _id: target._id })
+  await db.sessions.deleteMany({ user_id: target._id })
   res.json({ ok: true })
 })
 
