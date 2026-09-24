@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { IconWhatsApp } from './icons'
 
-const PHONE = '9003344069'
+const PHONE = '919003344069'
 const WHATSAPP_LINK = `https://wa.me/${PHONE}`
 const DEFAULT_MSG = encodeURIComponent(
-  'Hello SPAREXPRESS, I need help with a spare part.',
+  'Hello Assemble-on-line, I need help with a spare part.',
 )
 
 export default function WhatsAppChat() {
@@ -43,7 +43,7 @@ export default function WhatsAppChat() {
               <IconWhatsApp width="20" height="20" />
             </div>
             <div className="wa-chat-head-info">
-              <strong>SPAREXPRESS Support</strong>
+              <strong>Assemble-on-line Support</strong>
               <span>Typically replies within minutes</span>
             </div>
             <button className="wa-chat-close" onClick={() => setOpen(false)} aria-label="Close chat">

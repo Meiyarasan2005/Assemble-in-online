@@ -23,7 +23,7 @@ export default function Footer() {
               </span>
               <span>
                 <IconWhatsApp width="14" height="14" />{' '}
-                <a href="https://wa.me/9003344069" target="_blank" rel="noreferrer">
+                <a href="https://wa.me/919003344069" target="_blank" rel="noreferrer">
                   WhatsApp: 90033 44069
                 </a>
               </span>

@@ -5,7 +5,7 @@ import { submitContact } from '../lib/api'
 const SUPPORT_EMAIL = 'support@assembleonline.in'
 const PHONE_DISPLAY = '+91 90033 44069'
 const PHONE_TEL = '+919003344069'
-const WHATSAPP = 'https://wa.me/9003344069'
+const WHATSAPP = 'https://wa.me/919003344069'
 
 function ContactCard({ icon, title, children }) {
   return (
@@ -78,7 +78,7 @@ export default function Contact() {
               <ul className="contact-info-list">
                 <li><IconPhone width="16" height="16" /> {PHONE_DISPLAY}</li>
                 <li><IconMail width="16" height="16" /> {SUPPORT_EMAIL}</li>
-                <li><IconWhatsApp width="16" height="16" /> WhatsApp: {WHATSAPP.replace('https://wa.me/', '+91 ').replace(/^\+911?0?/, '')}</li>
+                <li><IconWhatsApp width="16" height="16" /> WhatsApp: 90033 44069</li>
               </ul>
               <a
                 className="btn btn-primary"

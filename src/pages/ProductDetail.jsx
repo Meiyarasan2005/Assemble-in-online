@@ -360,7 +360,7 @@ export default function ProductDetail() {
             </a>
             <a
               className="btn pd-btn-wa"
-              href={`https://wa.me/9003344069?text=${encodeURIComponent(`Hi, I'm interested in this part: ${product.name} (${product.partNo})`)}`}
+              href={`https://wa.me/919003344069?text=${encodeURIComponent(`Hi, I'm interested in this part: ${product.name} (${product.partNo})`)}`}
               target="_blank"
               rel="noreferrer"
             >
