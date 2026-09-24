@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { IconPhone, IconWhatsApp, IconMail } from '../components/icons'
 import { submitContact } from '../lib/api'
 
-const SUPPORT_EMAIL = 'support@assembleonline.in'
+const SUPPORT_EMAIL = 'assembleonlinesupport@gmail.com'
 const PHONE_DISPLAY = '+91 90033 44069'
 const PHONE_TEL = '+919003344069'
 const WHATSAPP = 'https://wa.me/919003344069'

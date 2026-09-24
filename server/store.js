@@ -893,7 +893,7 @@ router.post('/orders/:id/cancel', async (req, res) => {
 
 /* ---------- contact ---------- */
 
-const CONTACT_TO = String(process.env.CONTACT_TO || 'meiyarasanaarumani@gmail.com').trim()
+const CONTACT_TO = String(process.env.CONTACT_TO || 'assembleonlinesupport@gmail.com').trim()
 
 router.post('/contact', async (req, res) => {
   try {

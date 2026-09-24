@@ -111,7 +111,7 @@ export function buildInvoiceHtml(order) {
   </table>
 
   <div class="foot">
-    <strong>Declaration:</strong> This is a computer-generated tax invoice. All parts supplied are new / certified pre-owned as marked and are covered by the Assemble-on-line warranty at the time of dispatch. For support call +91 90033 44069 or write to billing@assembleonline.in.
+    <strong>Declaration:</strong> This is a computer-generated tax invoice. All parts supplied are new / certified pre-owned as marked and are covered by the Assemble-on-line warranty at the time of dispatch. For support call +91 90033 44069 or write to assembleonlinesupport@gmail.com.
   </div>
 </body>
 </html>`
