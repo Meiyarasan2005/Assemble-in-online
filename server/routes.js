@@ -536,6 +536,20 @@ router.get('/orders/:id', async (req, res) => {
   res.json(order)
 })
 
+/* ---------- contact messages (admin inbox) ---------- */
+
+router.get('/messages', async (req, res) => {
+  const limit = Math.min(Number(req.query.limit) || 100, 500)
+  const rows = await db.contact_messages.find({}).sort({ created_at: -1 }).limit(limit).toArray()
+  res.json({ total: rows.length, items: rows })
+})
+
+router.delete('/messages/:id', async (req, res) => {
+  const r = await db.contact_messages.deleteOne({ _id: String(req.params.id) })
+  if (!r.deletedCount) return res.status(404).json({ error: 'Message not found' })
+  res.json({ ok: true })
+})
+
 router.put('/orders/:id/status', async (req, res) => {
   const { id } = req.params
   const row = await db.orders.findOne({ _id: id })

@@ -305,6 +305,7 @@
     movements: ['Stock log', 'Every inbound / outbound movement'],
     orders: ['Orders', 'Customer orders, payments and fulfilment'],
     customers: ['Customers', 'Storefront accounts and spending'],
+    messages: ['Enquiries', 'Contact-form messages, newest first'],
     categories: ['Categories', 'Organise the catalogue'],
     vehicles: ['Vehicles', 'Fitment database'],
     users: ['Users', 'Admin accounts'],
@@ -338,6 +339,7 @@
       if (v === 'movements') await window.MS.renderMovements()
       if (v === 'orders') await window.MS.renderOrders()
       if (v === 'customers') await window.MS.renderCustomers()
+      if (v === 'messages') await window.MS.renderMessages()
       if (v === 'categories') window.MS.renderCategories()
       if (v === 'vehicles') window.MS.renderVehicles()
       if (v === 'users') window.MS.renderUsers()
