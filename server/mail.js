@@ -61,6 +61,26 @@ export async function sendContactMail({ to, name, from, subject, message }) {
   await sendMail({ to, subject: subj, text, html })
 }
 
+export function contactFrom() {
+  return String(process.env.CONTACT_FROM || process.env.SMTP_FROM || 'assembleonlinesupport@gmail.com').trim()
+}
+
+export async function sendReplyMail({ to, name, subject, message }) {
+  const safe = String(message ?? '').slice(0, 5000)
+  const subj = `Re: ${String(subject || 'your enquiry').slice(0, 120)} — Assemble-on-line`
+  const text = `Hi ${name || 'there'},\n\n${safe}\n\nRegards,\nAssemble-on-line team\nassembleonlinesupport@gmail.com`
+  const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br />')
+  const html =
+    `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;padding:24px;border:1px solid #e5e7eb;border-radius:12px">` +
+    `<h2 style="margin:0 0 4px;color:#0c1016">Assemble-on-line</h2>` +
+    `<p style="margin:0 0 16px;color:#6b7280;font-size:13px">Reply to your enquiry: ${esc(subject)}</p>` +
+    `<p style="font-size:14px;color:#111">Hi ${esc(name || 'there')},</p>` +
+    `<div style="background:#f3f4f6;border-radius:10px;padding:14px 16px;font-size:14px;color:#111">${esc(safe)}</div>` +
+    `<p style="color:#6b7280;font-size:12px">Regards,<br />Assemble-on-line team<br />assembleonlinesupport@gmail.com</p></div>`
+  const c = { from: contactFrom() }
+  await getTransporter().sendMail({ from: `Assemble-on-line <${c.from}>`, to, subject: subj, text, html, replyTo: c.from })
+}
+
 export async function sendOtpMail({ to, otp, expiresMinutes = 15 }) {
   const subject = 'OTP for your Assemble-on-line authentication'
   const text =

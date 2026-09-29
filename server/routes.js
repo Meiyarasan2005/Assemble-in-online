@@ -3,6 +3,7 @@ import { ObjectId } from 'mongodb'
 import { randomUUID } from 'node:crypto'
 import { db, now, nextId, docOut, docsOut, escapeRegExp, reseed, withTx } from './db.js'
 import { createUser, verifyPassword, createSession, destroySession, userFromToken } from './auth.js'
+import { sendReplyMail, smtpConfigured, contactFrom } from './mail.js'
 import {
   adminOrderDetail,
   appendOrderEvent,
@@ -548,6 +549,27 @@ router.delete('/messages/:id', async (req, res) => {
   const r = await db.contact_messages.deleteOne({ _id: String(req.params.id) })
   if (!r.deletedCount) return res.status(404).json({ error: 'Message not found' })
   res.json({ ok: true })
+})
+
+router.post('/messages/:id/reply', async (req, res) => {
+  const m = await db.contact_messages.findOne({ _id: String(req.params.id) })
+  if (!m) return res.status(404).json({ error: 'Message not found' })
+  const message = String(req.body?.message ?? '').trim().slice(0, 5000)
+  if (!message) return res.status(400).json({ error: 'Please write a reply' })
+  if (!smtpConfigured()) {
+    return res.status(400).json({ error: 'Email sending is not set up yet (SMTP) — reply from your inbox for now' })
+  }
+  try {
+    await sendReplyMail({ to: m.email, name: m.name, subject: m.subject, message })
+    await db.contact_messages.updateOne(
+      { _id: m._id },
+      { $set: { replied: true, replied_at: now(), reply_from: contactFrom() } },
+    )
+    res.json({ ok: true, from: contactFrom() })
+  } catch (err) {
+    console.error('[reply]', err?.message || err)
+    res.status(502).json({ error: 'Could not send the reply — please try again' })
+  }
 })
 
 router.put('/orders/:id/status', async (req, res) => {
