@@ -568,8 +568,14 @@ router.post('/messages/:id/reply', async (req, res) => {
     res.json({ ok: true, from: contactFrom() })
   } catch (err) {
     console.error('[reply]', err?.message || err)
-    res.status(502).json({ error: 'Could not send the reply — please try again' })
+    // Admin-only route: surface the provider's reason so the owner can fix credentials.
+    const reason = String(err?.message || 'mail server error').replace(/\s+/g, ' ').slice(0, 200)
+    res.status(502).json({ error: `Could not send: ${reason}` })
   }
+})
+
+router.get('/email-status', async (_req, res) => {
+  res.json({ smtp: smtpConfigured(), from: contactFrom() })
 })
 
 router.put('/orders/:id/status', async (req, res) => {
