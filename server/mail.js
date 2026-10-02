@@ -78,7 +78,8 @@ export async function sendReplyMail({ to, name, subject, message }) {
     `<div style="background:#f3f4f6;border-radius:10px;padding:14px 16px;font-size:14px;color:#111">${esc(safe)}</div>` +
     `<p style="color:#6b7280;font-size:12px">Regards,<br />Assemble-on-line team<br />assembleonlinesupport@gmail.com</p></div>`
   const c = { from: contactFrom() }
-  await getTransporter().sendMail({ from: `Assemble-on-line <${c.from}>`, to, subject: subj, text, html, replyTo: c.from })
+  const transporter = await getTransporter()
+  await transporter.sendMail({ from: `Assemble-on-line <${c.from}>`, to, subject: subj, text, html, replyTo: c.from })
 }
 
 export async function sendOtpMail({ to, otp, expiresMinutes = 15 }) {
